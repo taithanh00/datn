@@ -1,0 +1,15 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Chào mừng, <strong>@ViewBag.Username</strong> (@ViewBag.Role)</h2>
+
+        <form method="post" action="/Auth/Logout">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger">Đăng xuất</button>
+        </form>
+    </div>
+</div>
