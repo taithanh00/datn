@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "ContainingType": "datn.Controllers.AdminController",
+    "Method": "CreateTestAccounts",
+    "RelativePath": "api/Admin/test",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "datn.Controllers.AdminController",
+    "Method": "GetTestInfo",
+    "RelativePath": "api/Admin/test",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]

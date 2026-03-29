@@ -18,8 +18,6 @@ namespace datn.Controllers
             _jwtService = jwtService;
             _config = config;
         }
-
-        // GET: /Auth/Login
         [HttpGet]
         public IActionResult Login()
         {
@@ -28,57 +26,62 @@ namespace datn.Controllers
 
             return View();
         }
-
-
-        // POST: /Auth/Login
+        // LOGIN
         [HttpPost]
         public async Task<IActionResult> Login(string username, string password)
         {
-            // Tìm account kèm Role
+            // Tìm account trong DB kèm theo Role của nó
             var account = await _context.Accounts
                 .Include(a => a.Role)
                 .FirstOrDefaultAsync(a => a.Username == username && a.IsActive);
 
+            // Kiểm tra account có tồn tại và mật khẩu có đúng không -> nếu không, trả về lỗi đăng nhập cho người dùng
             if (account == null || !BCrypt.Net.BCrypt.Verify(password, account.PasswordHash))
             {
                 ViewBag.Error = "Tên đăng nhập hoặc mật khẩu không đúng";
                 return View();
             }
-
-            // Tạo Access Token
+            // nếu có, tạo JWT Access Token và Refresh Token, lưu vào cookie, chuyển hướng về trang chủ
+            // Tạo access token:
             var accessToken = _jwtService.GenerateAccessToken(account);
 
-            // Tạo Refresh Token và lưu vào DB
+            // Tạo refresh token: 
             var refreshToken = new RefreshToken
             {
                 AccountId = account.Id,
                 Token = _jwtService.GenerateRefreshToken(),
                 ExpiresAt = DateTime.UtcNow.AddDays(
-                    int.Parse(_config["JwtSettings:RefreshTokenExpiryDays"]))
+                    int.Parse(_config["JwtSettings:RefreshTokenExpiryDays"])),
+                CreatedAt = DateTime.UtcNow
             };
             _context.RefreshTokens.Add(refreshToken);
             await _context.SaveChangesAsync();
 
-            // Lưu token vào HttpOnly Cookie
+            // Cấu hình cookie cho Access Token:
+            // - HttpOnly = true: JavaScript không thể truy cập (chống XSS)
+            // - Secure = false: để phát triển, nên đặt true khi deploy HTTPS
+            // - SameSite = Strict: chỉ gửi cookie với same-site requests (chống CSRF)
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = false, // để true khi deploy HTTPS
+                Secure = false,
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTime.UtcNow.AddMinutes(
                     int.Parse(_config["JwtSettings:AccessTokenExpiryMinutes"]))
             };
 
+            // Lưu Access Token vào cookie
             Response.Cookies.Append("access_token", accessToken, cookieOptions);
 
-
+            // Cập nhật thời hạn của cookie để match với Refresh Token (lâu hơn)
             cookieOptions.Expires = refreshToken.ExpiresAt;
 
+            // Lưu Refresh Token vào cookie
             Response.Cookies.Append("refresh_token", refreshToken.Token, cookieOptions);
             return RedirectToAction("Index", "Home");
         }
 
-        // POST: /Auth/Logout
+        // LOGOUT
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
@@ -86,19 +89,22 @@ namespace datn.Controllers
 
             if (!string.IsNullOrEmpty(refreshToken))
             {
-                // Thu hồi token trong DB
+                // Tìm Refresh Token trong DB
                 var token = await _context.RefreshTokens
                     .FirstOrDefaultAsync(r => r.Token == refreshToken);
 
                 if (token != null)
                 {
+                    // Đánh dấu token là bị thu hồi (không thể dùng được nữa)
                     token.IsRevoked = true;
                     await _context.SaveChangesAsync();
                 }
             }
 
+            // Xóa các cookie chứa token
             Response.Cookies.Delete("access_token");
             Response.Cookies.Delete("refresh_token");
+            // Chuyển hướng về trang Login sau khi đăng xuất
             return RedirectToAction("Login");
         }
     }

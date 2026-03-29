@@ -1,0 +1,257 @@
+@{
+    var username = ViewBag.Username as string ?? "User";
+    var role = Model as string ?? ViewBag.Role as string ?? "";
+    var initial = username.Length > 0 ? username[0].ToString().ToUpper() : "U";
+    var pageTitle = ViewData["Title"]?.ToString() ?? "Dashboard";
+}
+@{
+
+}
+<!-- SIDEBAR / LEFT MENU -->
+<aside class="sidebar">
+    <!-- Logo Section -->
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <div class="logo-icon">🌸</div>
+            <div class="logo-text">
+                <div class="logo-title">Sen Hồng</div>
+                <div class="logo-subtitle">Kindergarten</div>
+            </div>
+        </div>
+        <button class="sidebar-toggle-mobile" id="sidebarToggleMobile">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- User Section -->
+    <div class="sidebar-user">
+        <div class="user-avatar">@initial</div>
+        <div class="user-info">
+            <div class="user-name">@username</div>
+            <div class="user-role">
+                @if (role == "Manager")
+                {
+                    <span class="role-badge manager">👔 Quản lý</span>
+                }
+                else if (role == "Employee")
+                {
+                    <span class="role-badge employee">👨‍🏫 Giáo viên</span>
+                }
+                else if (role == "Parent")
+                {
+                    <span class="role-badge parent">👨‍👩‍👧‍👦 Phụ huynh</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-nav">
+        <!-- Common menu for all roles -->
+        <div class="nav-section">
+            <div class="nav-section-label">Tổng quan</div>
+            <a href="/Home/Index" 
+               class="nav-item @(pageTitle == "Dashboard" ? "active" : "")"
+               title="Dashboard">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="nav-label">Dashboard</span>
+            </a>
+        </div>
+
+        <!-- Manager Menu -->
+        @if (role == "Manager")
+        {
+            <!-- Quản lý Nhân sự -->
+            <div class="nav-section">
+                <div class="nav-section-label">Quản lý Nhân sự</div>
+                
+                <a href="/Manager/Employees" 
+                   class="nav-item @(pageTitle == "Danh sách Giáo viên" ? "active" : "")"
+                   title="Quản lý Giáo viên">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="nav-label">Giáo viên</span>
+                </a>
+
+                <a href="/Manager/Students" 
+                   class="nav-item @(pageTitle == "Danh sách Học sinh" ? "active" : "")"
+                   title="Quản lý Học sinh">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 6.253v13m0-13C6.248 6.089 2 7.324 2 12.972v6.278c0 .977 4.248 2.212 10 2.212s10-1.235 10-2.212v-6.278c0-5.648-4.248-6.883-10-7.019m0 13V6.253m0 13c5.752.192 10 1.424 10 2.972m0-13c-5.752-.192-10-1.424-10-2.972"/>
+                    </svg>
+                    <span class="nav-label">Học sinh</span>
+                </a>
+            </div>
+
+            <!-- Quản lý Hệ thống -->
+            <div class="nav-section">
+                <div class="nav-section-label">Cài đặt Hệ thống</div>
+                
+                <a href="/Manager/Accounts" 
+                   class="nav-item @(pageTitle == "Tài khoản" ? "active" : "")"
+                   title="Quản lý Tài khoản">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="nav-label">Tài khoản</span>
+                </a>
+
+                <a href="/Manager/Classes" 
+                   class="nav-item @(pageTitle == "Lớp học" ? "active" : "")"
+                   title="Quản lý Lớp học">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.581m0 0H9m11.581 0L9 8.986"/>
+                    </svg>
+                    <span class="nav-label">Lớp học</span>
+                </a>
+            </div>
+        }
+
+        <!-- Employee Menu -->
+        @if (role == "Employee")
+        {
+            <!-- Cá nhân -->
+            <div class="nav-section">
+                <div class="nav-section-label">Cá nhân</div>
+                
+                <a href="/Employee/Profile" 
+                   class="nav-item @(pageTitle == "Thông tin cá nhân" ? "active" : "")"
+                   title="Thông tin cá nhân">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    <span class="nav-label">Thông tin cá nhân</span>
+                </a>
+
+                <a href="/Employee/WorkSchedule" 
+                   class="nav-item @(pageTitle == "Lịch làm việc" ? "active" : "")"
+                   title="Lịch làm việc">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="nav-label">Lịch làm việc</span>
+                </a>
+            </div>
+
+            <!-- Công việc -->
+            <div class="nav-section">
+                <div class="nav-section-label">Công việc</div>
+                
+                <a href="/Employee/Classes" 
+                   class="nav-item @(pageTitle == "Lớp của tôi" ? "active" : "")"
+                   title="Lớp của tôi">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 6.253v13m0-13C6.248 6.089 2 7.324 2 12.972v6.278c0 .977 4.248 2.212 10 2.212s10-1.235 10-2.212v-6.278c0-5.648-4.248-6.883-10-7.019m0 13V6.253m0 13c5.752.192 10 1.424 10 2.972m0-13c-5.752-.192-10-1.424-10-2.972"/>
+                    </svg>
+                    <span class="nav-label">Lớp của tôi</span>
+                </a>
+
+                <a href="/Employee/Attendance" 
+                   class="nav-item @(pageTitle == "Điểm danh" ? "active" : "")"
+                   title="Điểm danh">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                    </svg>
+                    <span class="nav-label">Điểm danh</span>
+                </a>
+            </div>
+        }
+
+        <!-- Parent Menu -->
+        @if (role == "Parent")
+        {
+            <!-- Con tôi -->
+            <div class="nav-section">
+                <div class="nav-section-label">Con tôi</div>
+                
+                <a href="/Parent/Children" 
+                   class="nav-item @(pageTitle == "Thông tin con" ? "active" : "")"
+                   title="Thông tin con">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <span class="nav-label">Thông tin con</span>
+                </a>
+
+                <a href="/Parent/AttendanceReport" 
+                   class="nav-item @(pageTitle == "Báo cáo Điểm danh" ? "active" : "")"
+                   title="Báo cáo Điểm danh">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span class="nav-label">Báo cáo Điểm danh</span>
+                </a>
+            </div>
+
+            <!-- Học tập -->
+            <div class="nav-section">
+                <div class="nav-section-label">Học tập</div>
+                
+                <a href="/Parent/StudyReports" 
+                   class="nav-item @(pageTitle == "Báo cáo Học tập" ? "active" : "")"
+                   title="Báo cáo Học tập">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 6.253v13m0-13C6.248 6.089 2 7.324 2 12.972v6.278c0 .977 4.248 2.212 10 2.212s10-1.235 10-2.212v-6.278c0-5.648-4.248-6.883-10-7.019m0 13V6.253m0 13c5.752.192 10 1.424 10 2.972m0-13c-5.752-.192-10-1.424-10-2.972"/>
+                    </svg>
+                    <span class="nav-label">Báo cáo Học tập</span>
+                </a>
+
+                <a href="/Parent/Assignments" 
+                   class="nav-item @(pageTitle == "Bài tập" ? "active" : "")"
+                   title="Bài tập">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <span class="nav-label">Bài tập</span>
+                </a>
+            </div>
+
+            <!-- Tài chính -->
+            <div class="nav-section">
+                <div class="nav-section-label">Tài chính</div>
+                
+                <a href="/Parent/Tuition" 
+                   class="nav-item @(pageTitle == "Học phí" ? "active" : "")"
+                   title="Học phí">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="nav-label">Học phí</span>
+                </a>
+            </div>
+        }
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+        <div class="footer-info">
+            <p>v1.0.0</p>
+        </div>
+    </div>
+</aside>
+
+<script>
+    // Toggle sidebar on mobile
+    document.getElementById('sidebarToggleMobile')?.addEventListener('click', function() {
+        document.querySelector('.sidebar')?.classList.toggle('mobile-open');
+    });
+</script>

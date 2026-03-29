@@ -16,4 +16,19 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\css\components\" />
+    <Folder Include="wwwroot\css\layouts\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\css\base\reset.css" />
+    <None Include="wwwroot\css\base\typography.css" />
+    <None Include="wwwroot\css\pages\login.css" />
+    <None Include="wwwroot\images\lion_blue.png" />
+    <None Include="wwwroot\images\lion_orange.png" />
+    <None Include="wwwroot\images\lion_yellow.png" />
+    <None Include="wwwroot\js\pages\login.js" />
+  </ItemGroup>
+
 </Project>
