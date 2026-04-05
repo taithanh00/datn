@@ -77,17 +77,16 @@ builder.Services.AddHostedService<TokenCleanupService>();               // Dịc
 
 var app = builder.Build();
 
-// ===== MIDDLEWARE =====
-// Middleware xử lý refresh token tự động khi access token hết hạn
+// Middleware
 app.UseMiddleware<RefreshTokenMiddleware>();
 
-// Phục vụ các file tĩnh (JS, CSS, ảnh từ wwwroot)
+// JS, CSS
 app.UseStaticFiles();
 
-// Xác thực & Phân quyền (PHẢI có thứ tự này)
-app.UseAuthentication();  // Xác thực user (kiểm tra JWT token)
-app.UseAuthorization();   // Phân quyền (kiểm tra role/permission)
+// Authentication / Authorization
+app.UseAuthentication();  // Authentication
+app.UseAuthorization();   // Authorization
 
-// Định tuyến controller
+// Map route
 app.MapDefaultControllerRoute();
 app.Run();

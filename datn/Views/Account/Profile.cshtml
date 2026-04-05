@@ -1,0 +1,143 @@
+@model datn.Controllers.ProfileViewModel
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    var isEmployee = Model?.Role == "Employee";
+    var isParent = Model?.Role == "Parent";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/profile.css" asp-append-version="true" />
+}
+
+<div class="dashboard-card">
+    <div class="card-header">
+        <h2 style="margin: 0;">📋 Thông tin cá nhân</h2>
+    </div>
+
+    <div class="card-body">
+        <!-- Success Message -->
+        @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage))
+        {
+            <div class="alert alert-success" style="margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span>@ViewBag.SuccessMessage</span>
+                </div>
+            </div>
+        }
+
+        <!-- Error Message -->
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+        {
+            <div class="alert alert-error" style="margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                    <span>@ViewBag.ErrorMessage</span>
+                </div>
+            </div>
+        }
+
+        <!-- Profile Form -->
+        <form method="post" class="profile-form">
+            <!-- User Role Info Section -->
+            <div class="profile-section">
+                <h3>🔐 Thông tin tài khoản</h3>
+                
+                <div class="form-group">
+                    <label for="username">Tên đăng nhập</label>
+                    <input type="text" id="username" value="@Model?.Username" disabled class="form-control-disabled" />
+                    <small>Tên đăng nhập không thể thay đổi</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Vai trò</label>
+                    <input type="text" id="role" value="@(isEmployee ? "Giáo viên" : isParent ? "Phụ huynh" : "Quản lý")" disabled class="form-control-disabled" />
+                </div>
+            </div>
+
+            <!-- Contact Info Section -->
+            <div class="profile-section">
+                <h3>📧 Thông tin liên hệ</h3>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="Email" value="@Model?.Email" class="form-control" />
+                </div>
+            </div>
+
+            <!-- Employee Specific Info -->
+            @if (isEmployee)
+            {
+                <div class="profile-section">
+                    <h3>👨‍🏫 Thông tin giáo viên</h3>
+
+                    <div class="form-group">
+                        <label for="fullname">Họ và tên</label>
+                        <input type="text" id="fullname" name="FullName" value="@Model?.Employee?.FullName" class="form-control" placeholder="Nhập họ và tên" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Số điện thoại</label>
+                        <input type="tel" id="phone" name="Phone" value="@Model?.Employee?.Phone" class="form-control" placeholder="Nhập số điện thoại" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="position">Vị trí công việc</label>
+                        <input type="text" id="position" name="Position" value="@Model?.Employee?.Position" class="form-control" placeholder="Nhập vị trí công việc" />
+                    </div>
+                </div>
+            }
+
+            <!-- Parent Specific Info -->
+            @if (isParent)
+            {
+                <div class="profile-section">
+                    <h3>👨‍👩‍👧‍👦 Thông tin phụ huynh</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstname">Tên</label>
+                            <input type="text" id="firstname" name="FirstName" value="@Model?.Parent?.FirstName" class="form-control" placeholder="Nhập tên" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lastname">Họ</label>
+                            <input type="text" id="lastname" name="LastName" value="@Model?.Parent?.LastName" class="form-control" placeholder="Nhập họ" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone-parent">Số điện thoại</label>
+                        <input type="tel" id="phone-parent" name="Phone" value="@Model?.Parent?.Phone" class="form-control" placeholder="Nhập số điện thoại" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Địa chỉ</label>
+                        <textarea id="address" name="Address" class="form-control" rows="3" placeholder="Nhập địa chỉ">@Model?.Parent?.Address</textarea>
+                    </div>
+                </div>
+            }
+
+            <!-- Action Buttons -->
+            <div class="profile-actions">
+                <button type="submit" class="btn-save">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.3A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
+                    </svg>
+                    Lưu thay đổi
+                </button>
+                <a href="/Home/Index" class="btn-cancel">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    Hủy
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
