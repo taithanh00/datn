@@ -1,0 +1,254 @@
+@{
+    Layout = "_DashboardLayout";
+    var selectedClassId = ViewBag.SelectedClassId as int?;
+}
+
+<style>
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    .ranking-select {
+        min-width: 150px;
+    }
+    .comment-area {
+        min-width: 300px;
+        resize: vertical;
+    }
+</style>
+
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="mt-4">Đánh giá học sinh hàng tháng</h1>
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="Classes">Lớp của tôi</a></li>
+                <li class="breadcrumb-item active">Đánh giá học sinh</li>
+            </ol>
+        </div>
+        <div class="text-end">
+            <p class="mb-0 text-muted">Tháng hiện tại: <strong>Tháng @DateTime.Now.Month / @DateTime.Now.Year</strong></p>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Chọn lớp học</label>
+                    <select class="form-select" id="classSelect" onchange="loadStudents()">
+                        <option value="">-- Chọn lớp học --</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Chọn Tháng</label>
+                    <select id="reportMonth" class="form-select" onchange="loadStudents()">
+                        @for (int i = 1; i <= 12; i++)
+                        {
+                            var isSelMonth = DateTime.Now.Month == i;
+                            <option value="@i" selected="@isSelMonth">Tháng @i</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold">Chọn Năm</label>
+                    <select id="reportYear" class="form-select" onchange="loadStudents()">
+                        @for (int i = 2025; i <= 2027; i++)
+                        {
+                            var isSelYear = DateTime.Now.Year == i;
+                            <option value="@i" selected="@isSelYear">@i</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-5 text-end">
+                    <button class="btn btn-primary px-4" onclick="submitReports()" id="btnSave" style="display: none;">
+                        <i class="fas fa-save me-1"></i> Lưu toàn bộ đánh giá
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="reportContent">
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-clipboard-check fa-3x mb-3 opacity-25"></i>
+                    <p>Vui lòng chọn lớp học để thực hiện đánh giá học sinh</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var currentClassId = '@(selectedClassId ?? 0)';
+        var rankings = [];
+
+        $(document).ready(function () {
+            loadRankings().then(() => {
+                loadMyClasses();
+            });
+        });
+
+        async function loadRankings() {
+            try {
+                const response = await fetch('/Employee/Api/Rankings');
+                const result = await response.json();
+                if (result.success) {
+                    rankings = result.data;
+                }
+            } catch (e) { console.error("Load rankings failed", e); }
+        }
+
+        function loadMyClasses() {
+            $.get('/Employee/Api/MyClasses', function (response) {
+                if (response.success) {
+                    var html = '<option value="">-- Chọn lớp học --</option>';
+                    response.data.forEach(function (item) {
+                        var selected = item.classId == currentClassId ? 'selected' : '';
+                        html += `<option value="${item.classId}" ${selected}>${item.className}</option>`;
+                    });
+                    $('#classSelect').html(html);
+
+                    if ($('#classSelect').val()) {
+                        loadStudents();
+                    }
+                }
+            });
+        }
+
+        function loadStudents() {
+            const classId = $('#classSelect').val();
+            const month = $('#reportMonth').val();
+            const year = $('#reportYear').val();
+
+            if (!classId) {
+                $('#reportContent').html('<div class="text-center py-5 text-muted"><p>Vui lòng chọn một lớp học</p></div>');
+                $('#btnSave').hide();
+                return;
+            }
+
+            $('#reportContent').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">Đang tải danh sách học sinh...</p></div>');
+            $('#btnSave').hide();
+
+            $.get(`/Employee/Api/ManagedStudentsForReport/${classId}?month=${month}&year=${year}`, function (response) {
+                if (response.success) {
+                    if (response.data.length === 0) {
+                        $('#reportContent').html('<div class="alert alert-warning">Lớp này chưa có học sinh nào.</div>');
+                        return;
+                    }
+
+                    var html = `
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle custom-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="60">Học sinh</th>
+                                        <th>Họ và Tên</th>
+                                        <th>Xếp loại</th>
+                                        <th>Nhận xét của giáo viên</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    response.data.forEach(function (student) {
+                        const report = student.report || {};
+                        const rankingId = report.rankingId || "";
+                        const comment = report.comment || "";
+
+                        var rankingOptions = '<option value="">-- Xếp loại --</option>';
+                        rankings.forEach(r => {
+                            rankingOptions += `<option value="${r.id}" ${r.id == rankingId ? 'selected' : ''}>${r.name}</option>`;
+                        });
+
+                        html += `
+                            <tr>
+                                <td>
+                                    <img src="${student.avatarPath}" class="avatar-circle border" onerror="this.src='/images/lion_orange.png'">
+                                </td>
+                                <td>
+                                    <strong>${student.fullName}</strong>
+                                    <div class="text-muted small">ID: #${student.id}</div>
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm ranking-select report-ranking" data-student-id="${student.id}">
+                                        ${rankingOptions}
+                                    </select>
+                                </td>
+                                <td>
+                                    <textarea class="form-control form-control-sm comment-area report-comment" 
+                                              data-student-id="${student.id}" 
+                                              rows="2" placeholder="Nhập nhận xét về sự tiến bộ, thái độ học tập...">${comment}</textarea>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table></div>';
+                    $('#reportContent').html(html);
+                    $('#btnSave').show();
+                } else {
+                    $('#reportContent').html(`<div class="alert alert-danger">${response.message}</div>`);
+                }
+            });
+        }
+
+        async function submitReports() {
+            const month = parseInt($('#reportMonth').val());
+            const year = parseInt($('#reportYear').val());
+            const records = [];
+
+            $('.report-ranking').each(function() {
+                const studentId = $(this).data('student-id');
+                const rankingId = $(this).val();
+                const comment = $(`.report-comment[data-student-id="${studentId}"]`).val();
+
+                if (rankingId || comment) {
+                    records.push({
+                        studentId: parseInt(studentId),
+                        rankingId: rankingId ? parseInt(rankingId) : null,
+                        comment: comment
+                    });
+                }
+            });
+
+            if (records.length === 0) {
+                alert('Vui lòng nhập ít nhất một đánh giá học sinh.');
+                return;
+            }
+
+            try {
+                $('#btnSave').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Đang lưu...');
+                
+                const response = await fetch('/Employee/Api/SubmitStudyReport', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        month: month,
+                        year: year,
+                        records: records
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    if (window.showToast) {
+                        window.showToast('Thành công', result.message, 'success');
+                    } else {
+                        alert(result.message);
+                    }
+                } else {
+                    alert('Lỗi: ' + result.message);
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Có lỗi xảy ra khi gửi dữ liệu.');
+            } finally {
+                $('#btnSave').prop('disabled', false).html('<i class="fas fa-save me-1"></i> Lưu toàn bộ đánh giá');
+            }
+        }
+    </script>
+}

@@ -7,56 +7,103 @@
     <link rel="stylesheet" href="~/css/pages/tuition.css" asp-append-version="true" />
 }
 
-<div class="tuition-card">
-    <div class="tuition-header">
-        <div>
-            <h2>Kế hoạch Học phí</h2>
-            <p style="color: #6b7280; margin: 0;">Thiết lập mức phí theo độ tuổi</p>
+<div class="tuition-container">
+    <!-- Tuition Plans Section -->
+    <div class="tuition-card">
+        <div class="tuition-header">
+            <div>
+                <h2>Thiết lập Kế hoạch Học phí</h2>
+                <div class="section-subtitle">Định nghĩa mức học phí áp dụng cho từng lứa tuổi học sinh</div>
+            </div>
+            <button class="btn btn-primary" onclick="showCreatePlanModal()">
+                <i class="fa-solid fa-plus me-2"></i> Tạo kế hoạch mới
+            </button>
         </div>
-        <button class="btn btn-primary" onclick="showCreatePlanModal()">
-            <i class="fa-solid fa-plus"></i> Tạo kế hoạch mới
-        </button>
-    </div>
 
-    <div id="plansList">
-        <div style="text-align: center; padding: 20px; color: #9ca3af;">Đang tải danh sách...</div>
-    </div>
-</div>
-
-<div class="tuition-card">
-    <div class="tuition-header">
-        <div>
-            <h2>Khởi tạo học phí tháng</h2>
-            <p style="color: #6b7280; margin: 0;">Tạo hóa đơn học phí cho toàn bộ học sinh</p>
+        <div id="plansList" class="plans-grid">
+            <!-- Shimmer/Loading -->
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #9ca3af;">
+                <i class="fas fa-circle-notch fa-spin me-2"></i> Đang tải danh sách...
+            </div>
         </div>
     </div>
-    <div style="display: flex; gap: 10px; align-items: flex-end;">
-        <div style="flex: 1;">
-            <label class="form-label">Chọn Tháng</label>
-            <select id="genMonth" class="form-select">
-                @for (int i = 1; i <= 12; i++) {
-                    if (DateTime.Now.Month == i) {
-                        <option value="@i" selected>Tháng @i</option>
-                    } else {
-                        <option value="@i">Tháng @i</option>
+
+    <!-- Monthly Generation Section -->
+    <div class="tuition-card" style="border-left: 5px solid #22c55e;">
+        <div class="tuition-header">
+            <div>
+                <h2>Khởi tạo Học phí Tháng</h2>
+                <div class="section-subtitle">Tự động sinh hóa đơn học phí cho tất cả học sinh đang theo học</div>
+            </div>
+        </div>
+
+        <div class="gen-form">
+            <div class="gen-input-group">
+                <label class="form-label" style="font-weight: 700;">Chọn Tháng</label>
+                <select id="genMonth" class="form-select">
+                    @for (int i = 1; i <= 12; i++) {
+                        var isSelected = DateTime.Now.Month == i;
+                        <option value="@i" selected="@isSelected">Tháng @i</option>
                     }
-                }
-            </select>
+                </select>
+            </div>
+            <div class="gen-input-group">
+                <label class="form-label" style="font-weight: 700;">Chọn Năm</label>
+                <select id="genYear" class="form-select">
+                    <option value="2026" selected>2026</option>
+                    <option value="2027">2027</option>
+                </select>
+            </div>
+            <div style="flex: 2;">
+                <p style="font-size: 13px; color: #15803d; margin-bottom: 8px;">
+                    <i class="fas fa-info-circle me-1"></i> Hệ thống sẽ dựa vào lứa tuổi của bé để áp dụng mức phí phù hợp nhất.
+                </p>
+                <button class="btn btn-primary" onclick="generateTuitions()" style="width: 100%; height: 42px; background: #22c55e; border-color: #22c55e;">
+                    <i class="fa-solid fa-bolt me-2"></i> Bắt đầu khởi tạo dữ liệu
+                </button>
+            </div>
         </div>
-        <div style="flex: 1;">
-            <label class="form-label">Chọn Năm</label>
-            <select id="genYear" class="form-select">
-                <option value="2026" selected>2026</option>
-                <option value="2027">2027</option>
-            </select>
-        </div>
-        <button class="btn btn-primary" onclick="generateTuitions()" style="height: 42px;">
-            <i class="fa-solid fa-bolt"></i> Khởi tạo ngay
-        </button>
     </div>
 </div>
 
-<!-- Modal Tạo Kế Hoạch (Sử dụng prompt tạm thời để đơn giản) -->
+<!-- Modal Create Plan -->
+<div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo Kế hoạch Học phí mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="planForm">
+                    <div class="mb-4">
+                        <label class="form-label">Số tiền học phí (VNĐ) <span class="text-danger">*</span></label>
+                        <input type="number" id="planAmount" class="form-control" placeholder="VD: 3500000" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Từ lứa tuổi <span class="text-danger">*</span></label>
+                            <input type="number" id="planAgeFrom" class="form-control" placeholder="VD: 1" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Đến lứa tuổi <span class="text-danger">*</span></label>
+                            <input type="number" id="planAgeTo" class="form-control" placeholder="VD: 5" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú (Tùy chọn)</label>
+                        <textarea id="planNote" class="form-control" rows="2" placeholder="Thông tin thêm..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: none;">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="savePlan()">Lưu kế hoạch</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         $(document).ready(function() {
@@ -67,53 +114,49 @@
             try {
                 const res = await fetch('/Tuition/Api/Plans');
                 const data = await res.json();
+                const list = $('#plansList');
+                
                 if (data.success) {
-                    const list = $('#plansList');
                     if (data.data.length === 0) {
-                        list.html('<div style="text-align: center; padding: 20px; color: #9ca3af;">Chưa có kế hoạch học phí nào.</div>');
+                        list.html('<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #9ca3af; border: 1px dashed #e5e7eb; border-radius: 12px;">Chưa có kế hoạch học phí nào được thiết lập.</div>');
                         return;
                     }
+
                     list.html(data.data.map(p => `
-                        <div class="plan-item">
-                            <div>
-                                <strong style="font-size: 16px;">Học phí Lứa tuổi ${p.ageFrom} - ${p.ageTo}</strong>
-                                <div style="font-size: 13px; color: #6b7280;">Áp dụng cho toàn bộ học sinh trong độ tuổi này.</div>
+                        <div class="plan-card">
+                            <div class="plan-title">
+                                <span>Lứa tuổi: ${p.ageFrom} - ${p.ageTo} tuổi</span>
+                                <span class="plan-badge">Đang áp dụng</span>
                             </div>
+                            <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px;">Mức phí cố định mỗi tháng</div>
                             <div class="plan-amount">${new Intl.NumberFormat('vi-VN').format(p.amount)} đ</div>
+                            <div style="margin-top: 15px; display: flex; gap: 8px;">
+                                <button class="btn btn-sm btn-outline-primary" style="flex: 1; font-size: 12px; border-radius: 8px;">Sửa</button>
+                                <button class="btn btn-sm btn-outline-danger" style="border-radius: 8px; border: none;"><i class="fas fa-trash"></i></button>
+                            </div>
                         </div>
                     `).join(''));
                 }
             } catch (e) { console.error("Load plans failed", e); }
         }
 
-        async function generateTuitions() {
-            const month = $('#genMonth').val();
-            const year = $('#genYear').val();
-            
-            if (!confirm(`Bạn có chắc chắn muốn khởi tạo học phí cho tất cả học sinh vào Tháng ${month}/${year}?`)) return;
-
-            try {
-                const res = await fetch('/Tuition/Api/GenerateMonthlyTuition', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ month: parseInt(month), year: parseInt(year) })
-                });
-                const result = await res.json();
-                alert(result.message);
-            } catch (e) { alert("Lỗi khi khởi tạo học phí."); }
-        }
-
         function showCreatePlanModal() {
-            const amount = prompt("Nhập số tiền học phí (VNĐ):", "3000000");
-            const ageFrom = prompt("Từ lứa tuổi (ví dụ: 1):", "1");
-            const ageTo = prompt("Đến lứa tuổi (ví dụ: 5):", "5");
-
-            if (amount && ageFrom && ageTo) {
-                createPlan({ amount: parseFloat(amount), ageFrom: parseInt(ageFrom), ageTo: parseInt(ageTo) });
-            }
+            $('#planForm')[0].reset();
+            new bootstrap.Modal(document.getElementById('planModal')).show();
         }
 
-        async function createPlan(model) {
+        async function savePlan() {
+            const model = {
+                amount: parseFloat($('#planAmount').val()),
+                ageFrom: parseInt($('#planAgeFrom').val()),
+                ageTo: parseInt($('#planAgeTo').val())
+            };
+
+            if (!model.amount || isNaN(model.ageFrom)) {
+                alert("Vui lòng nhập đầy đủ thông tin.");
+                return;
+            }
+
             try {
                 const res = await fetch('/Tuition/Api/Plans/Create', {
                     method: 'POST',
@@ -122,9 +165,35 @@
                 });
                 const result = await res.json();
                 if (result.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('planModal')).hide();
                     loadPlans();
+                    showToast('Thành công', result.message, 'success');
                 }
-            } catch (e) { console.error("Create plan failed", e); }
+            } catch (e) { console.error(e); }
+        }
+
+        async function generateTuitions() {
+            const month = $('#genMonth').val();
+            const year = $('#genYear').val();
+            
+            if (!confirm(`Xác nhận khởi tạo học phí Tháng ${month}/${year} cho toàn bộ học sinh?`)) return;
+
+            try {
+                const res = await fetch(`/Tuition/Api/GenerateMonthlyTuition?month=${month}&year=${year}`, {
+                    method: 'POST'
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('Khởi tạo xong', result.message, 'success');
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) { alert("Lỗi hệ thống khi khởi tạo."); }
+        }
+
+        function showToast(title, message, type) {
+            if (window.showToast) window.showToast(title, message, type);
+            else alert(title + ": " + message);
         }
     </script>
 }

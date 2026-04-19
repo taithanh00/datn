@@ -47,7 +47,9 @@
         <div class="chart-header">
             <h3>Xu hướng doanh thu (6 tháng gần nhất)</h3>
         </div>
-        <canvas id="revenueChart" height="250"></canvas>
+        <div style="position: relative; height: 250px;">
+            <canvas id="revenueChart"></canvas>
+        </div>
     </div>
     <div class="chart-card">
         <div class="chart-header">
@@ -83,6 +85,10 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // FIX: Khai báo biến lưu instance chart ở ngoài để có thể destroy khi cần
+        let revenueChartInstance = null;
+        let attendanceChartInstance = null;
+
         $(document).ready(function() {
             loadDashboardData();
         });
@@ -111,8 +117,14 @@
         }
 
         function renderRevenueChart(data) {
+            // FIX: Destroy instance cũ trước khi tạo mới
+            if (revenueChartInstance) {
+                revenueChartInstance.destroy();
+                revenueChartInstance = null;
+            }
+
             const ctx = document.getElementById('revenueChart').getContext('2d');
-            new Chart(ctx, {
+            revenueChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: data.map(x => x.label),
@@ -135,7 +147,7 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { 
+                        y: {
                             beginAtZero: true,
                             grid: { color: '#f3f4f6' },
                             ticks: { callback: (v) => v >= 1000000 ? (v/1000000) + 'M' : v }
@@ -147,13 +159,19 @@
         }
 
         function renderAttendanceChart(data) {
+            // FIX: Destroy instance cũ trước khi tạo mới
+            if (attendanceChartInstance) {
+                attendanceChartInstance.destroy();
+                attendanceChartInstance = null;
+            }
+
             const ctx = document.getElementById('attendanceChart').getContext('2d');
             const total = data.present + data.absent;
             const percent = total > 0 ? Math.round((data.present / total) * 100) : 0;
-            
+
             $('#attendanceInfo').html(`Hiện diện: <strong>${data.present}</strong> / Vắng: <strong>${data.absent}</strong> (Tỉ lệ: ${percent}%)`);
 
-            new Chart(ctx, {
+            attendanceChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Hiện diện', 'Vắng mặt'],

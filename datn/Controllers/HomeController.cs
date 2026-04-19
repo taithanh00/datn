@@ -36,6 +36,15 @@ namespace datn.Controllers
 
         public IActionResult Index()
         {
+            if (User.IsInRole("Manager"))
+            {
+                return RedirectToAction("Index", "Manager");
+            }
+            if (User.IsInRole("Employee"))
+            {
+                return RedirectToAction("Index", "Employee");
+            }
+            // Mặc định vẫn trả về view nếu không có vai trò nào (hoặc nếu User là Parent)
             return View();
         }
 

@@ -159,6 +159,109 @@ namespace datn.Controllers
 
         // ============ API ENDPOINTS ============
 
+        [HttpGet("StudyReport")]
+        public IActionResult StudyReport(int? classId)
+        {
+            ViewData["Title"] = "Đánh giá học tập";
+            ViewBag.SelectedClassId = classId;
+            return View();
+        }
+
+        // ============ API ENDPOINTS ============
+
+        [HttpGet("Api/Rankings")]
+        public async Task<IActionResult> GetRankings()
+        {
+            var rankings = await _context.Rankings.Select(r => new { id = r.Id, name = r.Name }).ToListAsync();
+            return Json(new { success = true, data = rankings });
+        }
+
+        [HttpGet("Api/ManagedStudentsForReport/{classId:int}")]
+        public async Task<IActionResult> GetManagedStudentsForReport(int classId, int month, int year)
+        {
+            try
+            {
+                var employeeId = await GetCurrentEmployeeId();
+                if (employeeId == null)
+                    return Json(new { success = false, message = "Không tìm thấy thông tin giáo viên." });
+
+                var today = GetTodayVnt();
+                var isAssigned = await HasActiveAssignmentAsync(employeeId.Value, classId, today);
+                if (!isAssigned)
+                    return Json(new { success = false, message = "Bạn không có quyền xem lớp này." });
+
+                var reportDate = new DateOnly(year, month, 1);
+
+                var students = await _context.Students
+                    .Where(s => s.ClassId == classId)
+                    .OrderBy(s => s.LastName)
+                    .ThenBy(s => s.FirstName)
+                    .Select(s => new
+                    {
+                        id = s.Id,
+                        fullName = ((s.FirstName ?? "") + " " + (s.LastName ?? "")).Trim(),
+                        avatarPath = s.AvatarPath ?? "/images/lion_orange.png",
+                        report = _context.StudyReports
+                            .Where(sr => sr.StudentId == s.Id && sr.Date == reportDate)
+                            .Select(sr => new {
+                                rankingId = sr.RankingId,
+                                comment = sr.Comment
+                            })
+                            .FirstOrDefault()
+                    })
+                    .ToListAsync();
+
+                return Json(new { success = true, data = students });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("Api/SubmitStudyReport")]
+        public async Task<IActionResult> SubmitStudyReport([FromBody] StudyReportSubmissionModel model)
+        {
+            try
+            {
+                var employeeId = await GetCurrentEmployeeId();
+                if (employeeId == null) return Json(new { success = false, message = "Hết phiên đăng nhập" });
+                
+                var reportDate = new DateOnly(model.Year, model.Month, 1);
+                
+                foreach (var item in model.Records)
+                {
+                    var existing = await _context.StudyReports
+                        .FirstOrDefaultAsync(sr => sr.StudentId == item.StudentId && sr.Date == reportDate);
+
+                    if (existing != null)
+                    {
+                        existing.RankingId = item.RankingId;
+                        existing.Comment = item.Comment;
+                        existing.TeacherId = employeeId;
+                    }
+                    else
+                    {
+                        _context.StudyReports.Add(new StudyReport
+                        {
+                            StudentId = item.StudentId,
+                            Date = reportDate,
+                            RankingId = item.RankingId,
+                            Comment = item.Comment,
+                            TeacherId = employeeId
+                        });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Lưu đánh giá thành công" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         [HttpGet("Api/MyClasses")]
         public async Task<IActionResult> GetMyClasses()
         {
@@ -420,5 +523,19 @@ namespace datn.Controllers
     {
         public int StudentId { get; set; }
         public string Status { get; set; } = string.Empty;
+    }
+
+    public class StudyReportSubmissionModel
+    {
+        public int Month { get; set; }
+        public int Year { get; set; }
+        public List<StudyReportRecordModel> Records { get; set; } = new();
+    }
+
+    public class StudyReportRecordModel
+    {
+        public int StudentId { get; set; }
+        public int? RankingId { get; set; }
+        public string? Comment { get; set; }
     }
 }

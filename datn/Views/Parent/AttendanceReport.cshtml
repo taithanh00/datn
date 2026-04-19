@@ -1,0 +1,153 @@
+@model IEnumerable<datn.Models.Attendance>
+@{
+    Layout = "_DashboardLayout";
+    var children = ViewBag.Children as List<datn.Models.Student> ?? new List<datn.Models.Student>();
+    var selectedStudentId = ViewBag.SelectedStudentId as int?;
+    var selectedMonth = ViewBag.SelectedMonth as int? ?? DateTime.Now.Month;
+    var selectedYear = ViewBag.SelectedYear as int? ?? DateTime.Now.Year;
+    var selectedStudent = children.FirstOrDefault(c => c.Id == selectedStudentId);
+
+    var totalPresent = Model.Count(a => a.Status == "Present");
+    var totalExcused = Model.Count(a => a.Status == "Excused");
+    var totalAbsent = Model.Count(a => a.Status == "Absent");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/parent.css" asp-append-version="true" />
+}
+
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mt-4">Báo cáo Điểm danh</h1>
+            <p class="text-muted">Theo dõi chuyên cần hàng tháng của bé</p>
+        </div>
+        <div class="d-flex gap-2">
+            @if (children.Count > 1)
+            {
+                <select class="form-select" style="width: 200px;" onchange="updateFilter('studentId', this.value)">
+                    @foreach (var child in children)
+                    {
+                        var isSel = child.Id == selectedStudentId;
+                        <option value="@child.Id" selected="@isSel">Bé: @child.FirstName @child.LastName</option>
+                    }
+                </select>
+            }
+            <select class="form-select" style="width: 130px;" onchange="updateFilter('month', this.value)">
+                @for (int m = 1; m <= 12; m++)
+                {
+                    var isSelM = m == selectedMonth;
+                    <option value="@m" selected="@isSelM">Tháng @m</option>
+                }
+            </select>
+            <select class="form-select" style="width: 110px;" onchange="updateFilter('year', this.value)">
+                @for (int y = 2025; y <= 2027; y++)
+                {
+                    var isSelY = y == selectedYear;
+                    <option value="@y" selected="@isSelY">Năm @y</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-success text-white">
+                <div class="card-body p-4 text-center">
+                    <h1 class="display-4 fw-bold mb-0">@totalPresent</h1>
+                    <p class="mb-0 opacity-75">Ngày đi học</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-warning text-dark">
+                <div class="card-body p-4 text-center">
+                    <h1 class="display-4 fw-bold mb-0">@totalExcused</h1>
+                    <p class="mb-0 opacity-75">Nghỉ có phép</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-danger text-white">
+                <div class="card-body p-4 text-center">
+                    <h1 class="display-4 fw-bold mb-0">@totalAbsent</h1>
+                    <p class="mb-0 opacity-75">Vắng mặt không phép</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 border-0">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2"></i>Chi tiết điểm danh tháng @selectedMonth/@selectedYear</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Ngày</th>
+                            <th>Thứ</th>
+                            <th>Trạng thái</th>
+                            <th class="pe-4">Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    Không có dữ liệu điểm danh trong tháng này.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var item in Model)
+                            {
+                                var statusClass = item.Status switch
+                                {
+                                    "Present" => "bg-success",
+                                    "Excused" => "bg-warning text-dark",
+                                    "Absent" => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                                var statusText = item.Status switch
+                                {
+                                    "Present" => "Có mặt",
+                                    "Excused" => "Có phép",
+                                    "Absent" => "Vắng mặt",
+                                    _ => item.Status
+                                };
+                                
+                                <tr>
+                                    <td class="ps-4 fw-bold">@item.Date.ToString("dd/MM/yyyy")</td>
+                                    <td>@item.Date.ToString("dddd", new System.Globalization.CultureInfo("vi-VN"))</td>
+                                    <td>
+                                        <span class="badge @statusClass px-3 py-2 rounded-pill">@statusText</span>
+                                    </td>
+                                    <td class="pe-4 text-muted small">
+                                        @if (item.Status == "Present") {
+                                            <span class="text-success"><i class="fas fa-check me-1"></i> Bé đi học ngoan</span>
+                                        } else {
+                                            <span>--</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateFilter(key, value) {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set(key, value);
+        window.location.search = urlParams.toString();
+    }
+</script>

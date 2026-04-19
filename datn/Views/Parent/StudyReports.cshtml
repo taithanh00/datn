@@ -1,0 +1,139 @@
+@model IEnumerable<datn.Models.StudyReport>
+@{
+    Layout = "_DashboardLayout";
+    var children = ViewBag.Children as List<datn.Models.Student> ?? new List<datn.Models.Student>();
+    var selectedStudentId = ViewBag.SelectedStudentId as int?;
+    var selectedYear = ViewBag.SelectedYear as int? ?? DateTime.Now.Year;
+    var selectedStudent = children.FirstOrDefault(c => c.Id == selectedStudentId);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/parent.css" asp-append-version="true" />
+}
+
+<style>
+    .report-card {
+        border-radius: 12px;
+        transition: transform 0.2s;
+        border: 1px solid #edf2f7;
+    }
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+    }
+    .month-badge {
+        width: 60px;
+        height: 60px;
+        background: #ebf8ff;
+        color: #3182ce;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+    }
+    .ranking-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .ranking-A { background: #dcfce7; color: #166534; } /* Tốt/Xuất sắc */
+    .ranking-B { background: #fef3c7; color: #92400e; } /* Khá */
+    .ranking-C { background: #fee2e2; color: #991b1b; } /* Cần cố gắng */
+</style>
+
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mt-4">Kết quả học tập</h1>
+            <p class="text-muted">Xem đánh giá hàng tháng của giáo viên dành cho bé</p>
+        </div>
+        <div class="d-flex gap-2">
+            @if (children.Count > 1)
+            {
+                <select class="form-select" style="width: 200px;" onchange="location.href='?year=@selectedYear&studentId=' + this.value">
+                    @foreach (var child in children)
+                    {
+                        var isSelChild = child.Id == selectedStudentId;
+                        <option value="@child.Id" selected="@isSelChild">Bé: @child.FirstName @child.LastName</option>
+                    }
+                </select>
+            }
+            <select class="form-select" style="width: 120px;" onchange="location.href='?studentId=@selectedStudentId&year=' + this.value">
+                @for (int y = 2025; y <= 2027; y++)
+                {
+                    var isSelYear = y == selectedYear;
+                    <option value="@y" selected="@isSelYear">Năm @y</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    @if (selectedStudent != null)
+    {
+        <div class="card mb-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center">
+                    <img src="@(selectedStudent.AvatarPath ?? "/images/lion_orange.png")" class="rounded-circle border border-3 border-white me-3" style="width: 80px; height: 80px; object-fit: cover;">
+                    <div>
+                        <h2 class="mb-1">@selectedStudent.FirstName @selectedStudent.LastName</h2>
+                        <p class="mb-0 opacity-75"><i class="fas fa-school me-1"></i> Lớp: @(selectedStudent.Class?.Name ?? "N/A") | Niên khóa: @selectedYear</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-folder-open fa-4x text-light"></i>
+            </div>
+            <h3 class="text-muted">Chưa có đánh giá nào</h3>
+            <p class="text-muted">Giáo viên chưa cập nhật đánh giá cho năm @selectedYear</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var report in Model)
+            {
+                var rankingClass = "ranking-B";
+                if (report.Ranking?.Name?.Contains("Xuất sắc") == true || report.Ranking?.Name?.Contains("Tốt") == true) rankingClass = "ranking-A";
+                if (report.Ranking?.Name?.Contains("Cần cố gắng") == true || report.Ranking?.Name?.Contains("Yếu") == true) rankingClass = "ranking-C";
+
+                <div class="col-md-6">
+                    <div class="card report-card shadow-sm border-0 h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex mb-3">
+                                <div class="month-badge me-3">
+                                    <span style="font-size: 10px; text-transform: uppercase;">Tháng</span>
+                                    <span style="font-size: 20px;">@report.Date.Month</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="mb-0 fw-bold">Đánh giá tháng @report.Date.Month</h5>
+                                        @if (report.Ranking != null)
+                                        {
+                                            <span class="ranking-badge @rankingClass">@report.Ranking.Name</span>
+                                        }
+                                    </div>
+                                    <p class="text-muted small mb-0"><i class="fas fa-user-edit me-1"></i> Giáo viên: @(report.Teacher?.FullName ?? "N/A")</p>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded bg-light" style="border-left: 4px solid #cbd5e0;">
+                                <p class="mb-0" style="font-style: italic; color: #4a5568;">
+                                    "@(string.IsNullOrEmpty(report.Comment) ? "Chưa có nhận xét chi tiết." : report.Comment)"
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
