@@ -1,0 +1,218 @@
+@{
+    ViewData["Title"] = "Lớp học";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/classes.css" asp-append-version="true" />
+}
+
+<div class="dashboard-card">
+    <div class="card-header">
+        <h2 style="margin: 0;">Quản lý lớp học và thời khóa biểu</h2>
+    </div>
+    <div class="card-body">
+        <p>Manager có thể quản lý lớp học, môn học và xây dựng thời khóa biểu trong khung Thứ 2 - Thứ 6, 07:00 - 16:30, nghỉ trưa 11:00 - 13:00.</p>
+    </div>
+</div>
+
+<div class="classes-grid">
+    <section class="dashboard-card">
+        <div class="card-header section-header">
+            <h3>Danh sách lớp học</h3>
+            <button class="btn-primary-action" id="resetClassFormBtn" type="button">Tạo lớp mới</button>
+        </div>
+        <div class="card-body">
+            <div id="classAlert" class="page-alert" style="display:none;"></div>
+            <div class="table-responsive">
+                <table class="management-table">
+                    <thead>
+                        <tr>
+                            <th>Lớp</th>
+                            <th>Độ tuổi</th>
+                            <th>Niên khóa</th>
+                            <th>Sĩ số</th>
+                            <th>Giáo viên</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="classesTableBody"></tbody>
+                </table>
+            </div>
+
+            <form id="classForm" class="entity-form">
+                <input type="hidden" id="classId" />
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="className">Tên lớp</label>
+                        <input id="className" type="text" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="schoolYear">Niên khóa</label>
+                        <input id="schoolYear" type="text" class="form-control" placeholder="2025-2026" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ageFrom">Tuổi từ</label>
+                        <input id="ageFrom" type="number" min="1" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="ageTo">Tuổi đến</label>
+                        <input id="ageTo" type="number" min="1" class="form-control" />
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary-action" id="saveClassBtn">Lưu lớp học</button>
+                    <button type="button" class="btn-secondary-action" id="clearClassBtn">Làm mới</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="dashboard-card">
+        <div class="card-header section-header">
+            <h3>Danh mục môn học</h3>
+            <button class="btn-primary-action" id="resetSubjectFormBtn" type="button">Tạo môn mới</button>
+        </div>
+        <div class="card-body">
+            <div id="subjectAlert" class="page-alert" style="display:none;"></div>
+            <div class="table-responsive">
+                <table class="management-table">
+                    <thead>
+                        <tr>
+                            <th>Mã môn</th>
+                            <th>Tên môn</th>
+                            <th>Mô tả</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subjectsTableBody"></tbody>
+                </table>
+            </div>
+
+            <form id="subjectForm" class="entity-form">
+                <input type="hidden" id="subjectId" />
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="subjectCode">Mã môn</label>
+                        <input id="subjectCode" type="text" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="subjectName">Tên môn</label>
+                        <input id="subjectName" type="text" class="form-control" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="subjectDescription">Mô tả</label>
+                    <textarea id="subjectDescription" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="checkbox-row">
+                    <input id="subjectIsActive" type="checkbox" checked />
+                    <label for="subjectIsActive">Đang sử dụng</label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary-action" id="saveSubjectBtn">Lưu môn học</button>
+                    <button type="button" class="btn-secondary-action" id="clearSubjectBtn">Làm mới</button>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+
+<section class="dashboard-card">
+    <div class="card-header section-header">
+        <h3>Thời khóa biểu lớp học</h3>
+        <div class="header-inline">
+            <label for="scheduleClassFilter">Lớp đang xem</label>
+            <select id="scheduleClassFilter" class="form-control compact-select"></select>
+        </div>
+    </div>
+    <div class="card-body">
+        <div id="scheduleAlert" class="page-alert" style="display:none;"></div>
+        <div class="table-responsive">
+            <table class="management-table">
+                <thead>
+                    <tr>
+                        <th>Thứ</th>
+                        <th>Khung giờ</th>
+                        <th>Môn học</th>
+                        <th>Giáo viên</th>
+                        <th>Hiệu lực</th>
+                        <th>Ghi chú</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleTableBody"></tbody>
+            </table>
+        </div>
+
+        <form id="scheduleForm" class="entity-form">
+            <input type="hidden" id="scheduleId" />
+            <div class="form-row three-cols">
+                <div class="form-group">
+                    <label for="scheduleClassId">Lớp học</label>
+                    <select id="scheduleClassId" class="form-control" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="scheduleSubjectId">Môn học</label>
+                    <select id="scheduleSubjectId" class="form-control" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="scheduleTeacherId">Giáo viên</label>
+                    <select id="scheduleTeacherId" class="form-control" required></select>
+                </div>
+            </div>
+            <div class="form-row four-cols">
+                <div class="form-group">
+                    <label for="scheduleDayOfWeek">Thứ</label>
+                    <select id="scheduleDayOfWeek" class="form-control" required>
+                        <option value="1">Thứ 2</option>
+                        <option value="2">Thứ 3</option>
+                        <option value="3">Thứ 4</option>
+                        <option value="4">Thứ 5</option>
+                        <option value="5">Thứ 6</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="scheduleStartTime">Bắt đầu</label>
+                    <input id="scheduleStartTime" type="time" class="form-control" value="07:00" required />
+                </div>
+                <div class="form-group">
+                    <label for="scheduleEndTime">Kết thúc</label>
+                    <input id="scheduleEndTime" type="time" class="form-control" value="08:00" required />
+                </div>
+                <div class="form-group">
+                    <label for="scheduleIsActive">Trạng thái</label>
+                    <select id="scheduleIsActive" class="form-control">
+                        <option value="true">Đang áp dụng</option>
+                        <option value="false">Tạm ngưng</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="scheduleEffectiveFrom">Hiệu lực từ</label>
+                    <input id="scheduleEffectiveFrom" type="date" class="form-control" required />
+                </div>
+                <div class="form-group">
+                    <label for="scheduleEffectiveTo">Hiệu lực đến</label>
+                    <input id="scheduleEffectiveTo" type="date" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="scheduleNote">Ghi chú</label>
+                <textarea id="scheduleNote" class="form-control" rows="3" placeholder="Ghi chú thêm nếu cần"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary-action" id="saveScheduleBtn">Lưu thời khóa biểu</button>
+                <button type="button" class="btn-secondary-action" id="clearScheduleBtn">Làm mới</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/pages/classes.js" asp-append-version="true"></script>
+}

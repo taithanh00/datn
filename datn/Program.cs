@@ -1,4 +1,5 @@
 using datn.Data;
+using datn.Hubs;
 using datn.Middleware;
 using datn.Models;
 using datn.Services;
@@ -58,6 +59,14 @@ builder.Services.AddAuthentication(options =>
             context.HandleResponse();
             context.Response.Redirect("/Auth/Login");
             return Task.CompletedTask;
+        },
+
+        // OnForbidden: Được gọi khi user đã được xác thực nhưng không có quyền truy cập (403)
+        // Chuyển hướng user tới trang AccessDenied
+        OnForbidden = context =>
+        {
+            context.Response.Redirect("/Auth/AccessDenied");
+            return Task.CompletedTask;
         }
     };
 });
@@ -71,9 +80,18 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("ParentOnly", p => p.RequireRole("Parent"));       // Chỉ Parent
 });
 
+// Cấu hình đường dẫn khi truy cập bị từ chối (403)
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.AccessDeniedPath = "/Auth/AccessDenied";
+});
+
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 builder.Services.AddScoped<JwtService>();                               // Dịch vụ tạo JWT
+builder.Services.AddScoped<INotificationService, NotificationService>();   // Dịch vụ thông báo
 builder.Services.AddHostedService<TokenCleanupService>();               // Dịch vụ dọn dẹp token hết hạn
+builder.Services.AddHostedService<PayrollAutoCalculationService>();     // Tự động tính lương ngày 5 hàng tháng
 
 var app = builder.Build();
 
@@ -89,4 +107,5 @@ app.UseAuthorization();   // Authorization
 
 // Map route
 app.MapDefaultControllerRoute();
+app.MapHub<RealtimeHub>("/hubs/realtime");
 app.Run();

@@ -1,11 +1,82 @@
-﻿.container {
+﻿/* Animations */
+@keyframes slideInCard {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInForm {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInImage {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+.container {
     width: 100vw;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: #fdf6e3;
+    padding: 20px;
+    animation: fadeIn 0.8s ease-out;
 }
+
 .login-card {
     background: #fff;
     border-radius: 24px;
@@ -13,7 +84,9 @@
     overflow: hidden;
     display: flex;
     width: 70vw;
-    height: 90vh; 
+    height: 90vh;
+    animation: slideInCard 0.6s ease-out;
+    max-width: 1200px;
 }
 /*Slider*/
 .left-panel {
@@ -24,6 +97,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    animation: slideInImage 0.7s ease-out 0.2s both;
 }
 
 /* Swiper */
@@ -70,6 +144,8 @@
     flex-direction: column;
     justify-content: center;
     padding: 52px 52px 52px 48px;
+    animation: slideInForm 0.7s ease-out 0.2s both;
+    overflow-y: auto;
 }
 
 .form-title {
@@ -77,6 +153,7 @@
     font-weight: 800;
     color: #111;
     margin-bottom: 20px;
+    animation: slideInForm 0.7s ease-out 0.4s both;
 }
 /* Alert */
 .alert {
@@ -85,23 +162,26 @@
     padding: 10px 16px;
     margin-bottom: 18px;
     line-height: 1.5;
+    animation: slideInForm 0.5s ease-out;
+    border-left: 4px solid;
 }
 
 .alert-danger {
     background: #fff2f2;
-    border: 1px solid #fcc;
+    border-color: #c0392b;
     color: #c0392b;
 }
 
 .alert-warning {
     background: #fffbf0;
-    border: 1px solid #f5d97e;
+    border-color: #f5d97e;
     color: #856404;
 }
 
 /* Field group */
 .field-group {
     margin-bottom: 16px;
+    animation: slideInForm 0.7s ease-out 0.3s both;
 }
 
     .field-group label {
@@ -124,12 +204,13 @@
         font-size: 14px;
         color: #333;
         outline: none;
-        transition: border-color 0.2s, background 0.2s;
+        transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
     }
 
     .field-group input:focus {
         border-color: #1a1a1a;
         background: #fff;
+        box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.05);
     }
 
     .field-group input::placeholder {
@@ -157,7 +238,12 @@
     padding: 0;
     display: flex;
     align-items: center;
+    transition: color 0.2s;
 }
+
+    .toggle-password:hover {
+        color: #666;
+    }
 
     .toggle-password svg {
         width: 18px;
@@ -167,6 +253,11 @@
         stroke-width: 2;
         stroke-linecap: round;
         stroke-linejoin: round;
+        transition: transform 0.3s;
+    }
+
+    .toggle-password:hover svg {
+        transform: scale(1.1);
     }
 
 /* Remember me */
@@ -175,6 +266,7 @@
     align-items: center;
     gap: 8px;
     margin: 6px 0 20px;
+    animation: slideInForm 0.7s ease-out 0.4s both;
 }
 
     .remember-row input[type="checkbox"] {
@@ -185,6 +277,11 @@
         cursor: pointer;
         accent-color: #1a1a1a;
         flex-shrink: 0;
+        transition: border-color 0.2s;
+    }
+
+    .remember-row input[type="checkbox"]:hover {
+        border-color: #1a1a1a;
     }
 
     .remember-row label {
@@ -205,15 +302,28 @@
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.3s;
+    animation: slideInForm 0.7s ease-out 0.5s both;
+    position: relative;
+    overflow: hidden;
 }
 
     .btn-login:hover {
         background: #333;
+        box-shadow: 0 8px 20px rgba(26, 26, 26, 0.2);
+        transform: translateY(-2px);
     }
 
     .btn-login:active {
         transform: scale(0.98);
+    }
+
+    .btn-login .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        transform: scale(0);
+        animation: ripple 0.6s ease-out;
     }
 
 /* Divider */
@@ -248,15 +358,207 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    transition: background 0.2s, border-color 0.2s;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    animation: slideInForm 0.7s ease-out 0.6s both;
+    position: relative;
+    overflow: hidden;
 }
 
-    .btn-google:hover {
-        background: #f7f7f7;
-        border-color: #ccc;
+    .btn-forgot-password:hover {
+        background: #ffecb3;
+        border-color: #f5d97e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 217, 126, 0.3);
     }
 
-    .btn-google img {
-        width: 18px;
-        height: 18px;
+    .btn-forgot-password:active {
+        transform: scale(0.98);
     }
+
+    .btn-forgot-password .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.1);
+        transform: scale(0);
+        animation: ripple 0.6s ease-out;
+    }
+
+/* ============ RESPONSIVE DESIGN ============ */
+
+/* Tablet: 768px - 1024px */
+@media (max-width: 1024px) {
+    .login-card {
+        width: 85vw;
+        height: 85vh;
+    }
+
+    .right-panel {
+        padding: 40px 36px 40px 36px;
+    }
+
+    .form-title {
+        font-size: 24px;
+    }
+}
+
+/* Small Tablet: 600px - 768px */
+@media (max-width: 768px) {
+    .container {
+        height: auto;
+        min-height: 100vh;
+        padding: 20px 10px;
+    }
+
+    .login-card {
+        width: 100%;
+        height: auto;
+        flex-direction: column;
+    }
+
+    .left-panel {
+        width: 100%;
+        height: 250px;
+        margin: 0;
+        border-radius: 24px;
+        animation: slideInImage 0.7s ease-out 0s both;
+    }
+
+    .right-panel {
+        width: 100%;
+        padding: 32px 24px 24px 24px;
+        justify-content: flex-start;
+        animation: slideInForm 0.7s ease-out 0s both;
+    }
+
+    .form-title {
+        font-size: 22px;
+        animation: slideInForm 0.7s ease-out 0.1s both;
+    }
+
+    .field-group {
+        animation: slideInForm 0.7s ease-out 0.15s both;
+    }
+
+    .remember-row {
+        animation: slideInForm 0.7s ease-out 0.2s both;
+    }
+
+    .btn-login {
+        animation: slideInForm 0.7s ease-out 0.25s both;
+    }
+
+    .btn-forgot-password {
+        animation: slideInForm 0.7s ease-out 0.3s both;
+    }
+
+    .alert {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+}
+
+/* Mobile: < 600px */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    .login-card {
+        border-radius: 16px;
+    }
+
+    .left-panel {
+        height: 200px;
+        border-radius: 16px;
+    }
+
+    .right-panel {
+        padding: 24px 16px 16px 16px;
+    }
+
+    .form-title {
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+
+    .field-group {
+        margin-bottom: 12px;
+    }
+
+    .field-group label {
+        font-size: 12px;
+        margin-bottom: 5px;
+    }
+
+    .field-group input[type="text"],
+    .field-group input[type="email"],
+    .field-group input[type="password"] {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    .remember-row {
+        margin: 4px 0 16px;
+        font-size: 12px;
+    }
+
+    .remember-row input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
+    }
+
+    .btn-login,
+    .btn-forgot-password {
+        padding: 11px;
+        font-size: 13px;
+    }
+
+    .divider {
+        margin: 16px 0;
+        font-size: 12px;
+    }
+
+    .alert {
+        font-size: 11px;
+        padding: 8px 10px;
+        margin-bottom: 12px;
+    }
+}
+
+/* Extra small: < 380px */
+@media (max-width: 380px) {
+    .login-card {
+        border-radius: 12px;
+    }
+
+    .left-panel {
+        height: 150px;
+        border-radius: 12px;
+        margin: 0;
+    }
+
+    .right-panel {
+        padding: 20px 12px 12px 12px;
+    }
+
+    .form-title {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+
+    .field-group input[type="text"],
+    .field-group input[type="email"],
+    .field-group input[type="password"] {
+        padding: 9px 14px;
+        font-size: 12px;
+    }
+
+    .toggle-password svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .password-wrapper input {
+        padding-right: 40px;
+    }
+}

@@ -8,9 +8,10 @@
         public int? AgeTo { get; set; }
         public string? SchoolYear { get; set; }
 
-        public ICollection<Student> Students { get; set; }
-        public ICollection<Assignment> Assignments { get; set; }
-        public ICollection<ClassActivity> ClassActivities { get; set; }
-        public ICollection<TeachingPlan> TeachingPlans { get; set; }
+        public ICollection<Student> Students { get; set; } = new List<Student>();
+        public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
+        public ICollection<ClassActivity> ClassActivities { get; set; } = new List<ClassActivity>();
+        public ICollection<TeachingPlan> TeachingPlans { get; set; } = new List<TeachingPlan>();
+        public ICollection<ClassSchedule> ClassSchedules { get; set; } = new List<ClassSchedule>();
     }
 }

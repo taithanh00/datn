@@ -3,44 +3,39 @@ using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using datn.Data;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.EntityFrameworkCore;
 
 namespace datn.Controllers
 {
     /// <summary>
     /// HomeController: Xử lý các request liên quan tới dashboard
-    /// 
-    /// Đặc điểm:
-    /// - Tất cả action đều được bảo vệ bằng [Authorize] - yêu cầu user phải đăng nhập
-    /// - Index action sẽ render dashboard cho 3 roles: Manager, Employee, Parent
-    /// - Dashboard sẽ hiển thị nội dung khác nhau tùy theo role
     /// </summary>
-    [Authorize]  // Bảo vệ cả controller - chỉ user đã xác thực mới vào được
+    [Authorize]
     public class HomeController : Controller
     {
-        /// <summary>
-        /// GET: /Home/Index
-        /// Hiển thị trang Dashboard chính
-        /// 
-        /// Luồng:
-        /// 1. Lấy thông tin user từ JWT claims
-        /// 2. Truyền Username và Role vào ViewBag để Razor view sử dụng
-        /// 3. Return view Home/Index.cshtml
-        /// 
-        /// ViewBag truyền:
-        /// - Username: Tên đăng nhập của user
-        /// - Role: Vai trò của user (Manager, Employee, Parent)
-        /// </summary>
+        private readonly AppDbContext _context;
+
+        public HomeController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            var username = User.Identity?.Name ?? "User";
+            ViewBag.Username = username;
+            ViewBag.Role = User.FindFirst(ClaimTypes.Role)?.Value ?? "User";
+
+            var employee = _context.Employees.Include(e => e.Account).FirstOrDefault(e => e.Account.Username == username);
+            ViewBag.UserAvatar = employee?.AvatarPath ?? "/images/lion_blue.png";
+
+            base.OnActionExecuting(context);
+        }
+
         public IActionResult Index()
         {
-            // Lấy tên user từ Identity Claims
-            ViewBag.Username = User.Identity?.Name;
-
-            // Lấy Role từ JWT Claims
-            // ClaimTypes.Role là claim type chuẩn trong .NET
-            ViewBag.Role = User.FindFirst(ClaimTypes.Role)?.Value;
-
-            // Render view Home/Index.cshtml
-            // View sẽ dùng layout _DashboardLayout.cshtml
             return View();
         }
 

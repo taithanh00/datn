@@ -1,0 +1,55 @@
+@{
+    ViewData["Title"] = "Lịch làm việc";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    var selectedClassId = ViewBag.SelectedClassId as int?;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/work-schedule.css" asp-append-version="true" />
+}
+
+<input type="hidden" id="initialClassId" value="@(selectedClassId ?? 0)" />
+
+<div class="dashboard-card">
+    <div class="card-header">
+        <h2 style="margin: 0;">Lịch dạy hôm nay</h2>
+    </div>
+    <div class="card-body">
+        <p id="todayLabel" class="schedule-intro">Đang tải lịch dạy...</p>
+        <div id="todayScheduleContainer" class="today-schedule-grid"></div>
+    </div>
+</div>
+
+<div class="dashboard-card">
+    <div class="card-header section-header">
+        <h3>Học sinh lớp đang quản lý</h3>
+        <div class="header-inline">
+            <label for="managedClassSelect">Chọn lớp</label>
+            <select id="managedClassSelect" class="form-control compact-select"></select>
+        </div>
+    </div>
+    <div class="card-body">
+        <div id="studentsAlert" class="page-alert" style="display:none;"></div>
+        <div class="table-responsive">
+            <table class="management-table">
+                <thead>
+                    <tr>
+                        <th>Ảnh</th>
+                        <th>Họ và tên</th>
+                        <th>Giới tính</th>
+                        <th>Ngày sinh</th>
+                        <th>Địa chỉ</th>
+                        <th>Ngày nhập học</th>
+                        <th>Điểm danh hôm nay</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="managedStudentsTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/work-schedule.js" asp-append-version="true"></script>
+}

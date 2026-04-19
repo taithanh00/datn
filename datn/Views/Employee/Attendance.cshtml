@@ -1,0 +1,185 @@
+@{
+    Layout = "_DashboardLayout";
+    var selectedClassId = ViewBag.SelectedClassId as int?;
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Điểm danh Học sinh</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-action="Classes">Lớp của tôi</a></li>
+        <li class="breadcrumb-item active">Điểm danh</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-calendar-day me-1"></i>
+                Ngày: <strong>@DateTime.Now.ToString("dd/MM/yyyy")</strong>
+            </div>
+            <div class="d-flex align-items-center">
+                <label for="classSelect" class="me-2 text-nowrap">Chọn lớp:</label>
+                <select class="form-select form-select-sm" id="classSelect" onchange="changeClass(this.value)">
+                    <option value="">-- Chọn lớp học --</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="attendanceContent">
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-arrow-up fa-2x mb-3"></i>
+                    <p>Vui lòng chọn một lớp học để bắt đầu điểm danh</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-end" id="footerActions" style="display: none;">
+            <button class="btn btn-secondary me-2" onclick="loadStudents($('#classSelect').val())">
+                <i class="fas fa-undo me-1"></i> Làm mới
+            </button>
+            <button class="btn btn-success px-4" onclick="submitAttendance()">
+                <i class="fas fa-save me-1"></i> Lưu điểm danh
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var currentClassId = '@(selectedClassId ?? 0)';
+
+        $(document).ready(function () {
+            loadMyClasses();
+        });
+
+        function loadMyClasses() {
+            $.get('/Employee/Api/MyClasses', function (response) {
+                if (response.success) {
+                    var html = '<option value="">-- Chọn lớp học --</option>';
+                    response.data.forEach(function (item) {
+                        var selected = item.classId == currentClassId ? 'selected' : '';
+                        html += `<option value="${item.classId}" ${selected}>${item.className}</option>`;
+                    });
+                    $('#classSelect').html(html);
+
+                    if (currentClassId > 0) {
+                        loadStudents(currentClassId);
+                    }
+                }
+            });
+        }
+
+        function changeClass(classId) {
+            if (classId) {
+                loadStudents(classId);
+            } else {
+                $('#attendanceContent').html('<div class="text-center py-5 text-muted"><p>Vui lòng chọn một lớp học</p></div>');
+                $('#footerActions').hide();
+            }
+        }
+
+        function loadStudents(classId) {
+            $('#attendanceContent').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>');
+            $('#footerActions').hide();
+
+            $.get(`/Employee/Api/ClassStudents/${classId}`, function (response) {
+                if (response.success) {
+                    if (response.data.length === 0) {
+                        $('#attendanceContent').html('<div class="alert alert-warning">Lớp này chưa có học sinh nào.</div>');
+                        return;
+                    }
+
+                    var html = `
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="50">#</th>
+                                        <th>Họ và Tên</th>
+                                        <th>Giới tính</th>
+                                        <th class="text-center">Trạng thái điểm danh</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    response.data.forEach(function (student, index) {
+                        var status = student.attendanceStatus;
+                        html += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td><strong>${student.fullName}</strong></td>
+                                <td>${student.gender}</td>
+                                <td>
+                                    <div class="d-flex justify-content-center gap-3">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input attendance-radio" type="radio" 
+                                                   name="status_${student.id}" id="present_${student.id}" 
+                                                   value="Present" ${status === 'Present' || status === '' ? 'checked' : ''} 
+                                                   data-student-id="${student.id}">
+                                            <label class="form-check-label text-success" for="present_${student.id}">
+                                                <i class="fas fa-check-circle me-1"></i>Có mặt
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input attendance-radio" type="radio" 
+                                                   name="status_${student.id}" id="excused_${student.id}" 
+                                                   value="Excused" ${status === 'Excused' ? 'checked' : ''}
+                                                   data-student-id="${student.id}">
+                                            <label class="form-check-label text-warning" for="excused_${student.id}">
+                                                <i class="fas fa-info-circle me-1"></i>Có phép
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input attendance-radio" type="radio" 
+                                                   name="status_${student.id}" id="absent_${student.id}" 
+                                                   value="Absent" ${status === 'Absent' ? 'checked' : ''}
+                                                   data-student-id="${student.id}">
+                                            <label class="form-check-label text-danger" for="absent_${student.id}">
+                                                <i class="fas fa-times-circle me-1"></i>Vắng mặt
+                                            </label>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table></div>';
+                    $('#attendanceContent').html(html);
+                    $('#footerActions').show();
+                } else {
+                    $('#attendanceContent').html(`<div class="alert alert-danger">${response.message}</div>`);
+                }
+            });
+        }
+
+        function submitAttendance() {
+            var records = [];
+            $('.attendance-radio:checked').each(function () {
+                records.push({
+                    studentId: $(this).data('student-id'),
+                    status: $(this).val()
+                });
+            });
+
+            if (records.length === 0) {
+                alert('Không có dữ liệu điểm danh để lưu.');
+                return;
+            }
+
+            $.ajax({
+                url: '/Employee/Api/SubmitAttendance',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ records: records }),
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                    } else {
+                        alert('Lỗi: ' + response.message);
+                    }
+                }
+            });
+        }
+    </script>
+}

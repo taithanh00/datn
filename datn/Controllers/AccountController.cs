@@ -59,6 +59,7 @@ namespace datn.Controllers
             ViewBag.Username = account.Username;
             ViewBag.Email = account.Email;
             ViewBag.Role = account.Role?.Name;
+            ViewBag.UserAvatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
 
             // Tạo ViewModel để truyền vào view
             var profileViewModel = new ProfileViewModel
@@ -154,6 +155,7 @@ namespace datn.Controllers
             ViewBag.Username = account.Username;
             ViewBag.Email = account.Email;
             ViewBag.Role = account.Role?.Name;
+            ViewBag.UserAvatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
 
             model.AccountId = account.Id;
             model.Username = account.Username;
@@ -181,6 +183,7 @@ namespace datn.Controllers
             // Query Account từ database
             var account = await _context.Accounts
                 .Include(a => a.Role)
+                .Include(a => a.Employee)
                 .FirstOrDefaultAsync(a => a.Id == accountId && a.IsActive);
 
             if (account == null)
@@ -191,6 +194,7 @@ namespace datn.Controllers
             // Truyền data vào ViewBag
             ViewBag.Username = account.Username;
             ViewBag.Role = account.Role?.Name;
+            ViewBag.UserAvatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
 
             // Tạo ViewModel
             var changePasswordViewModel = new ProfileViewModel
@@ -309,6 +313,7 @@ namespace datn.Controllers
             // Query Account từ database
             var account = await _context.Accounts
                 .Include(a => a.Role)
+                .Include(a => a.Employee)
                 .FirstOrDefaultAsync(a => a.Id == accountId && a.IsActive);
 
             if (account == null)
@@ -319,6 +324,7 @@ namespace datn.Controllers
             // Truyền data vào ViewBag
             ViewBag.Username = account.Username;
             ViewBag.Role = account.Role?.Name;
+            ViewBag.UserAvatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
             ViewBag.PasswordError = passwordError; // Restore password error
 
             // Tạo ViewModel để truyền vào view
@@ -349,6 +355,7 @@ namespace datn.Controllers
             // Query Account từ database
             var account = await _context.Accounts
                 .Include(a => a.Role)
+                .Include(a => a.Employee)
                 .FirstOrDefaultAsync(a => a.Id == accountId && a.IsActive);
 
             if (account == null)
@@ -359,6 +366,7 @@ namespace datn.Controllers
             // Truyền data vào ViewBag
             ViewBag.Username = account.Username;
             ViewBag.Role = account.Role?.Name;
+            ViewBag.UserAvatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
             ViewBag.PasswordSuccess = passwordSuccess; // Restore password success
 
             // Tạo ViewModel để truyền vào view
@@ -370,6 +378,38 @@ namespace datn.Controllers
             };
 
             return View("ChangePassword", changePasswordViewModel);
+        }
+
+        /// <summary>
+        /// GET: /Auth/AccessDenied
+        /// Hiển thị trang không có quyền truy cập (403 Forbidden)
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("/Auth/AccessDenied")]
+        public async Task<IActionResult> AccessDenied()
+        {
+            var returnUrl = Request.Query["ReturnUrl"].ToString();
+            ViewBag.ReturnUrl = returnUrl;
+            ViewBag.Username = User.Identity?.Name ?? "Guest";
+            ViewBag.Role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "User";
+            ViewBag.UserAvatar = "/images/lion_blue.png";
+
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(accountIdClaim, out int accountId))
+                {
+                    var account = await _context.Accounts
+                        .Include(a => a.Employee)
+                        .FirstOrDefaultAsync(a => a.Id == accountId);
+                    if (account != null)
+                    {
+                        ViewBag.UserAvatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
+                    }
+                }
+            }
+
+            return View("~/Views/Auth/AccessDenied.cshtml");
         }
     }
 

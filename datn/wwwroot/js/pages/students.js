@@ -34,6 +34,17 @@ function setupEventListeners() {
     document.getElementById('deleteStudentBtn').addEventListener('click', handleDelete);
 }
 
+// Preview Avatar
+function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            document.getElementById('avatarPreview').src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
 // ====== DATA LOADING ======
 async function loadStudents() {
     try {
@@ -79,7 +90,7 @@ function renderStudentsTable(students) {
     tbody.innerHTML = '';
 
     if (students.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Không có học sinh nào</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">Không có học sinh nào</td></tr>';
         return;
     }
 
@@ -87,6 +98,9 @@ function renderStudentsTable(students) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${index + 1}</td>
+            <td style="text-align: center;">
+                <img src="${student.avatarPath}" alt="Avatar" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 1px solid #ddd;" />
+            </td>
             <td><strong>${student.fullName}</strong></td>
             <td>${student.gender}</td>
             <td>${student.dateOfBirth}</td>
@@ -104,7 +118,7 @@ function renderStudentsTable(students) {
 
 function showTableError(message) {
     const tbody = document.getElementById('studentsTableBody');
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: red;">${message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 20px; color: red;">${message}</td></tr>`;
 }
 
 // ====== PANEL MANAGEMENT ======
@@ -115,6 +129,7 @@ function openCreatePanel() {
     // Reset form
     document.getElementById('editStudentForm').reset();
     document.getElementById('studentId').value = '';
+    document.getElementById('avatarPreview').src = '/images/lion_orange.png';
     document.getElementById('panelTitle').textContent = 'Thêm học sinh mới';
     document.getElementById('deleteStudentBtn').style.display = 'none';
 
@@ -149,6 +164,9 @@ async function openEditPanel(studentId) {
         document.getElementById('address').value = student.address;
         document.getElementById('classId').value = student.classId;
         document.getElementById('enrollDate').value = student.enrollDate;
+        
+        // Avatar preview
+        document.getElementById('avatarPreview').src = student.avatarPath || '/images/lion_orange.png';
 
         // Update title and show delete button
         document.getElementById('panelTitle').textContent = `Sửa thông tin - ${student.firstName} ${student.lastName}`;
@@ -191,15 +209,19 @@ async function handleFormSubmit(e) {
         return;
     }
 
-    const formData = {
-        firstName: firstName,
-        lastName: lastName,
-        gender: document.getElementById('gender').value,
-        dateOfBirth: document.getElementById('dateOfBirth').value,
-        address: document.getElementById('address').value,
-        classId: parseInt(document.getElementById('classId').value) || 0,
-        enrollDate: document.getElementById('enrollDate').value
-    };
+    const formData = new FormData();
+    formData.append('firstName', firstName);
+    formData.append('lastName', lastName);
+    formData.append('gender', document.getElementById('gender').value);
+    formData.append('dateOfBirth', document.getElementById('dateOfBirth').value);
+    formData.append('address', document.getElementById('address').value);
+    formData.append('classId', parseInt(document.getElementById('classId').value) || 0);
+    formData.append('enrollDate', document.getElementById('enrollDate').value);
+
+    const avatarFile = document.getElementById('avatarFile').files[0];
+    if (avatarFile) {
+        formData.append('avatar', avatarFile);
+    }
 
     try {
         const url = isEditMode 
@@ -210,10 +232,7 @@ async function handleFormSubmit(e) {
 
         const response = await fetch(url, {
             method: method,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
+            body: formData
         });
 
         const result = await response.json();

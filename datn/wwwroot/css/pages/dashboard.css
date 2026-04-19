@@ -66,7 +66,9 @@ body {
     box-shadow: var(--shadow-sm);
     overflow-y: auto;
 }
-
+.logo{
+    text-decoration: none;
+}
 .sidebar-header {
     padding: 20px;
     border-bottom: 1px solid var(--border);
@@ -203,6 +205,36 @@ body {
     transition: all 0.15s ease;
     cursor: pointer;
     margin-bottom: 2px;
+}
+
+.nav-parent-group {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+.nav-parent-group .nav-parent-item {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.nav-parent-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.nav-parent-toggle:hover {
+    background: var(--accent-light);
+    color: var(--accent);
 }
 
 .nav-item:hover {

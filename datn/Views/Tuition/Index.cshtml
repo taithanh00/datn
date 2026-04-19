@@ -1,0 +1,130 @@
+@{
+    ViewData["Title"] = "Kế hoạch Học phí";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/tuition.css" asp-append-version="true" />
+}
+
+<div class="tuition-card">
+    <div class="tuition-header">
+        <div>
+            <h2>Kế hoạch Học phí</h2>
+            <p style="color: #6b7280; margin: 0;">Thiết lập mức phí theo độ tuổi</p>
+        </div>
+        <button class="btn btn-primary" onclick="showCreatePlanModal()">
+            <i class="fa-solid fa-plus"></i> Tạo kế hoạch mới
+        </button>
+    </div>
+
+    <div id="plansList">
+        <div style="text-align: center; padding: 20px; color: #9ca3af;">Đang tải danh sách...</div>
+    </div>
+</div>
+
+<div class="tuition-card">
+    <div class="tuition-header">
+        <div>
+            <h2>Khởi tạo học phí tháng</h2>
+            <p style="color: #6b7280; margin: 0;">Tạo hóa đơn học phí cho toàn bộ học sinh</p>
+        </div>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: flex-end;">
+        <div style="flex: 1;">
+            <label class="form-label">Chọn Tháng</label>
+            <select id="genMonth" class="form-select">
+                @for (int i = 1; i <= 12; i++) {
+                    if (DateTime.Now.Month == i) {
+                        <option value="@i" selected>Tháng @i</option>
+                    } else {
+                        <option value="@i">Tháng @i</option>
+                    }
+                }
+            </select>
+        </div>
+        <div style="flex: 1;">
+            <label class="form-label">Chọn Năm</label>
+            <select id="genYear" class="form-select">
+                <option value="2026" selected>2026</option>
+                <option value="2027">2027</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" onclick="generateTuitions()" style="height: 42px;">
+            <i class="fa-solid fa-bolt"></i> Khởi tạo ngay
+        </button>
+    </div>
+</div>
+
+<!-- Modal Tạo Kế Hoạch (Sử dụng prompt tạm thời để đơn giản) -->
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadPlans();
+        });
+
+        async function loadPlans() {
+            try {
+                const res = await fetch('/Tuition/Api/Plans');
+                const data = await res.json();
+                if (data.success) {
+                    const list = $('#plansList');
+                    if (data.data.length === 0) {
+                        list.html('<div style="text-align: center; padding: 20px; color: #9ca3af;">Chưa có kế hoạch học phí nào.</div>');
+                        return;
+                    }
+                    list.html(data.data.map(p => `
+                        <div class="plan-item">
+                            <div>
+                                <strong style="font-size: 16px;">Học phí Lứa tuổi ${p.ageFrom} - ${p.ageTo}</strong>
+                                <div style="font-size: 13px; color: #6b7280;">Áp dụng cho toàn bộ học sinh trong độ tuổi này.</div>
+                            </div>
+                            <div class="plan-amount">${new Intl.NumberFormat('vi-VN').format(p.amount)} đ</div>
+                        </div>
+                    `).join(''));
+                }
+            } catch (e) { console.error("Load plans failed", e); }
+        }
+
+        async function generateTuitions() {
+            const month = $('#genMonth').val();
+            const year = $('#genYear').val();
+            
+            if (!confirm(`Bạn có chắc chắn muốn khởi tạo học phí cho tất cả học sinh vào Tháng ${month}/${year}?`)) return;
+
+            try {
+                const res = await fetch('/Tuition/Api/GenerateMonthlyTuition', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ month: parseInt(month), year: parseInt(year) })
+                });
+                const result = await res.json();
+                alert(result.message);
+            } catch (e) { alert("Lỗi khi khởi tạo học phí."); }
+        }
+
+        function showCreatePlanModal() {
+            const amount = prompt("Nhập số tiền học phí (VNĐ):", "3000000");
+            const ageFrom = prompt("Từ lứa tuổi (ví dụ: 1):", "1");
+            const ageTo = prompt("Đến lứa tuổi (ví dụ: 5):", "5");
+
+            if (amount && ageFrom && ageTo) {
+                createPlan({ amount: parseFloat(amount), ageFrom: parseInt(ageFrom), ageTo: parseInt(ageTo) });
+            }
+        }
+
+        async function createPlan(model) {
+            try {
+                const res = await fetch('/Tuition/Api/Plans/Create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(model)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    loadPlans();
+                }
+            } catch (e) { console.error("Create plan failed", e); }
+        }
+    </script>
+}

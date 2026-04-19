@@ -31,10 +31,21 @@ namespace datn.Data
         public DbSet<ClassActivity> ClassActivities { get; set; }
         public DbSet<Curriculum> Curriculums { get; set; }
         public DbSet<TeachingPlan> TeachingPlans { get; set; }
+        public DbSet<EmployeeLeaveRequest> EmployeeLeaveRequests { get; set; }
+        public DbSet<Subject> Subjects { get; set; }
+        public DbSet<ClassSchedule> ClassSchedules { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // ── Notification ──────────────────────────────────────
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.Recipient)
+                .WithMany()
+                .HasForeignKey(n => n.RecipientId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // ── Account ──────────────────────────────────────────
             modelBuilder.Entity<Account>()
@@ -178,6 +189,13 @@ namespace datn.Data
                 .HasForeignKey(wa => wa.EmployeeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // ── EmployeeLeaveRequest ───────────────────────────────
+            modelBuilder.Entity<EmployeeLeaveRequest>()
+                .HasOne(lr => lr.Employee)
+                .WithMany(e => e.LeaveRequests)
+                .HasForeignKey(lr => lr.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // ── Salary (composite PK) ─────────────────────────────
             modelBuilder.Entity<Salary>()
                 .HasKey(s => new { s.EmployeeId, s.PayrollPeriodId });
@@ -238,6 +256,40 @@ namespace datn.Data
                 .WithMany(c => c.TeachingPlans)
                 .HasForeignKey(tp => tp.CurriculumId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // ── Subject ───────────────────────────────────────────
+            modelBuilder.Entity<Subject>()
+                .HasIndex(s => s.Code)
+                .IsUnique();
+
+            // ── ClassSchedule ─────────────────────────────────────
+            modelBuilder.Entity<ClassSchedule>()
+                .HasOne(cs => cs.Class)
+                .WithMany(c => c.ClassSchedules)
+                .HasForeignKey(cs => cs.ClassId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ClassSchedule>()
+                .HasOne(cs => cs.Subject)
+                .WithMany(s => s.ClassSchedules)
+                .HasForeignKey(cs => cs.SubjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ClassSchedule>()
+                .HasOne(cs => cs.Employee)
+                .WithMany(e => e.ClassSchedules)
+                .HasForeignKey(cs => cs.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ClassSchedule>()
+                .HasIndex(cs => new
+                {
+                    cs.ClassId,
+                    cs.DayOfWeek,
+                    cs.StartTime,
+                    cs.EndTime,
+                    cs.EffectiveFrom
+                });
 
             // ── Seed Roles ────────────────────────────────────────
             modelBuilder.Entity<Role>().HasData(

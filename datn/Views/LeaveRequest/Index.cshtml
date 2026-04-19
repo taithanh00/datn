@@ -1,0 +1,97 @@
+@{
+    ViewData["Title"] = "Tạo đơn nghỉ phép";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="dashboard-card">
+    <div class="card-header">
+        <h2 style="margin: 0;">📝 Tạo đơn nghỉ phép</h2>
+    </div>
+
+    <div class="card-body" style="padding: 24px;">
+        <div style="display:grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap:10px; margin-bottom:12px;">
+            <input id="startDate" type="date" class="form-control" />
+            <input id="endDate" type="date" class="form-control" />
+            <input id="reason" type="text" class="form-control" placeholder="Lý do nghỉ phép" />
+        </div>
+        <button id="btnCreateLeave" type="button" class="btn-create">Tạo đơn nghỉ phép</button>
+        <div id="leaveAlert" style="margin-top:12px; padding:10px 12px; border-radius:8px; background:#f3f4f6;">Sẵn sàng tạo đơn.</div>
+
+        <h3 style="margin-top:18px; margin-bottom:10px;">Đơn gần đây của bạn</h3>
+        <div class="table-responsive">
+            <table class="teachers-table">
+                <thead>
+                    <tr>
+                        <th>Từ ngày</th>
+                        <th>Đến ngày</th>
+                        <th>Lý do</th>
+                        <th>Trạng thái</th>
+                        <th>Ghi chú duyệt</th>
+                    </tr>
+                </thead>
+                <tbody id="myLeaveTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+<script>
+    const leaveAlert = document.getElementById("leaveAlert");
+    const body = document.getElementById("myLeaveTableBody");
+
+    function setAlert(message, isError = false) {
+        leaveAlert.textContent = message;
+        leaveAlert.style.background = isError ? "#fee2e2" : "#ecfeff";
+        leaveAlert.style.color = isError ? "#991b1b" : "#155e75";
+    }
+
+    async function loadMyRequests() {
+        const res = await fetch("/LeaveRequest/Api/MyRequests");
+        const payload = await res.json();
+        if (!payload.success) {
+            setAlert(payload.message || "Không tải được danh sách đơn.", true);
+            return;
+        }
+        if (!payload.data.length) {
+            body.innerHTML = "<tr><td colspan='5'>Chưa có đơn nghỉ phép nào.</td></tr>";
+            return;
+        }
+        body.innerHTML = payload.data.map(x => `
+            <tr>
+                <td>${x.startDate}</td>
+                <td>${x.endDate}</td>
+                <td>${x.reason || ""}</td>
+                <td>${x.status}</td>
+                <td>${x.reviewNote || ""}</td>
+            </tr>
+        `).join("");
+    }
+
+    async function createRequest() {
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+        const reason = document.getElementById("reason").value;
+
+        const res = await fetch("/LeaveRequest/Api/Create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ startDate, endDate, reason })
+        });
+        const payload = await res.json();
+        setAlert(payload.message || "Đã xử lý.", !payload.success);
+        if (payload.success) {
+            await loadMyRequests();
+        }
+    }
+
+    document.getElementById("btnCreateLeave").addEventListener("click", createRequest);
+
+    const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/realtime").build();
+    connection.on("leaveRequestChanged", () => loadMyRequests());
+    connection.start().catch(() => {});
+
+    loadMyRequests();
+</script>
+}

@@ -11,6 +11,7 @@
 
     <!-- Dashboard CSS -->
     <link rel="stylesheet" href="~/css/pages/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/notifications.css" asp-append-version="true" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -42,7 +43,130 @@
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
     <script src="~/js/pages/dashboard.js" asp-append-version="true"></script>
+
+    <!-- Notification Logic -->
+    <script>
+        const notificationConn = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/realtime")
+            .withAutomaticReconnect()
+            .build();
+
+        // Tạo container cho toast nếu chưa có
+        if ($('#toastContainer').length === 0) {
+            $('<div id="toastContainer"></div>').appendTo('body');
+        }
+
+        function showToast(title, message, type = 'info') {
+            const icons = {
+                'info': 'fa-solid fa-circle-info',
+                'success': 'fa-circle-check',
+                'warning': 'fa-triangle-exclamation',
+                'error': 'fa-circle-xmark'
+            };
+            const toast = $(`
+                <div class="toast ${type}">
+                    <div class="notification-icon ${type}">
+                        <i class="fa-solid ${icons[type] || 'fa-bell'}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title" style="font-weight:700; font-size:14px;">${title}</div>
+                        <div class="notification-message" style="font-size:13px;">${message}</div>
+                    </div>
+                </div>
+            `);
+            $('#toastContainer').append(toast);
+            setTimeout(() => {
+                toast.fadeOut(500, function() { $(this).remove(); });
+            }, 5000);
+        }
+
+        async function loadLatestNotifications() {
+            try {
+                const res = await fetch('/Notification/Api/Latest');
+                const result = await res.json();
+                if (result.success) {
+                    updateNotificationUI(result.data);
+                }
+            } catch (e) { console.error("Load notifications failed", e); }
+        }
+
+        function updateNotificationUI(data) {
+            const list = document.getElementById('notificationList');
+            const badge = document.getElementById('notificationCount');
+            if (!list || !badge) return;
+
+            const unreadCount = data.filter(n => !n.isRead).length;
+
+            if (unreadCount > 0) {
+                badge.innerText = unreadCount > 9 ? '9+' : unreadCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+
+            if (data.length === 0) {
+                list.innerHTML = '<div class="notification-empty">Không có thông báo mới</div>';
+                return;
+            }
+
+            const icons = {
+                'info': 'fa-circle-info',
+                'success': 'fa-circle-check',
+                'warning': 'fa-triangle-exclamation',
+                'error': 'fa-circle-xmark'
+            };
+
+            list.innerHTML = data.map(n => `
+                <a href="${n.url || '#'}" class="notification-item ${n.isRead ? '' : 'unread'}" onclick="markAsRead(${n.id})">
+                    <div class="notification-icon ${n.type}">
+                        <i class="fa-solid ${icons[n.type] || 'fa-bell'}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${n.title}</div>
+                        <div class="notification-message">${n.message}</div>
+                        <div class="notification-time">${new Date(n.createdAt).toLocaleString()}</div>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        async function markAsRead(id) {
+            try { await fetch(`/Notification/Api/MarkRead/${id}`, { method: 'POST' }); } catch(e){}
+        }
+
+        // SignalR Listeners
+        notificationConn.on("ReceiveNotification", (n) => {
+            showToast(n.title, n.message, n.type);
+            loadLatestNotifications(); // Refresh list
+        });
+
+        // Toggle dropdown logic
+        $(document).on('click', '#notificationToggle', function(e) {
+            e.stopPropagation();
+            $('#notificationMenu').toggleClass('active');
+            if ($('#notificationMenu').hasClass('active')) {
+                loadLatestNotifications();
+            }
+        });
+
+        $(document).on('click', function() {
+            $('#notificationMenu').removeClass('active');
+        });
+
+        $('#notificationMenu').on('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Start Connection
+        notificationConn.start()
+            .then(() => {
+                console.log("SignalR Connected");
+                loadLatestNotifications();
+            })
+            .catch(err => console.error("SignalR Connection Error: ", err));
+    </script>
 
     <!-- Page-specific scripts -->
     @await RenderSectionAsync("Scripts", required: false)

@@ -1,0 +1,270 @@
+@{
+    ViewData["Title"] = "Duyệt nghỉ phép & Chấm công";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/leave-approval.css" asp-append-version="true" />
+}
+
+<div class="dashboard-card">
+    <div class="card-header">
+        <h2 style="margin: 0;"><i class="fa-solid fa-clipboard-check"></i> Duyệt chấm công & nghỉ phép</h2>
+    </div>
+
+    <div class="card-body">
+        <!-- Status Bar -->
+        <div id="managerAlert" class="manager-status-bar status-connecting">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <span>Đang tải dữ liệu và kết nối...</span>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="filterMonth">Tháng</label>
+                <select id="filterMonth" class="filter-control"></select>
+            </div>
+            <div class="filter-group">
+                <label for="filterYear">Năm</label>
+                <select id="filterYear" class="filter-control"></select>
+            </div>
+            <button class="btn-filter" type="button" id="btnApplyFilter">
+                <i class="fa-solid fa-filter"></i> Lọc dữ liệu
+            </button>
+        </div>
+
+        <!-- Attendance Section -->
+        <h3 class="section-title">
+            <i class="fa-solid fa-clock"></i> 1. Chấm công chờ duyệt
+        </h3>
+        <div class="table-responsive">
+            <table class="teachers-table">
+                <thead>
+                    <tr>
+                        <th>Nhân viên</th>
+                        <th>Ngày</th>
+                        <th>Check-in</th>
+                        <th>Check-out</th>
+                        <th>Trạng thái</th>
+                        <th>Phạt</th>
+                        <th style="text-align: right;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="pendingAttendanceBody">
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <p>Đang tải dữ liệu chấm công...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Leave Request Section -->
+        <h3 class="section-title" style="margin-top: 40px;">
+            <i class="fa-solid fa-calendar-day"></i> 2. Đơn nghỉ phép chờ duyệt
+        </h3>
+        <div class="table-responsive">
+            <table class="teachers-table">
+                <thead>
+                    <tr>
+                        <th>Nhân viên</th>
+                        <th>Từ ngày</th>
+                        <th>Đến ngày</th>
+                        <th>Lý do</th>
+                        <th style="text-align: right;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="pendingLeaveBody">
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <p>Đang tải đơn nghỉ phép...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+<script>
+    const managerAlert = document.getElementById("managerAlert");
+    const filterMonthEl = document.getElementById("filterMonth");
+    const filterYearEl = document.getElementById("filterYear");
+
+    function setAlert(message, type = 'info') {
+        const icon = type === 'error' ? 'fa-circle-exclamation' : (type === 'success' ? 'fa-circle-check' : 'fa-circle-info');
+        managerAlert.className = `manager-status-bar status-${type}`;
+        managerAlert.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+    }
+
+    const fmtMoney = (v) => new Intl.NumberFormat("vi-VN").format(v || 0) + " đ";
+    const fmtTime = (v) => v ? new Date(v).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' }) : "--:--";
+
+    function getFilterQuery() {
+        const month = filterMonthEl.value;
+        const year = filterYearEl.value;
+        return `month=${month}&year=${year}`;
+    }
+
+    async function loadAttendancePending() {
+        const body = document.getElementById("pendingAttendanceBody");
+        try {
+            const res = await fetch(`/LeaveApproval/Api/PendingAttendance?${getFilterQuery()}`);
+            const payload = await res.json();
+            
+            if (!payload.success) {
+                body.innerHTML = `<tr><td colspan='7' class='empty-state'><i class='fa-solid fa-triangle-exclamation'></i><p>Lỗi tải dữ liệu chấm công.</p></td></tr>`;
+                return;
+            }
+            if (!payload.data.length) {
+                body.innerHTML = `<tr><td colspan='7' class='empty-state'><i class='fa-solid fa-calendar-check'></i><p>Không có bản ghi chấm công nào cần duyệt trong tháng này.</p></td></tr>`;
+                return;
+            }
+            body.innerHTML = payload.data.map(x => `
+                <tr>
+                    <td><strong>${x.employeeName}</strong></td>
+                    <td>${x.date}</td>
+                    <td><span class="text-accent">${fmtTime(x.checkInAt)}</span></td>
+                    <td><span class="text-accent">${fmtTime(x.checkOutAt)}</span></td>
+                    <td>
+                        <span class="status-badge ${x.isLate ? 'status-late' : 'status-ontime'}">
+                            ${x.isLate ? 'Đi trễ' : 'Đúng giờ'}
+                        </span>
+                    </td>
+                    <td class="text-danger">${x.penaltyAmount > 0 ? fmtMoney(x.penaltyAmount) : '--'}</td>
+                    <td>
+                        <div class="action-buttons" style="justify-content: flex-end;">
+                            <button class="btn-approve" onclick="attendanceDecision(${x.employeeId}, '${x.rawDate}', true)">
+                                <i class="fa-solid fa-check"></i> Duyệt
+                            </button>
+                            <button class="btn-reject" onclick="attendanceDecision(${x.employeeId}, '${x.rawDate}', false)">
+                                <i class="fa-solid fa-xmark"></i> Từ chối
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join("");
+        } catch (e) {
+            body.innerHTML = `<tr><td colspan='7' class='empty-state'><i class='fa-solid fa-triangle-exclamation'></i><p>Đã xảy ra lỗi hệ thống.</p></td></tr>`;
+        }
+    }
+
+    async function loadLeavePending() {
+        const body = document.getElementById("pendingLeaveBody");
+        try {
+            const res = await fetch(`/LeaveApproval/Api/PendingLeaveRequests?${getFilterQuery()}`);
+            const payload = await res.json();
+            
+            if (!payload.success) {
+                body.innerHTML = `<tr><td colspan='5' class='empty-state'><i class='fa-solid fa-triangle-exclamation'></i><p>Lỗi tải đơn nghỉ phép.</p></td></tr>`;
+                return;
+            }
+            if (!payload.data.length) {
+                body.innerHTML = `<tr><td colspan='5' class='empty-state'><i class='fa-solid fa-mug-hot'></i><p>Không có đơn nghỉ phép nào đang chờ duyệt.</p></td></tr>`;
+                return;
+            }
+            body.innerHTML = payload.data.map(x => `
+                <tr>
+                    <td><strong>${x.employeeName}</strong></td>
+                    <td>${x.startDate}</td>
+                    <td>${x.endDate}</td>
+                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${x.reason || ''}">
+                        ${x.reason || "<em>Không có lý do</em>"}
+                    </td>
+                    <td>
+                        <div class="action-buttons" style="justify-content: flex-end;">
+                            <button class="btn-approve" onclick="leaveDecision(${x.id}, true)">
+                                <i class="fa-solid fa-check"></i> Duyệt
+                            </button>
+                            <button class="btn-reject" onclick="leaveDecision(${x.id}, false)">
+                                <i class="fa-solid fa-xmark"></i> Từ chối
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join("");
+        } catch (e) {
+            body.innerHTML = `<tr><td colspan='5' class='empty-state'><i class='fa-solid fa-triangle-exclamation'></i><p>Đã xảy ra lỗi hệ thống.</p></td></tr>`;
+        }
+    }
+
+    async function attendanceDecision(employeeId, date, approve) {
+        if (!confirm(`Bạn có chắc muốn ${approve ? 'DUYỆT' : 'TỪ CHỐI'} bản ghi chấm công này?`)) return;
+        
+        const url = approve ? "/LeaveApproval/Api/Attendance/Approve" : "/LeaveApproval/Api/Attendance/Reject";
+        try {
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ employeeId, date, reviewNote: "" })
+            });
+            const payload = await res.json();
+            setAlert(payload.message || "Đã xử lý thành công.", payload.success ? "success" : "error");
+            await loadAllPending();
+        } catch (e) {
+            setAlert("Lỗi khi xử lý yêu cầu.", "error");
+        }
+    }
+
+    async function leaveDecision(requestId, approve) {
+        if (!confirm(`Bạn có chắc muốn ${approve ? 'DUYỆT' : 'TỪ CHỐI'} đơn nghỉ phép này?`)) return;
+
+        const url = approve ? "/LeaveApproval/Api/Leave/Approve" : "/LeaveApproval/Api/Leave/Reject";
+        try {
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ requestId, reviewNote: "" })
+            });
+            const payload = await res.json();
+            setAlert(payload.message || "Đã xử lý thành công.", payload.success ? "success" : "error");
+            await loadAllPending();
+        } catch (e) {
+            setAlert("Lỗi khi xử lý yêu cầu.", "error");
+        }
+    }
+
+    async function loadAllPending() {
+        await Promise.all([loadAttendancePending(), loadLeavePending()]);
+    }
+
+    function initFilters() {
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+
+        filterMonthEl.innerHTML = Array.from({ length: 12 }, (_, idx) => {
+            const m = idx + 1;
+            return `<option value="${m}" ${m === currentMonth ? "selected" : ""}>Tháng ${m}</option>`;
+        }).join("");
+
+        const years = [];
+        for (let y = currentYear - 1; y <= currentYear + 1; y++) {
+            years.push(`<option value="${y}" ${y === currentYear ? "selected" : ""}>Năm ${y}</option>`);
+        }
+        filterYearEl.innerHTML = years.join("");
+    }
+
+    const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/realtime").build();
+    connection.on("attendanceChanged", () => loadAllPending());
+    connection.on("leaveRequestChanged", () => loadAllPending());
+    
+    connection.start()
+        .then(() => setAlert("Đã kết nối realtime. Dữ liệu sẽ tự động cập nhật.", "connected"))
+        .catch(() => setAlert("Không kết nối được realtime. Bạn có thể cần tải lại trang.", "error"));
+
+    document.getElementById("btnApplyFilter").addEventListener("click", () => {
+        setAlert("Đang lọc dữ liệu...", "connecting");
+        loadAllPending();
+    });
+
+    initFilters();
+    loadAllPending();
+</script>
+}

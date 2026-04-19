@@ -1,0 +1,190 @@
+/* ====== LEAVE APPROVAL PAGE - CSS STYLING ====== */
+
+.filter-section {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--accent-light);
+    border-radius: var(--radius-sm);
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.filter-control {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 120px;
+    background: white;
+}
+
+.btn-filter {
+    padding: 9px 20px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-filter:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 32px 0 16px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent-light);
+}
+
+.section-title i {
+    color: var(--accent);
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-late {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.status-ontime {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-approve {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-approve:hover {
+    background: #059669;
+    transform: scale(1.05);
+}
+
+.btn-reject {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-reject:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+}
+
+/* Alert Styling */
+.manager-status-bar {
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.status-connecting {
+    background: #ecfeff;
+    color: #0891b2;
+    border-left: 4px solid #0891b2;
+}
+
+.status-connected {
+    background: #f0fdf4;
+    color: #16a34a;
+    border-left: 4px solid #16a34a;
+}
+
+.status-error {
+    background: #fef2f2;
+    color: #dc2626;
+    border-left: 4px solid #dc2626;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+    opacity: 0.3;
+}
+
+/* Utilities */
+.text-accent {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.text-danger {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.text-success {
+    color: var(--success);
+    font-weight: 600;
+}

@@ -1,0 +1,148 @@
+@model IEnumerable<datn.Models.Salary>
+@{
+    ViewData["Title"] = "Lương của tôi";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .salary-list-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .salary-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .salary-header h2 { margin: 0; font-size: 1.5rem; }
+        .salary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .salary-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .salary-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        .period-badge {
+            background: #e7f3ff;
+            color: #007bff;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .amount-text {
+            font-weight: 700;
+            color: #28a745;
+            font-size: 1.1rem;
+        }
+        .btn-slip {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        .btn-slip:hover {
+            background: #5a6268;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-locked { background: #d4edda; color: #155724; }
+        .status-open { background: #fff3cd; color: #856404; }
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: #adb5bd;
+        }
+        .empty-state i { font-size: 3rem; margin-bottom: 15px; }
+    </style>
+}
+
+<div class="salary-list-card">
+    <div class="salary-header">
+        <i class="fa-solid fa-file-invoice-dollar fa-2x"></i>
+        <div>
+            <h2>Lịch sử nhận lương</h2>
+            <p style="margin:0; opacity: 0.8;">Theo dõi thu nhập hàng tháng của bạn</p>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="fa-solid fa-box-open"></i>
+            <p>Bạn chưa có dữ liệu lương trong hệ thống.</p>
+        </div>
+    }
+    else
+    {
+        <table class="salary-table">
+            <thead>
+                <tr>
+                    <th>Kỳ lương</th>
+                    <th>Ngày công</th>
+                    <th>Thực nhận</th>
+                    <th>Trạng thái</th>
+                    <th style="text-align: right;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td>
+                            <span class="period-badge">Tháng @s.PayrollPeriod.Month/@s.PayrollPeriod.Year</span>
+                        </td>
+                        <td><strong>@s.WorkingDays</strong> ngày</td>
+                        <td><span class="amount-text">@string.Format("{0:N0}", s.SalaryAmount) đ</span></td>
+                        <td>
+                            @if (s.PayrollPeriod.IsLocked)
+                            {
+                                <span class="status-badge status-locked"><i class="fa-solid fa-check-double"></i> Đã thanh toán</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge status-open"><i class="fa-solid fa-clock"></i> Đang chờ chốt</span>
+                            }
+                        </td>
+                        <td style="text-align: right;">
+                            <a asp-action="SalarySlip" asp-route-employeeId="@s.EmployeeId" asp-route-periodId="@s.PayrollPeriodId" class="btn-slip">
+                                <i class="fa-solid fa-circle-info"></i> Xem chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

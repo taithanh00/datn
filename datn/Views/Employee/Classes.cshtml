@@ -1,0 +1,103 @@
+@{
+    Layout = "_DashboardLayout";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Lớp của tôi</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item active">Lớp học</li>
+    </ol>
+
+    <div class="row" id="classesContainer">
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Đang tải danh sách lớp học...</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            loadMyClasses();
+        });
+
+        function loadMyClasses() {
+            $.get('/Employee/Api/MyClasses', function (response) {
+                if (response.success) {
+                    if (response.data.length === 0) {
+                        $('#classesContainer').html(`
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i> Bạn chưa được phân công phụ trách lớp học nào.
+                                </div>
+                            </div>
+                        `);
+                        return;
+                    }
+
+                    var html = '';
+                    response.data.forEach(function (item) {
+                        html += `
+                            <div class="col-xl-4 col-md-6 mb-4">
+                                <div class="card border-left-primary shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                    ${item.role}</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800">${item.className}</div>
+                                                <div class="mt-2 text-muted small">
+                                                    <i class="fas fa-users me-1"></i> Sĩ số: ${item.studentCount} học sinh
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-school fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                        <hr />
+                                        <div class="d-grid gap-2">
+                                            <a href="/Employee/Attendance?classId=${item.classId}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-calendar-check me-1"></i> Điểm danh ngay
+                                            </a>
+                                            <a href="/Employee/WorkSchedule?classId=${item.classId}" class="btn btn-outline-info btn-sm">
+                                                <i class="fas fa-list me-1"></i> Xem danh sách
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    $('#classesContainer').html(html);
+                } else {
+                    $('#classesContainer').html(`
+                        <div class="col-12">
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i> Lỗi: ${response.message}
+                            </div>
+                        </div>
+                    `);
+                }
+            });
+        }
+    </script>
+}
+
+<style>
+    .border-left-primary {
+        border-left: 0.25rem solid #4e73df !important;
+    }
+    .text-xs {
+        font-size: .7rem;
+    }
+    .text-gray-300 {
+        color: #dddfeb !important;
+    }
+    .text-gray-800 {
+        color: #5a5c69 !important;
+    }
+</style>

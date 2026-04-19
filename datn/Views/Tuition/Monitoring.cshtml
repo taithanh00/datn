@@ -1,0 +1,116 @@
+@{
+    ViewData["Title"] = "Theo dõi nộp học phí";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/tuition.css" asp-append-version="true" />
+}
+
+<div class="tuition-card">
+    <div class="tuition-header">
+        <div>
+            <h2>Theo dõi nộp học phí</h2>
+            <p style="color: #6b7280; margin: 0;">Kiểm tra tình trạng thanh toán của học sinh</p>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+        <div style="flex: 1;">
+            <label class="form-label">Tháng</label>
+            <select id="monMonth" class="form-select" onchange="loadMonitoring()">
+                @for (int i = 1; i <= 12; i++) {
+                    if (DateTime.Now.Month == i) {
+                        <option value="@i" selected>Tháng @i</option>
+                    } else {
+                        <option value="@i">Tháng @i</option>
+                    }
+                }
+            </select>
+        </div>
+        <div style="flex: 1;">
+            <label class="form-label">Năm</label>
+            <select id="monYear" class="form-select" onchange="loadMonitoring()">
+                <option value="2026" selected>2026</option>
+                <option value="2027">2027</option>
+            </select>
+        </div>
+        <div style="flex: 1;">
+            <label class="form-label">Trạng thái</label>
+            <select id="monStatus" class="form-select" onchange="loadMonitoring()">
+                <option value="">Tất cả</option>
+                <option value="true">Đã nộp</option>
+                <option value="false">Chưa nộp</option>
+            </select>
+        </div>
+    </div>
+
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>Học sinh</th>
+                <th>Lớp</th>
+                <th>Tổng phí</th>
+                <th style="text-align: center;">Trạng thái</th>
+                <th style="text-align: right;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody id="monitoringTable">
+            <tr><td colspan="5" style="text-align:center; color:#9ca3af;">Đang tải dữ liệu...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadMonitoring();
+        });
+
+        async function loadMonitoring() {
+            const month = $('#monMonth').val();
+            const year = $('#monYear').val();
+            const isPaid = $('#monStatus').val();
+
+            try {
+                const res = await fetch(`/Tuition/Api/Monitoring?month=${month}&year=${year}${isPaid ? '&isPaid=' + isPaid : ''}`);
+                const data = await res.json();
+                if (data.success) {
+                    const tbody = $('#monitoringTable');
+                    if (data.data.length === 0) {
+                        tbody.html('<tr><td colspan="5" style="text-align:center; color:#9ca3af;">Không có dữ liệu hóa đơn nào cho kỳ này.</td></tr>');
+                        return;
+                    }
+
+                    tbody.html(data.data.map(t => `
+                        <tr>
+                            <td><strong>${t.studentName}</strong></td>
+                            <td>${t.className}</td>
+                            <td>${new Intl.NumberFormat('vi-VN').format(t.total)} đ</td>
+                            <td style="text-align: center;">
+                                <span class="${t.isPaid ? 'status-paid' : 'status-unpaid'}">
+                                    ${t.isPaid ? '<i class="fa-solid fa-check"></i> Đã nộp' : '<i class="fa-solid fa-clock"></i> Chưa nộp'}
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                ${!t.isPaid ? `<button class="btn btn-sm btn-success" onclick="confirmPaid(${t.id})" style="padding: 5px 10px; font-size: 12px;">Xác nhận nộp</button>` : ''}
+                            </td>
+                        </tr>
+                    `).join(''));
+                }
+            } catch (e) { console.error("Load monitoring failed", e); }
+        }
+
+        async function confirmPaid(id) {
+            if (!confirm("Bạn có chắc chắn xác nhận học sinh này đã nộp đủ phí?")) return;
+
+            try {
+                const res = await fetch(`/Tuition/Api/ConfirmPaid/${id}`, { method: 'POST' });
+                const result = await res.json();
+                if (result.success) {
+                    loadMonitoring();
+                }
+            } catch (e) { console.error("Confirm paid failed", e); }
+        }
+    </script>
+}

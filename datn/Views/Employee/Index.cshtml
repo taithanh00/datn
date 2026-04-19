@@ -1,0 +1,135 @@
+@{
+    ViewData["Title"] = "Bảng điều khiển Giáo viên";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/dashboard-v2.css" asp-append-version="true" />
+}
+
+<div class="dashboard-v2-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fa-solid fa-users-viewfinder"></i></div>
+        <div class="stat-info">
+            <span class="stat-value" id="statClassSize">...</span>
+            <span class="stat-label" id="statClassName">Lớp đang phụ trách</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange"><i class="fa-solid fa-clock-user"></i></div>
+        <div class="stat-info">
+            <span class="stat-value" id="statCheckIn">...</span>
+            <span class="stat-label">Giờ Check-in hôm nay</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+        <div class="stat-info">
+            <span class="stat-value" id="statLastSalary">...</span>
+            <span class="stat-label">Lương tháng trước</span>
+        </div>
+    </div>
+</div>
+
+<div class="charts-grid">
+    <div class="data-card">
+        <div class="chart-header">
+            <h3>Lịch dạy hôm nay</h3>
+            <span id="currentDate" class="stat-label">...</span>
+        </div>
+        <div id="todaySchedule" class="timeline">
+            <div style="text-align:center; color:#9ca3af; padding: 20px;">Đang tải lịch học...</div>
+        </div>
+    </div>
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3>Phân loại học lực lớp</h3>
+        </div>
+        <canvas id="rankingChart" height="300"></canvas>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function() {
+            loadTeacherDashboard();
+        });
+
+        async function loadTeacherDashboard() {
+            try {
+                const res = await fetch('/Employee/Api/DashboardStats');
+                const data = await res.json();
+                if (data.success) {
+                    // Update Stats
+                    $('#statClassSize').text(data.stats.presentToday + ' / ' + data.stats.classSize);
+                    $('#statClassName').text('Sĩ số lớp: ' + data.stats.className);
+                    $('#statCheckIn').text(data.stats.checkInTime);
+                    $('#statLastSalary').text(new Intl.NumberFormat('vi-VN').format(data.stats.lastSalary) + ' đ');
+                    $('#currentDate').text(data.todaySchedule.length > 0 ? 'Hôm nay' : 'Không có lịch dạy');
+
+                    // Render Schedule
+                    renderTimeline(data.todaySchedule);
+
+                    // Render Ranking Chart
+                    renderRankingChart(data.charts.ranking);
+                }
+            } catch (e) { console.error("Load teacher dashboard failed", e); }
+        }
+
+        function renderTimeline(schedules) {
+            const container = $('#todaySchedule');
+            if (schedules.length === 0) {
+                container.html('<div style="text-align:center; color:#9ca3af; padding: 20px;">Hôm nay bạn không có tiết dạy nào.</div>');
+                return;
+            }
+
+            container.empty();
+            schedules.forEach(s => {
+                container.append(`
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-time">${s.time}</div>
+                        <div class="timeline-content">
+                            <div class="timeline-subject">${s.subject}</div>
+                            <div class="timeline-class">Lớp: ${s.className}</div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        function renderRankingChart(data) {
+            const ctx = document.getElementById('rankingChart').getContext('2d');
+            if (data.length === 0) {
+                ctx.font = "14px Arial";
+                ctx.fillStyle = "#9ca3af";
+                ctx.textAlign = "center";
+                ctx.fillText("Chưa có dữ liệu đánh giá", 150, 150);
+                return;
+            }
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(x => x.label),
+                    datasets: [{
+                        label: 'Số lượng học sinh',
+                        data: data.map(x => x.value),
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+    </script>
+}

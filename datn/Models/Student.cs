@@ -12,6 +12,7 @@ namespace datn.Models
         public string? Address { get; set; }
         public int? ClassId { get; set; }
         public DateOnly? EnrollDate { get; set; }
+        public string? AvatarPath { get; set; }
 
         public Class? Class { get; set; }
         public ICollection<ParentStudent> ParentStudents { get; set; }

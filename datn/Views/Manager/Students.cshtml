@@ -25,6 +25,7 @@
                 <thead>
                     <tr>
                         <th>STT</th>
+                        <th>Ảnh</th>
                         <th>Họ và tên</th>
                         <th>Giới tính</th>
                         <th>Ngày sinh</th>
@@ -35,7 +36,7 @@
                 </thead>
                 <tbody id="studentsTableBody">
                     <tr class="loading-row">
-                        <td colspan="7" style="text-align: center; padding: 40px;">
+                        <td colspan="8" style="text-align: center; padding: 40px;">
                             <div class="spinner"></div>
                             <p>Đang tải dữ liệu...</p>
                         </td>
@@ -66,6 +67,14 @@
 
             <div class="form-section">
                 <h4>Thông tin cơ bản</h4>
+
+                <div class="form-group mb-4 text-center">
+                    <label>Ảnh đại diện</label>
+                    <div class="avatar-upload-container">
+                        <img id="avatarPreview" src="/images/lion_orange.png" alt="Avatar Preview" class="img-thumbnail rounded-circle mb-2" style="width: 120px; height: 120px; object-fit: cover;" />
+                        <input type="file" id="avatarFile" name="Avatar" class="form-control" accept="image/*" onchange="previewAvatar(this)" />
+                    </div>
+                </div>
 
                 <div class="form-group">
                     <label for="firstName">Tên</label>

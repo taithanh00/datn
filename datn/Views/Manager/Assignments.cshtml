@@ -1,0 +1,203 @@
+@{
+    Layout = "_DashboardLayout";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Phân công Giảng dạy</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item active">Phân công</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-chalkboard-teacher me-1"></i>
+                Danh sách Phân công
+            </div>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assignmentModal" onclick="prepareCreate()">
+                <i class="fas fa-plus me-1"></i> Thêm Phân công
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="assignmentTable" width="100%" cellspacing="0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Giáo viên</th>
+                            <th>Lớp</th>
+                            <th>Ngày bắt đầu</th>
+                            <th>Ngày kết thúc</th>
+                            <th>Vai trò</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assignmentTableBody">
+                        <!-- Data will be loaded via AJAX -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assignment Modal -->
+<div class="modal fade" id="assignmentModal" tabindex="-1" aria-labelledby="assignmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignmentModalLabel">Thêm Phân công mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="assignmentForm">
+                    <div class="mb-3">
+                        <label for="employeeSelect" class="form-label">Giáo viên <span class="text-danger">*</span></label>
+                        <select class="form-select" id="employeeSelect" required>
+                            <option value="">-- Chọn giáo viên --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="classSelect" class="form-label">Lớp học <span class="text-danger">*</span></label>
+                        <select class="form-select" id="classSelect" required>
+                            <option value="">-- Chọn lớp --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="startDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">Ngày kết thúc</label>
+                        <input type="date" class="form-control" id="endDate">
+                    </div>
+                    <div class="mb-3">
+                        <label for="roleInClass" class="form-label">Vai trò trong lớp</label>
+                        <input type="text" class="form-control" id="roleInClass" placeholder="VD: Chủ nhiệm, Giáo viên bộ môn...">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveAssignment()">Lưu lại</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            loadAssignments();
+            loadDropdowns();
+        });
+
+        function loadAssignments() {
+            $.get('/Manager/Api/Assignments', function (response) {
+                if (response.success) {
+                    var html = '';
+                    response.data.forEach(function (item) {
+                        html += `<tr>
+                            <td>${item.employeeName}</td>
+                            <td>${item.className}</td>
+                            <td>${formatDate(item.startDate)}</td>
+                            <td>${item.endDate ? formatDate(item.endDate) : '<span class="text-muted">Chưa xác định</span>'}</td>
+                            <td>${item.roleInClass || 'N/A'}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteAssignment(${item.employeeId}, ${item.classId}, '${item.startDate}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
+                    $('#assignmentTableBody').html(html);
+                } else {
+                    alert('Lỗi khi tải dữ liệu: ' + response.message);
+                }
+            });
+        }
+
+        function loadDropdowns() {
+            // Load Teachers
+            $.get('/Manager/Api/Teachers', function (response) {
+                if (response.success) {
+                    var html = '<option value="">-- Chọn giáo viên --</option>';
+                    response.data.forEach(function (item) {
+                        html += `<option value="${item.id}">${item.fullName} (${item.position || 'GV'})</option>`;
+                    });
+                    $('#employeeSelect').html(html);
+                }
+            });
+
+            // Load Classes
+            $.get('/Manager/Api/Classes', function (response) {
+                if (response.success) {
+                    var html = '<option value="">-- Chọn lớp --</option>';
+                    response.data.forEach(function (item) {
+                        html += `<option value="${item.id}">${item.name}</option>`;
+                    });
+                    $('#classSelect').html(html);
+                }
+            });
+        }
+
+        function prepareCreate() {
+            $('#assignmentForm')[0].reset();
+            $('#startDate').val(new Date().toISOString().split('T')[0]);
+        }
+
+        function saveAssignment() {
+            var data = {
+                employeeId: parseInt($('#employeeSelect').val()),
+                classId: parseInt($('#classSelect').val()),
+                startDate: $('#startDate').val(),
+                endDate: $('#endDate').val() || null,
+                roleInClass: $('#roleInClass').val()
+            };
+
+            if (!data.employeeId || !data.classId || !data.startDate) {
+                alert('Vui lòng điền đầy đủ các thông tin bắt buộc');
+                return;
+            }
+
+            $.ajax({
+                url: '/Manager/Api/Assignment',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response.success) {
+                        $('#assignmentModal').modal('hide');
+                        loadAssignments();
+                        alert('Thành công: ' + response.message);
+                    } else {
+                        alert('Lỗi: ' + response.message);
+                    }
+                }
+            });
+        }
+
+        function deleteAssignment(employeeId, classId, startDate) {
+            if (confirm('Bạn có chắc chắn muốn xóa phân công này không?')) {
+                $.ajax({
+                    url: `/Manager/Api/Assignment?employeeId=${employeeId}&classId=${classId}&startDate=${startDate}`,
+                    type: 'DELETE',
+                    success: function (response) {
+                        if (response.success) {
+                            loadAssignments();
+                            alert(response.message);
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                    }
+                });
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            var date = new Date(dateStr);
+            return date.toLocaleDateString('vi-VN');
+        }
+    </script>
+}

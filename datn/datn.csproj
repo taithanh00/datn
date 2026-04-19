@@ -28,7 +28,6 @@
     <None Include="wwwroot\images\lion_blue.png" />
     <None Include="wwwroot\images\lion_orange.png" />
     <None Include="wwwroot\images\lion_yellow.png" />
-    <None Include="wwwroot\js\pages\login.js" />
   </ItemGroup>
 
 </Project>

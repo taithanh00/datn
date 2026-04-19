@@ -1,0 +1,97 @@
+@{
+    ViewData["Title"] = "Chấm công";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="dashboard-card">
+    <div class="card-header">
+        <h2 style="margin: 0;">⏱️ Chấm công</h2>
+    </div>
+
+    <div class="card-body" style="padding: 24px;">
+        <div style="display:flex; gap:12px; margin-bottom:16px;">
+            <button id="btnCheckIn" type="button" class="btn-create">Check-in</button>
+            <button id="btnCheckOut" type="button" class="btn-save">Check-out</button>
+        </div>
+
+        <div id="attendanceAlert" style="margin-bottom:16px; padding:10px 12px; border-radius:8px; background:#f3f4f6; color:#111827;">
+            Đang tải trạng thái chấm công...
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap:10px;">
+            <div><strong>Thời gian hệ thống (VNT):</strong> <span id="serverTime">--:--:--</span></div>
+            <div><strong>Trạng thái:</strong> <span id="statusText">--</span></div>
+            <div><strong>Giờ check-in:</strong> <span id="checkInText">--</span></div>
+            <div><strong>Giờ check-out:</strong> <span id="checkOutText">--</span></div>
+            <div><strong>Đi trễ:</strong> <span id="isLateText">--</span></div>
+            <div><strong>Tạm tính phạt:</strong> <span id="penaltyText">0 đ</span></div>
+        </div>
+
+        <p style="margin-top:16px; color:#6b7280;">
+            Quy định: Chấm công từ Thứ 2 đến Thứ 6, trong khung giờ 08:00 - 17:00 (VNT). Grace period 10 phút.
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+<script>
+    const btnCheckIn = document.getElementById("btnCheckIn");
+    const btnCheckOut = document.getElementById("btnCheckOut");
+    const alertBox = document.getElementById("attendanceAlert");
+
+    function money(v) {
+        return new Intl.NumberFormat("vi-VN").format(v || 0) + " đ";
+    }
+
+    function setAlert(message, isError = false) {
+        alertBox.textContent = message;
+        alertBox.style.background = isError ? "#fee2e2" : "#ecfeff";
+        alertBox.style.color = isError ? "#991b1b" : "#155e75";
+    }
+
+    function syncUi(data) {
+        document.getElementById("serverTime").textContent = data.serverTimeVnt || "--";
+        document.getElementById("statusText").textContent = data.status || "--";
+        document.getElementById("checkInText").textContent = data.checkInAt || "--";
+        document.getElementById("checkOutText").textContent = data.checkOutAt || "--";
+        document.getElementById("isLateText").textContent = data.isLate ? "Có" : "Không";
+        document.getElementById("penaltyText").textContent = money(data.penaltyAmount);
+
+        btnCheckIn.disabled = !data.canCheckIn;
+        btnCheckOut.disabled = !data.canCheckOut;
+
+        if (!data.isAllowedNow) {
+            setAlert("Ngoài giờ làm việc. Nút chấm công đang bị khóa.", true);
+        } else {
+            setAlert("Bạn đang trong khung giờ làm việc.");
+        }
+    }
+
+    async function loadToday() {
+        const res = await fetch("/TimeAttendance/Api/Today");
+        const payload = await res.json();
+        if (!payload.success) {
+            setAlert(payload.message || "Không lấy được trạng thái chấm công.", true);
+            return;
+        }
+        syncUi(payload.data);
+    }
+
+    async function postAction(url) {
+        const res = await fetch(url, { method: "POST" });
+        const payload = await res.json();
+        setAlert(payload.message || "Đã xử lý.", !payload.success);
+        await loadToday();
+    }
+
+    btnCheckIn.addEventListener("click", () => postAction("/TimeAttendance/Api/CheckIn"));
+    btnCheckOut.addEventListener("click", () => postAction("/TimeAttendance/Api/CheckOut"));
+
+    const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/realtime").build();
+    connection.on("attendanceChanged", () => loadToday());
+    connection.start().catch(() => {});
+
+    loadToday();
+</script>
+}
