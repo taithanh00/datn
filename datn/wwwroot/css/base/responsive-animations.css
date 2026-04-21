@@ -1,0 +1,165 @@
+/* 
+   Responsive & Animation System for DATN Dashboard
+   Focus: Performance, Visual Appeal, and Mobile-first approach
+*/
+
+:root {
+    --transition-fast: 0.2s ease;
+    --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.5s ease;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-fade { animation: fadeIn var(--transition-base); }
+.animate-slide-up { animation: slideUp var(--transition-base) forwards; }
+.animate-delay-1 { animation-delay: 0.1s; }
+.animate-delay-2 { animation-delay: 0.2s; }
+
+/* Dashboard Card Hover Effect */
+.dashboard-card {
+    transition: var(--transition-base);
+    opacity: 0;
+    animation: slideUp 0.4s ease forwards;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Button & Link Hover Effects */
+.btn-primary-action, .btn-secondary-action, .btn-table {
+    transition: all var(--transition-fast);
+}
+
+.btn-primary-action:active, .btn-secondary-action:active {
+    transform: scale(0.96);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablet (max-width: 1024px) */
+@media (max-width: 1024px) {
+    :root {
+        --sidebar-w: 80px;
+    }
+    
+    .logo-text, .nav-text, .nav-badge, .user-name, .user-role {
+        display: none;
+    }
+
+    .sidebar-header {
+        justify-content: center;
+        padding: 15px 0;
+    }
+
+    .nav-link {
+        justify-content: center;
+        padding: 12px;
+    }
+
+    .nav-icon {
+        margin-right: 0;
+        font-size: 20px;
+    }
+
+    .dashboard-main {
+        margin-left: var(--sidebar-w);
+    }
+}
+
+/* Mobile (max-width: 768px) */
+@media (max-width: 768px) {
+    :root {
+        --sidebar-w: 0px;
+    }
+
+    .dashboard-main {
+        margin-left: 0;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform var(--transition-base);
+        width: 260px;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+        z-index: 1000;
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 999;
+        backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    .dashboard-content {
+        padding: 15px;
+    }
+
+    /* Grid layout adjustments */
+    .dashboard-grid, .activities-grid, .classes-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .form-row {
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    /* Mobile Header Toggle */
+    .mobile-nav-toggle {
+        display: flex !important;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 15px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 900;
+    }
+}
+
+/* Table Card Enhancements */
+.management-table th {
+    white-space: nowrap;
+}
+
+/* Utility for smooth image loading */
+img {
+    transition: opacity 0.3s ease;
+}
+
+.img-loading {
+    opacity: 0;
+}

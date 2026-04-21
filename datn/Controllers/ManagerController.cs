@@ -1001,6 +1001,262 @@ namespace datn.Controllers
             };
         }
 
+        // ============ LOCATION API ============
+
+        [HttpGet("Api/Locations")]
+        public async Task<IActionResult> GetLocations()
+        {
+            var locations = await _context.Locations.OrderBy(l => l.Name).ToListAsync();
+            return Json(new { success = true, data = locations });
+        }
+
+        [HttpPost("Api/Location")]
+        public async Task<IActionResult> CreateLocation([FromBody] Location model)
+        {
+            if (string.IsNullOrWhiteSpace(model.Name)) return Json(new { success = false, message = "Tên địa điểm không được để trống" });
+            _context.Locations.Add(model);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã thêm địa điểm" });
+        }
+
+        [HttpDelete("Api/Location/{id:int}")]
+        public async Task<IActionResult> DeleteLocation(int id)
+        {
+            var location = await _context.Locations.FindAsync(id);
+            if (location == null) return Json(new { success = false, message = "Không tìm thấy địa điểm" });
+            if (await _context.Activities.AnyAsync(a => a.LocationId == id))
+                return Json(new { success = false, message = "Địa điểm này đang có hoạt động diễn ra, không thể xóa" });
+            _context.Locations.Remove(location);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã xóa địa điểm" });
+        }
+
+        // ============ ACTIVITY API ============
+
+        [HttpGet("Activities")]
+        public IActionResult Activities()
+        {
+            return View();
+        }
+
+        [HttpGet("Api/Activities")]
+        public async Task<IActionResult> GetActivities()
+        {
+            var activities = await _context.Activities
+                .Include(a => a.Location)
+                .Include(a => a.Organizer)
+                .Include(a => a.ClassActivities)
+                    .ThenInclude(ca => ca.Class)
+                .OrderByDescending(a => a.Date)
+                .ToListAsync();
+
+            var data = activities.Select(a => new
+            {
+                id = a.Id,
+                name = a.Name,
+                description = a.Description,
+                date = a.Date?.ToString("yyyy-MM-dd"),
+                locationName = a.Location?.Name,
+                organizerName = a.Organizer?.FullName,
+                classes = a.ClassActivities.Select(ca => new { id = ca.ClassId, name = ca.Class.Name })
+            });
+
+            return Json(new { success = true, data });
+        }
+
+        [HttpPost("Api/Activity")]
+        public async Task<IActionResult> CreateActivity([FromBody] SaveActivityViewModel model)
+        {
+            var activity = new Activity
+            {
+                Name = model.Name,
+                Description = model.Description,
+                Date = DateOnly.Parse(model.Date),
+                LocationId = model.LocationId,
+                OrganizerId = model.OrganizerId
+            };
+
+            _context.Activities.Add(activity);
+            await _context.SaveChangesAsync();
+
+            if (model.ClassIds != null && model.ClassIds.Any())
+            {
+                foreach (var classId in model.ClassIds)
+                {
+                    _context.ClassActivities.Add(new ClassActivity { ActivityId = activity.Id, ClassId = classId });
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            return Json(new { success = true, message = "Đã tạo hoạt động thành công" });
+        }
+
+        [HttpPut("Api/Activity/{id:int}")]
+        public async Task<IActionResult> UpdateActivity(int id, [FromBody] SaveActivityViewModel model)
+        {
+            var activity = await _context.Activities
+                .Include(a => a.ClassActivities)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (activity == null) return Json(new { success = false, message = "Không tìm thấy hoạt động" });
+
+            activity.Name = model.Name;
+            activity.Description = model.Description;
+            activity.Date = DateOnly.Parse(model.Date);
+            activity.LocationId = model.LocationId;
+            activity.OrganizerId = model.OrganizerId;
+
+            // Update ClassActivities
+            _context.ClassActivities.RemoveRange(activity.ClassActivities);
+            if (model.ClassIds != null && model.ClassIds.Any())
+            {
+                foreach (var classId in model.ClassIds)
+                {
+                    _context.ClassActivities.Add(new ClassActivity { ActivityId = id, ClassId = classId });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã cập nhật hoạt động" });
+        }
+
+        [HttpDelete("Api/Activity/{id:int}")]
+        public async Task<IActionResult> DeleteActivity(int id)
+        {
+            var activity = await _context.Activities.FindAsync(id);
+            if (activity == null) return Json(new { success = false, message = "Không tìm thấy hoạt động" });
+
+            _context.Activities.Remove(activity);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã xóa hoạt động" });
+        }
+
+        // ============ CURRICULUM API ============
+
+        [HttpGet("Curriculums")]
+        public IActionResult Curriculums()
+        {
+            return View();
+        }
+
+        [HttpGet("Api/Curriculums")]
+        public async Task<IActionResult> GetCurriculums()
+        {
+            var curriculums = await _context.Curriculums
+                .Include(c => c.Subject)
+                .OrderBy(c => c.Title)
+                .ToListAsync();
+
+            var data = curriculums.Select(c => new
+            {
+                id = c.Id,
+                title = c.Title,
+                description = c.Description,
+                content = c.Content,
+                subjectId = c.SubjectId,
+                subjectName = c.Subject?.Name,
+                ageFrom = c.AgeFrom,
+                ageTo = c.AgeTo
+            });
+
+            return Json(new { success = true, data });
+        }
+
+        [HttpPost("Api/Curriculum")]
+        public async Task<IActionResult> CreateCurriculum([FromBody] Curriculum model)
+        {
+            _context.Curriculums.Add(model);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã tạo chương trình học" });
+        }
+
+        [HttpPut("Api/Curriculum/{id:int}")]
+        public async Task<IActionResult> UpdateCurriculum(int id, [FromBody] Curriculum model)
+        {
+            var cur = await _context.Curriculums.FindAsync(id);
+            if (cur == null) return Json(new { success = false, message = "Không tìm thấy" });
+
+            cur.Title = model.Title;
+            cur.Description = model.Description;
+            cur.Content = model.Content;
+            cur.SubjectId = model.SubjectId;
+            cur.AgeFrom = model.AgeFrom;
+            cur.AgeTo = model.AgeTo;
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã cập nhật" });
+        }
+
+        [HttpDelete("Api/Curriculum/{id:int}")]
+        public async Task<IActionResult> DeleteCurriculum(int id)
+        {
+            var cur = await _context.Curriculums.FindAsync(id);
+            if (cur == null) return Json(new { success = false, message = "Không tìm thấy" });
+
+            if (await _context.TeachingPlans.AnyAsync(tp => tp.CurriculumId == id))
+                return Json(new { success = false, message = "Chương trình này đang được sử dụng trong kế hoạch giảng dạy, không thể xóa" });
+
+            _context.Curriculums.Remove(cur);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã xóa" });
+        }
+
+        // ============ TEACHING PLAN API ============
+
+        [HttpGet("TeachingPlans")]
+        public IActionResult TeachingPlans()
+        {
+            return View();
+        }
+
+        [HttpGet("Api/TeachingPlans")]
+        public async Task<IActionResult> GetTeachingPlans(int? classId)
+        {
+            var query = _context.TeachingPlans
+                .Include(tp => tp.Class)
+                .Include(tp => tp.Curriculum)
+                .AsQueryable();
+
+            if (classId.HasValue) query = query.Where(tp => tp.ClassId == classId);
+
+            var plans = await query.OrderByDescending(tp => tp.StartDate).ToListAsync();
+            var data = plans.Select(tp => new
+            {
+                classId = tp.ClassId,
+                className = tp.Class.Name,
+                curriculumId = tp.CurriculumId,
+                curriculumTitle = tp.Curriculum.Title,
+                startDate = tp.StartDate.ToString("yyyy-MM-dd"),
+                endDate = tp.EndDate?.ToString("yyyy-MM-dd"),
+                status = tp.Status
+            });
+
+            return Json(new { success = true, data });
+        }
+
+        [HttpPost("Api/TeachingPlan")]
+        public async Task<IActionResult> CreateTeachingPlan([FromBody] TeachingPlan model)
+        {
+            if (await _context.TeachingPlans.AnyAsync(tp => tp.ClassId == model.ClassId && tp.CurriculumId == model.CurriculumId && tp.StartDate == model.StartDate))
+                return Json(new { success = false, message = "Kế hoạch này đã tồn tại" });
+
+            _context.TeachingPlans.Add(model);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã lập kế hoạch giảng dạy" });
+        }
+
+        [HttpDelete("Api/TeachingPlan")]
+        public async Task<IActionResult> DeleteTeachingPlan(int classId, int curriculumId, string startDate)
+        {
+            var sDate = DateOnly.Parse(startDate);
+            var plan = await _context.TeachingPlans.FirstOrDefaultAsync(tp => tp.ClassId == classId && tp.CurriculumId == curriculumId && tp.StartDate == sDate);
+            if (plan == null) return Json(new { success = false, message = "Không tìm thấy" });
+
+            _context.TeachingPlans.Remove(plan);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã xóa kế hoạch" });
+        }
+
         private async Task<string> SaveAvatar(IFormFile file, string prefix)
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
@@ -1093,5 +1349,15 @@ namespace datn.Controllers
         public string? EffectiveTo { get; set; }
         public string? Note { get; set; }
         public bool IsActive { get; set; } = true;
+    }
+
+    public class SaveActivityViewModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string Date { get; set; } = string.Empty;
+        public int? LocationId { get; set; }
+        public int? OrganizerId { get; set; }
+        public List<int>? ClassIds { get; set; }
     }
 }

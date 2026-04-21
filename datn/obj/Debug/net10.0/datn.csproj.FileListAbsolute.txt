@@ -295,7 +295,6 @@ D:\datn\datn\datn\obj\Debug\net10.0\scopedcss\projectbundle\datn.bundle.scp.css
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\en45zjkvyx-{0}-zya5gs0ei5-zya5gs0ei5.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\yuke4wbfwg-{0}-4qu0s11lv5-4qu0s11lv5.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\qhzeftgskf-{0}-s89zarsnx2-s89zarsnx2.gz
-D:\datn\datn\datn\obj\Debug\net10.0\compressed\q4c3vuvrbf-{0}-z79c5ppt6u-z79c5ppt6u.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\pn5kdz6jk0-{0}-o4rgyqimvz-o4rgyqimvz.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\znrdv8k3qn-{0}-4j1jypi8xu-4j1jypi8xu.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\p7czzjm0al-{0}-4s10jy47p5-4s10jy47p5.gz
@@ -391,3 +390,5 @@ D:\datn\datn\datn\obj\Debug\net10.0\compressed\ncrh6jy0gs-{0}-uqsrlb58ty-uqsrlb5
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\3kvlell4tz-{0}-j7vjm6dgmo-j7vjm6dgmo.gz
 D:\datn\datn\datn\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\3x56rc2xdj-{0}-dua122eqbq-dua122eqbq.gz
+D:\datn\datn\datn\obj\Debug\net10.0\compressed\rsmdhapjp0-{0}-2e7ldlifyn-2e7ldlifyn.gz
+D:\datn\datn\datn\obj\Debug\net10.0\compressed\q4c3vuvrbf-{0}-3xl8b51idd-3xl8b51idd.gz

@@ -483,6 +483,157 @@ namespace datn.Controllers
                 && (a.EndDate == null || a.EndDate >= onDate));
         }
 
+        // ============ ACTIVITY PARTICIPATION API ============
+
+        [HttpGet("Activities")]
+        public IActionResult Activities()
+        {
+            return View();
+        }
+
+        [HttpGet("Api/Activities")]
+        public async Task<IActionResult> GetAssignedActivities()
+        {
+            var employeeId = int.Parse(User.FindFirst("EmployeeId")?.Value ?? "0");
+            if (employeeId == 0) return Json(new { success = false, message = "Không xác định được giáo viên" });
+
+            var today = GetTodayVnt();
+            // Lấy các lớp mà giáo viên này đang phụ trách
+            var assignedClassIds = await _context.Assignments
+                .Where(a => a.EmployeeId == employeeId && a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
+                .Select(a => a.ClassId)
+                .ToListAsync();
+
+            // Lấy các hoạt động được gán cho các lớp này
+            var activities = await _context.ClassActivities
+                .Where(ca => assignedClassIds.Contains(ca.ClassId))
+                .Include(ca => ca.Activity)
+                    .ThenInclude(a => a.Location)
+                .Select(ca => ca.Activity)
+                .Distinct()
+                .OrderByDescending(a => a.Date)
+                .ToListAsync();
+
+            var data = activities.Select(a => new
+            {
+                id = a.Id,
+                name = a.Name,
+                date = a.Date?.ToString("yyyy-MM-dd"),
+                locationName = a.Location?.Name,
+                description = a.Description
+            });
+
+            return Json(new { success = true, data });
+        }
+
+        [HttpGet("Api/Activity/{activityId:int}/Participants")]
+        public async Task<IActionResult> GetActivityParticipants(int activityId)
+        {
+            var employeeId = int.Parse(User.FindFirst("EmployeeId")?.Value ?? "0");
+            var today = GetTodayVnt();
+
+            // Tìm lớp của giáo viên này tham gia hoạt động
+            var classId = await _context.ClassActivities
+                .Where(ca => ca.ActivityId == activityId && _context.Assignments.Any(asg => asg.EmployeeId == employeeId && asg.ClassId == ca.ClassId && asg.StartDate <= today && (asg.EndDate == null || asg.EndDate >= today)))
+                .Select(ca => ca.ClassId)
+                .FirstOrDefaultAsync();
+
+            if (classId == 0) return Json(new { success = false, message = "Lớp của bạn không tham gia hoạt động này hoặc bạn không có quyền truy cập" });
+
+            var students = await _context.Students
+                .Where(s => s.ClassId == classId)
+                .OrderBy(s => s.LastName)
+                .ToListAsync();
+
+            var participants = await _context.StudentActivities
+                .Where(sa => sa.ActivityId == activityId)
+                .Select(sa => sa.StudentId)
+                .ToListAsync();
+
+            var data = students.Select(s => new
+            {
+                id = s.Id,
+                fullName = $"{s.FirstName} {s.LastName}",
+                isParticipating = participants.Contains(s.Id)
+            });
+
+            return Json(new { success = true, data });
+        }
+
+        [HttpPost("Api/Activity/{activityId:int}/Participants")]
+        public async Task<IActionResult> SaveActivityParticipants(int activityId, [FromBody] List<int> studentIds)
+        {
+            var employeeId = int.Parse(User.FindFirst("EmployeeId")?.Value ?? "0");
+            var today = GetTodayVnt();
+
+            var classId = await _context.ClassActivities
+                .Where(ca => ca.ActivityId == activityId && _context.Assignments.Any(asg => asg.EmployeeId == employeeId && asg.ClassId == ca.ClassId && asg.StartDate <= today && (asg.EndDate == null || asg.EndDate >= today)))
+                .Select(ca => ca.ClassId)
+                .FirstOrDefaultAsync();
+
+            if (classId == 0) return Json(new { success = false, message = "Không có quyền cập nhật cho hoạt động này" });
+
+            // Chỉ cho phép cập nhật học sinh thuộc lớp mình
+            var studentsInClass = await _context.Students.Where(s => s.ClassId == classId).Select(s => s.Id).ToListAsync();
+            var validStudentIds = studentIds.Intersect(studentsInClass).ToList();
+
+            // Xóa các bản ghi cũ của lớp này trong hoạt động này
+            var existingParticipation = await _context.StudentActivities
+                .Where(sa => sa.ActivityId == activityId && studentsInClass.Contains(sa.StudentId))
+                .ToListAsync();
+            _context.StudentActivities.RemoveRange(existingParticipation);
+
+            // Thêm mới
+            foreach (var sid in validStudentIds)
+            {
+                _context.StudentActivities.Add(new StudentActivity { ActivityId = activityId, StudentId = sid });
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã cập nhật danh sách tham gia" });
+        }
+
+        // ============ TEACHING PLAN API ============
+
+        [HttpGet("TeachingPlan")]
+        public IActionResult TeachingPlan()
+        {
+            return View();
+        }
+
+        [HttpGet("Api/TeachingPlans")]
+        public async Task<IActionResult> GetMyTeachingPlans()
+        {
+            var employeeId = int.Parse(User.FindFirst("EmployeeId")?.Value ?? "0");
+            var today = GetTodayVnt();
+
+            // Lấy các lớp đang phụ trách
+            var assignedClassIds = await _context.Assignments
+                .Where(a => a.EmployeeId == employeeId && a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
+                .Select(a => a.ClassId)
+                .ToListAsync();
+
+            var plans = await _context.TeachingPlans
+                .Include(tp => tp.Class)
+                .Include(tp => tp.Curriculum)
+                .Where(tp => assignedClassIds.Contains(tp.ClassId))
+                .OrderByDescending(tp => tp.StartDate)
+                .ToListAsync();
+
+            var data = plans.Select(tp => new
+            {
+                className = tp.Class.Name,
+                title = tp.Curriculum.Title,
+                description = tp.Curriculum.Description,
+                content = tp.Curriculum.Content,
+                startDate = tp.StartDate.ToString("yyyy-MM-dd"),
+                endDate = tp.EndDate?.ToString("yyyy-MM-dd"),
+                status = tp.Status
+            });
+
+            return Json(new { success = true, data });
+        }
+
         private static DateOnly GetTodayVnt()
         {
             var utcNow = DateTimeOffset.UtcNow;

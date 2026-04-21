@@ -1,0 +1,106 @@
+@{
+    ViewData["Title"] = "Kế hoạch giảng dạy";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="dashboard-card">
+    <div class="card-header">
+        <h2 style="margin: 0;">Kế hoạch giảng dạy của Lớp</h2>
+    </div>
+    <div class="card-body">
+        <p>Xem các chương trình học và chủ đề giáo dục mà lớp bạn đang thực hiện theo kế hoạch của nhà trường.</p>
+    </div>
+</div>
+
+<div class="dashboard-card" style="margin-top: 20px;">
+    <div class="card-body">
+        <div id="alert" class="page-alert" style="display:none;"></div>
+        <div class="table-responsive">
+            <table class="management-table">
+                <thead>
+                    <tr>
+                        <th>Lớp</th>
+                        <th>Chương trình/Chủ đề</th>
+                        <th>Thời gian</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xem chi tiết -->
+<div id="detailModal" class="dashboard-card" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 80%; max-width: 800px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+    <div class="card-header section-header">
+        <h3 id="modalTitle">Chi tiết chương trình</h3>
+        <button type="button" class="btn-table" onclick="closeModal()">Đóng</button>
+    </div>
+    <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+        <div style="margin-bottom: 15px;">
+            <strong>Mô tả:</strong>
+            <p id="modalDescription"></p>
+        </div>
+        <div>
+            <strong>Nội dung giảng dạy chi tiết:</strong>
+            <div id="modalContent" style="white-space: pre-wrap; background: #f9f9f9; padding: 15px; border-radius: 4px; border: 1px solid #eee; margin-top: 10px;"></div>
+        </div>
+    </div>
+</div>
+<div id="modalOverlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="closeModal()"></div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', loadPlans);
+
+        async function fetchJson(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: { 'Content-Type': 'application/json' },
+                    ...options
+                });
+                return await response.json();
+            } catch (e) { return { success: false, message: 'Lỗi kết nối.' }; }
+        }
+
+        async function loadPlans() {
+            const result = await fetchJson('/Employee/Api/TeachingPlans');
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            if (result.success) {
+                if (result.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Chưa có kế hoạch giảng dạy nào được giao.</td></tr>';
+                    return;
+                }
+                result.data.forEach((p, index) => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${p.className}</td>
+                            <td><strong>${p.title}</strong><br/><small class="note-muted">${p.description || ''}</small></td>
+                            <td>${p.startDate} đến ${p.endDate || '...'}</td>
+                            <td><span class="status-badge ${p.status.toLowerCase()}">${p.status}</span></td>
+                            <td>
+                                <button class="btn-table" onclick='viewDetail(${JSON.stringify(p)})'>Xem nội dung</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function viewDetail(p) {
+            document.getElementById('modalTitle').textContent = p.title;
+            document.getElementById('modalDescription').textContent = p.description || 'Không có mô tả';
+            document.getElementById('modalContent').textContent = p.content || 'Chưa có nội dung chi tiết';
+            document.getElementById('detailModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+    </script>
+}

@@ -11,6 +11,7 @@
 
         public Location? Location { get; set; }
         public Employee? Organizer { get; set; }
-        public ICollection<ClassActivity> ClassActivities { get; set; }
+        public ICollection<ClassActivity> ClassActivities { get; set; } = new List<ClassActivity>();
+        public ICollection<StudentActivity> StudentActivities { get; set; } = new List<StudentActivity>();
     }
 }

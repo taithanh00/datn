@@ -1,0 +1,172 @@
+@{
+    ViewData["Title"] = "Kế hoạch giảng dạy";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/classes.css" asp-append-version="true" />
+}
+
+<div class="dashboard-card">
+    <div class="card-header">
+        <h2 style="margin: 0;">Lập Kế hoạch giảng dạy</h2>
+    </div>
+    <div class="card-body">
+        <p>Manager gán các chương trình học cụ thể cho từng lớp trong một khoảng thời gian xác định.</p>
+    </div>
+</div>
+
+<div class="dashboard-card" style="margin-top: 20px;">
+    <div class="card-header section-header">
+        <h3>Giao kế hoạch cho lớp</h3>
+    </div>
+    <div class="card-body">
+        <div id="alert" class="page-alert" style="display:none;"></div>
+        
+        <form id="planForm" class="entity-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="classId">Chọn lớp học</label>
+                    <select id="classId" class="form-select" required onchange="loadPlans()"></select>
+                </div>
+                <div class="form-group">
+                    <label for="curriculumId">Chọn chương trình học</label>
+                    <select id="curriculumId" class="form-select" required></select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="startDate">Ngày bắt đầu</label>
+                    <input id="startDate" type="date" class="form-control" required />
+                </div>
+                <div class="form-group">
+                    <label for="endDate">Ngày kết thúc (tùy chọn)</label>
+                    <input id="endDate" type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="status">Trạng thái</label>
+                    <select id="status" class="form-select">
+                        <option value="Planned">Đã lên lịch</option>
+                        <option value="InProgress">Đang thực hiện</option>
+                        <option value="Completed">Đã hoàn thành</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary-action">Lưu kế hoạch</button>
+            </div>
+        </form>
+
+        <div class="table-responsive" style="margin-top: 30px;">
+            <table class="management-table">
+                <thead>
+                    <tr>
+                        <th>Lớp</th>
+                        <th>Chương trình</th>
+                        <th>Bắt đầu</th>
+                        <th>Kết thúc</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await Promise.all([loadClasses(), loadCurriculums()]);
+            loadPlans();
+            document.getElementById('planForm').addEventListener('submit', savePlan);
+        });
+
+        async function fetchJson(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: { 'Content-Type': 'application/json' },
+                    ...options
+                });
+                return await response.json();
+            } catch (e) { return { success: false, message: 'Lỗi kết nối.' }; }
+        }
+
+        async function loadClasses() {
+            const result = await fetchJson('/Manager/Api/Classes');
+            const select = document.getElementById('classId');
+            select.innerHTML = '<option value="">-- Tất cả các lớp --</option>';
+            if (result.success) {
+                result.data.forEach(c => {
+                    select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+            }
+        }
+
+        async function loadCurriculums() {
+            const result = await fetchJson('/Manager/Api/Curriculums');
+            const select = document.getElementById('curriculumId');
+            select.innerHTML = '<option value="">-- Chọn chương trình --</option>';
+            if (result.success) {
+                result.data.forEach(c => {
+                    select.innerHTML += `<option value="${c.id}">${c.title}</option>`;
+                });
+            }
+        }
+
+        async function loadPlans() {
+            const classId = document.getElementById('classId').value;
+            const url = classId ? `/Manager/Api/TeachingPlans?classId=${classId}` : '/Manager/Api/TeachingPlans';
+            const result = await fetchJson(url);
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            if (result.success) {
+                result.data.forEach(p => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${p.className}</td>
+                            <td><strong>${p.curriculumTitle}</strong></td>
+                            <td>${p.startDate}</td>
+                            <td>${p.endDate || 'N/A'}</td>
+                            <td><span class="status-badge ${p.status.toLowerCase()}">${p.status}</span></td>
+                            <td>
+                                <button class="btn-table delete" onclick="deletePlan(${p.classId}, ${p.curriculumId}, '${p.startDate}')">Xóa</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function savePlan(e) {
+            e.preventDefault();
+            const data = {
+                classId: parseInt(document.getElementById('classId').value),
+                curriculumId: parseInt(document.getElementById('curriculumId').value),
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value || null,
+                status: document.getElementById('status').value
+            };
+
+            const result = await fetchJson('/Manager/Api/TeachingPlan', { method: 'POST', body: JSON.stringify(data) });
+            showAlert(result.success, result.message);
+            if (result.success) loadPlans();
+        }
+
+        async function deletePlan(classId, curriculumId, startDate) {
+            if (!confirm('Xóa kế hoạch này?')) return;
+            const result = await fetchJson(`/Manager/Api/TeachingPlan?classId=${classId}&curriculumId=${curriculumId}&startDate=${startDate}`, { method: 'DELETE' });
+            showAlert(result.success, result.message);
+            if (result.success) loadPlans();
+        }
+
+        function showAlert(success, message) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `page-alert ${success ? 'success' : 'error'}`;
+            alert.style.display = 'block';
+            setTimeout(() => { alert.style.display = 'none'; }, 3000);
+        }
+    </script>
+}

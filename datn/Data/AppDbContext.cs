@@ -35,6 +35,7 @@ namespace datn.Data
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<ClassSchedule> ClassSchedules { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<StudentActivity> StudentActivities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -241,6 +242,13 @@ namespace datn.Data
                 .HasForeignKey(ca => ca.ActivityId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // ── Curriculum ────────────────────────────────────────
+            modelBuilder.Entity<Curriculum>()
+                .HasOne(c => c.Subject)
+                .WithMany()
+                .HasForeignKey(c => c.SubjectId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // ── TeachingPlan (composite PK) ───────────────────────
             modelBuilder.Entity<TeachingPlan>()
                 .HasKey(tp => new { tp.ClassId, tp.CurriculumId, tp.StartDate });
@@ -290,6 +298,22 @@ namespace datn.Data
                     cs.EndTime,
                     cs.EffectiveFrom
                 });
+
+            // ── StudentActivity (composite PK) ───────────────────
+            modelBuilder.Entity<StudentActivity>()
+                .HasKey(sa => new { sa.StudentId, sa.ActivityId });
+
+            modelBuilder.Entity<StudentActivity>()
+                .HasOne(sa => sa.Student)
+                .WithMany(s => s.StudentActivities)
+                .HasForeignKey(sa => sa.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StudentActivity>()
+                .HasOne(sa => sa.Activity)
+                .WithMany(a => a.StudentActivities)
+                .HasForeignKey(sa => sa.ActivityId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // ── Seed Roles ────────────────────────────────────────
             modelBuilder.Entity<Role>().HasData(

@@ -20,5 +20,6 @@ namespace datn.Models
         public ICollection<Attendance> Attendances { get; set; }
         public ICollection<StudyReport> StudyReports { get; set; }
         public ICollection<HealthRecord> HealthRecords { get; set; }
+        public ICollection<StudentActivity> StudentActivities { get; set; } = new List<StudentActivity>();
     }
 }

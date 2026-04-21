@@ -132,5 +132,69 @@ namespace datn.Controllers
 
             return View(attendances);
         }
+
+        [HttpGet("Activities")]
+        public async Task<IActionResult> Activities(int? studentId)
+        {
+            ViewData["Title"] = "Hoạt động & Sự kiện";
+            var parentId = await GetCurrentParentId();
+            if (parentId == null) return RedirectToAction("Login", "Auth");
+
+            var children = await _context.ParentStudents
+                .Include(ps => ps.Student).ThenInclude(s => s.Class)
+                .Where(ps => ps.ParentId == parentId)
+                .Select(ps => ps.Student)
+                .ToListAsync();
+
+            ViewBag.Children = children;
+
+            if (children.Count == 0) return View(new List<StudentActivity>());
+
+            var targetStudentId = studentId ?? children.First().Id;
+            if (!children.Any(c => c.Id == targetStudentId)) return Forbid();
+
+            var activities = await _context.StudentActivities
+                .Include(sa => sa.Activity).ThenInclude(a => a.Location)
+                .Include(sa => sa.Activity).ThenInclude(a => a.Organizer)
+                .Where(sa => sa.StudentId == targetStudentId)
+                .OrderByDescending(sa => sa.Activity.Date)
+                .ToListAsync();
+
+            ViewBag.SelectedStudentId = targetStudentId;
+            return View(activities);
+        }
+
+        [HttpGet("TeachingPlan")]
+        public async Task<IActionResult> TeachingPlan(int? studentId)
+        {
+            ViewData["Title"] = "Kế hoạch học tập";
+            var parentId = await GetCurrentParentId();
+            if (parentId == null) return RedirectToAction("Login", "Auth");
+
+            var children = await _context.ParentStudents
+                .Include(ps => ps.Student).ThenInclude(s => s.Class)
+                .Where(ps => ps.ParentId == parentId)
+                .Select(ps => ps.Student)
+                .ToListAsync();
+
+            ViewBag.Children = children;
+
+            if (children.Count == 0) return View(new List<TeachingPlan>());
+
+            var targetStudentId = studentId ?? children.First().Id;
+            if (!children.Any(c => c.Id == targetStudentId)) return Forbid();
+
+            var student = children.First(c => c.Id == targetStudentId);
+            if (student.ClassId == null) return View(new List<TeachingPlan>());
+
+            var plans = await _context.TeachingPlans
+                .Include(tp => tp.Curriculum).ThenInclude(c => c.Subject)
+                .Where(tp => tp.ClassId == student.ClassId)
+                .OrderByDescending(tp => tp.StartDate)
+                .ToListAsync();
+
+            ViewBag.SelectedStudentId = targetStudentId;
+            return View(plans);
+        }
     }
 }
