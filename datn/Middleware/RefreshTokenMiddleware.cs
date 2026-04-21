@@ -76,6 +76,8 @@ namespace datn.Middleware
             // Tìm Refresh Token trong DB kèm theo Account và Role
             var storedToken = await dbContext.RefreshTokens
                 .Include(r => r.Account).ThenInclude(a => a.Role)
+                .Include(r => r.Account).ThenInclude(a => a.Employee)
+                .Include(r => r.Account).ThenInclude(a => a.Parent)
                 .FirstOrDefaultAsync(r => r.Token == refreshToken);
 
             // ===== KIỂM TRA 1: Token có tồn tại trong DB không =====
@@ -83,6 +85,15 @@ namespace datn.Middleware
             {
                 _logger.LogWarning("Refresh token không tồn tại trong DB");
                 ClearCookies(context);
+                return;
+            }
+
+            // ===== KIỂM TRA 1.1: Tài khoản có còn hoạt động không =====
+            if (!storedToken.Account.IsActive)
+            {
+                _logger.LogWarning("Tài khoản {Username} đã bị vô hiệu hóa", storedToken.Account.Username);
+                ClearCookies(context);
+                context.Response.Redirect("/Auth/Login?reason=deactivated");
                 return;
             }
 

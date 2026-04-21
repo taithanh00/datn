@@ -28,7 +28,7 @@
                         <th>Họ và tên</th>
                         <th>Điện thoại</th>
                         <th>Chức vụ</th>
-                        <th>Lương cơ bản</th>
+                        <th>Trạng thái</th>
                         <th>Hành động</th>
                     </tr>
                 </thead>
@@ -62,6 +62,24 @@
     <div class="slide-panel-body">
         <form id="editTeacherForm" class="edit-form">
             <input type="hidden" id="teacherId" />
+
+            <div class="form-section">
+                <h4>Thông tin tài khoản</h4>
+                <div class="form-group" id="usernameGroup">
+                    <label for="username">Tên đăng nhập <span class="text-danger">*</span></label>
+                    <input type="text" id="username" name="Username" class="form-control" placeholder="Nhập tên đăng nhập" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email <span class="text-danger">*</span></label>
+                    <input type="email" id="email" name="Email" class="form-control" placeholder="Nhập địa chỉ email" required />
+                </div>
+
+                <div class="form-group" id="passwordGroup">
+                    <label for="password">Mật khẩu</label>
+                    <input type="password" id="password" name="Password" class="form-control" placeholder="Để trống nếu dùng mặc định (123456)" />
+                </div>
+            </div>
 
             <div class="form-section">
                 <h4>Thông tin cơ bản</h4>

@@ -35,7 +35,7 @@ namespace datn.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -56,11 +56,17 @@ namespace datn.Migrations
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
 
                     b.ToTable("Accounts");
                 });
@@ -248,10 +254,18 @@ namespace datn.Migrations
                     b.Property<string>("Content")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SubjectId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
 
                     b.ToTable("Curriculums");
                 });
@@ -428,6 +442,9 @@ namespace datn.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AvatarPath")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
@@ -639,6 +656,25 @@ namespace datn.Migrations
                     b.ToTable("Students");
                 });
 
+            modelBuilder.Entity("datn.Models.StudentActivity", b =>
+                {
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ActivityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("StudentId", "ActivityId");
+
+                    b.HasIndex("ActivityId");
+
+                    b.ToTable("StudentActivities");
+                });
+
             modelBuilder.Entity("datn.Models.StudyReport", b =>
                 {
                     b.Property<int>("StudentId")
@@ -708,6 +744,9 @@ namespace datn.Migrations
 
                     b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ClassId", "CurriculumId", "StartDate");
 
@@ -939,6 +978,16 @@ namespace datn.Migrations
                     b.Navigation("Subject");
                 });
 
+            modelBuilder.Entity("datn.Models.Curriculum", b =>
+                {
+                    b.HasOne("datn.Models.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Subject");
+                });
+
             modelBuilder.Entity("datn.Models.Employee", b =>
                 {
                     b.HasOne("datn.Models.Account", "Account")
@@ -1052,6 +1101,25 @@ namespace datn.Migrations
                     b.Navigation("Class");
                 });
 
+            modelBuilder.Entity("datn.Models.StudentActivity", b =>
+                {
+                    b.HasOne("datn.Models.Activity", "Activity")
+                        .WithMany("StudentActivities")
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("datn.Models.Student", "Student")
+                        .WithMany("StudentActivities")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("datn.Models.StudyReport", b =>
                 {
                     b.HasOne("datn.Models.Ranking", "Ranking")
@@ -1136,6 +1204,8 @@ namespace datn.Migrations
             modelBuilder.Entity("datn.Models.Activity", b =>
                 {
                     b.Navigation("ClassActivities");
+
+                    b.Navigation("StudentActivities");
                 });
 
             modelBuilder.Entity("datn.Models.Class", b =>
@@ -1207,6 +1277,8 @@ namespace datn.Migrations
                     b.Navigation("HealthRecords");
 
                     b.Navigation("ParentStudents");
+
+                    b.Navigation("StudentActivities");
 
                     b.Navigation("StudyReports");
 

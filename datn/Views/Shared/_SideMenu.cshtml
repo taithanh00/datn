@@ -43,7 +43,16 @@
 
     <!-- User Section -->
     <div class="sidebar-user">
-        <div class="user-avatar">@initial</div>
+        <div class="user-avatar">
+            @if (!string.IsNullOrEmpty(ViewBag.UserAvatar as string))
+            {
+                <img src="@ViewBag.UserAvatar" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+            }
+            else
+            {
+                @initial
+            }
+        </div>
         <div class="user-info">
             <div class="user-name">@username</div>
             <div class="user-role">

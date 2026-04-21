@@ -43,7 +43,37 @@
         }
 
         <!-- Profile Form -->
-        <form method="post" class="profile-form">
+        <form method="post" class="profile-form" enctype="multipart/form-data">
+            <!-- Avatar Section -->
+            <div class="profile-section" style="text-align: center; border-bottom: 1px solid #eee; padding-bottom: 30px; margin-bottom: 30px;">
+                <div class="profile-avatar-container" style="position: relative; width: 150px; height: 150px; margin: 0 auto 20px;">
+                    <img id="avatarPreview" src="@ViewBag.UserAvatar" alt="Avatar" 
+                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />
+                    <label for="avatarInput" class="avatar-upload-label" 
+                           style="position: absolute; bottom: 5px; right: 5px; background: #2563eb; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fff; transition: all 0.2s;">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </label>
+                    <input type="file" id="avatarInput" name="AvatarFile" accept="image/*" style="display: none;" onchange="previewAvatar(this)" />
+                </div>
+                <h3 style="margin: 0;">@ViewBag.Username</h3>
+                <p style="color: #64748b; margin: 5px 0 0;">@(isEmployee ? "Giáo viên" : isParent ? "Phụ huynh" : "Quản lý")</p>
+            </div>
+
+            <script>
+                function previewAvatar(input) {
+                    if (input.files && input.files[0]) {
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+                            document.getElementById('avatarPreview').src = e.target.result;
+                        };
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                }
+            </script>
+
             <!-- User Role Info Section -->
             <div class="profile-section">
                 <h3>🔐 Thông tin tài khoản</h3>

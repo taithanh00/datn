@@ -51,6 +51,18 @@ namespace datn.Services
                 new Claim(ClaimTypes.Role,           account.Role.Name)        // Vai trò
             };
 
+            // Thêm EmployeeId nếu có (Dành cho Giáo viên/Quản lý)
+            if (account.Employee != null)
+            {
+                claims.Add(new Claim("EmployeeId", account.Employee.Id.ToString()));
+            }
+
+            // Thêm ParentId nếu có (Dành cho Phụ huynh)
+            if (account.Parent != null)
+            {
+                claims.Add(new Claim("ParentId", account.Parent.Id.ToString()));
+            }
+
             // Tạo JWT token
             var token = new JwtSecurityToken(
                 issuer: jwtSettings["Issuer"],           // Ai phát hành token

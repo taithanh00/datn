@@ -34,6 +34,13 @@ namespace datn.Controllers
 
         private async Task<int?> GetCurrentEmployeeId()
         {
+            var claim = User.FindFirst("EmployeeId");
+            if (claim != null && int.TryParse(claim.Value, out int employeeId))
+            {
+                return employeeId;
+            }
+
+            // Fallback (nếu claim chưa có - ví dụ vừa mới update code)
             var username = User.Identity?.Name;
             if (string.IsNullOrEmpty(username)) return null;
 

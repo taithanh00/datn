@@ -387,7 +387,8 @@ namespace datn.Controllers
                     phone = t.Phone,
                     position = t.Position ?? "Giáo viên",
                     baseSalary = t.BaseSalary,
-                    avatarPath = t.AvatarPath ?? "/images/lion_blue.png"
+                    avatarPath = t.AvatarPath ?? "/images/lion_blue.png",
+                    isActive = t.Account?.IsActive ?? true
                 }).ToList();
                 return Json(new { success = true, data = result });
             }
@@ -400,7 +401,7 @@ namespace datn.Controllers
         [HttpGet("Api/Teacher/{id:int}")]
         public async Task<IActionResult> GetTeacher(int id)
         {
-            var teacher = await _context.Employees.FirstOrDefaultAsync(e => e.Id == id);
+            var teacher = await _context.Employees.Include(e => e.Account).FirstOrDefaultAsync(e => e.Id == id);
             if (teacher == null)
                 return Json(new { success = false, message = "Không tìm thấy giáo viên." });
 
@@ -411,6 +412,7 @@ namespace datn.Controllers
                 {
                     id = teacher.Id,
                     fullName = teacher.FullName,
+                    email = teacher.Account?.Email,
                     phone = teacher.Phone,
                     position = teacher.Position,
                     baseSalary = teacher.BaseSalary,
@@ -422,15 +424,22 @@ namespace datn.Controllers
         [HttpPost("Api/Teacher")]
         public async Task<IActionResult> CreateTeacher([FromForm] CreateTeacherViewModel model)
         {
+            if (await _context.Accounts.AnyAsync(a => a.Username == model.Username))
+                return Json(new { success = false, message = "Tên đăng nhập đã tồn tại." });
+
+            if (await _context.Accounts.AnyAsync(a => a.Email == model.Email))
+                return Json(new { success = false, message = "Email đã tồn tại." });
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var role = await _context.Roles.FirstAsync(r => r.Name == "Employee");
-                var seedName = string.IsNullOrWhiteSpace(model.FullName) ? "teacher" : model.FullName.Replace(" ", "").ToLowerInvariant();
+                
                 var account = new Account
                 {
-                    Username = seedName + Guid.NewGuid().ToString("N")[..4],
-                    Email = $"{Guid.NewGuid():N}".Substring(0, 8) + "@school.edu",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
+                    Username = model.Username,
+                    Email = model.Email,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(string.IsNullOrWhiteSpace(model.Password) ? "123456" : model.Password),
                     PasswordSalt = "",
                     RoleId = role.Id
                 };
@@ -449,10 +458,13 @@ namespace datn.Controllers
 
                 _context.Employees.Add(teacher);
                 await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
                 return Json(new { success = true, message = "Thêm giáo viên thành công" });
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 return Json(new { success = false, message = ex.Message });
             }
         }
@@ -460,53 +472,67 @@ namespace datn.Controllers
         [HttpPut("Api/Teacher/{id:int}")]
         public async Task<IActionResult> UpdateTeacher(int id, [FromForm] UpdateTeacherViewModel model)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var teacher = await _context.Employees.FindAsync(id);
+                var teacher = await _context.Employees.Include(e => e.Account).FirstOrDefaultAsync(e => e.Id == id);
                 if (teacher == null)
                     return Json(new { success = false, message = "Không tìm thấy giáo viên." });
+
+                // Kiểm tra email trùng (loại trừ chính mình)
+                if (await _context.Accounts.AnyAsync(a => a.Email == model.Email && a.Id != teacher.AccountId))
+                    return Json(new { success = false, message = "Email này đã được sử dụng bởi tài khoản khác." });
 
                 teacher.FullName = model.FullName;
                 teacher.Phone = model.Phone;
                 teacher.Position = model.Position;
                 teacher.BaseSalary = model.BaseSalary;
+                
+                if (teacher.Account != null)
+                {
+                    teacher.Account.Email = model.Email;
+                }
 
                 if (model.Avatar != null) teacher.AvatarPath = await SaveAvatar(model.Avatar, "teacher");
 
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
                 return Json(new { success = true, message = "Cập nhật giáo viên thành công" });
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 return Json(new { success = false, message = ex.Message });
             }
         }
 
         [HttpDelete("Api/Teacher/{id:int}")]
-        public async Task<IActionResult> DeleteTeacher(int id)
+        public async Task<IActionResult> DeactivateTeacher(int id)
         {
             try
             {
-                var teacher = await _context.Employees.FirstOrDefaultAsync(e => e.Id == id);
+                var teacher = await _context.Employees.Include(e => e.Account).FirstOrDefaultAsync(e => e.Id == id);
                 if (teacher == null)
                     return Json(new { success = false, message = "Không tìm thấy giáo viên." });
 
-                var hasDependencies = await _context.Assignments.AnyAsync(a => a.EmployeeId == id)
-                    || await _context.ClassSchedules.AnyAsync(s => s.EmployeeId == id)
-                    || await _context.WorkAttendances.AnyAsync(w => w.EmployeeId == id);
+                if (teacher.Account == null)
+                    return Json(new { success = false, message = "Không tìm thấy tài khoản liên kết." });
 
-                if (hasDependencies)
-                    return Json(new { success = false, message = "Không thể xóa giáo viên đang có phân công, lịch dạy hoặc chấm công." });
+                // 1. Vô hiệu hóa tài khoản
+                teacher.Account.IsActive = false;
 
-                var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == teacher.AccountId);
-                _context.Employees.Remove(teacher);
-                if (account != null)
+                // 2. Thu hồi toàn bộ Refresh Token để đẩy giáo viên ra khỏi hệ thống
+                var activeTokens = await _context.RefreshTokens
+                    .Where(r => r.AccountId == teacher.AccountId && !r.IsRevoked)
+                    .ToListAsync();
+                
+                foreach (var token in activeTokens)
                 {
-                    _context.Accounts.Remove(account);
+                    token.IsRevoked = true;
                 }
 
                 await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Xóa giáo viên thành công" });
+                return Json(new { success = true, message = "Đã vô hiệu hóa giáo viên thành công" });
             }
             catch (Exception ex)
             {
@@ -1305,6 +1331,9 @@ namespace datn.Controllers
 
     public class CreateTeacherViewModel
     {
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = "123456";
         public string FullName { get; set; } = string.Empty;
         public string? Phone { get; set; }
         public string? Position { get; set; }
@@ -1314,6 +1343,7 @@ namespace datn.Controllers
 
     public class UpdateTeacherViewModel
     {
+        public string Email { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string? Phone { get; set; }
         public string? Position { get; set; }

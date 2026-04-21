@@ -73,6 +73,10 @@ function renderTeachersTable(teachers) {
     }
 
     teachers.forEach((teacher, index) => {
+        const statusBadge = teacher.isActive 
+            ? '<span class="badge bg-success" style="font-size: 11px; padding: 4px 8px; border-radius: 4px;">Đang hoạt động</span>' 
+            : '<span class="badge bg-danger" style="font-size: 11px; padding: 4px 8px; border-radius: 4px;">Đã vô hiệu hóa</span>';
+        
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${index + 1}</td>
@@ -82,6 +86,7 @@ function renderTeachersTable(teachers) {
             <td><strong>${teacher.fullName}</strong></td>
             <td>${teacher.phone || 'Chưa cập nhật'}</td>
             <td>${teacher.position || 'Chưa cập nhật'}</td>
+            <td>${statusBadge}</td>
             <td>
                 <button type="button" class="btn-edit" onclick="openEditPanel(${teacher.id})">
                     Thay đổi
@@ -99,8 +104,14 @@ function openCreatePanel() {
     document.getElementById('panelTitle').textContent = 'Thêm giáo viên mới';
     document.getElementById('editTeacherForm').reset();
     document.getElementById('avatarPreview').src = '/images/lion_blue.png';
-    document.getElementById('deleteStudentBtn') ? document.getElementById('deleteStudentBtn').style.display = 'none' : null;
     document.getElementById('deleteTeacherBtn').style.display = 'none';
+    
+    // Show account fields for creation
+    document.getElementById('usernameGroup').style.display = 'block';
+    document.getElementById('passwordGroup').style.display = 'block';
+    document.getElementById('username').required = true;
+    document.getElementById('email').required = true;
+
     clearAlert();
     showPanel();
 }
@@ -109,7 +120,21 @@ async function openEditPanel(teacherId) {
     isEditMode = true;
     currentTeacherId = teacherId;
     document.getElementById('panelTitle').textContent = 'Chỉnh sửa thông tin giáo viên';
-    document.getElementById('deleteTeacherBtn').style.display = 'block';
+    
+    const deleteBtn = document.getElementById('deleteTeacherBtn');
+    deleteBtn.style.display = 'block';
+    deleteBtn.innerHTML = `
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+        </svg>
+        Vô hiệu hóa giáo viên
+    `;
+
+    // Hide fields that cannot be changed during basic edit
+    document.getElementById('usernameGroup').style.display = 'none';
+    document.getElementById('passwordGroup').style.display = 'none';
+    document.getElementById('username').required = false;
+
     clearAlert();
     showPanel();
 
@@ -125,6 +150,7 @@ async function openEditPanel(teacherId) {
         const data = result.data;
         document.getElementById('teacherId').value = data.id;
         document.getElementById('fullName').value = data.fullName || '';
+        document.getElementById('email').value = data.email || '';
         document.getElementById('phone').value = data.phone || '';
         document.getElementById('position').value = data.position || '';
         document.getElementById('baseSalary').value = data.baseSalary || '';
@@ -161,9 +187,15 @@ async function handleFormSubmit(e) {
 
     const formData = new FormData();
     formData.append('FullName', fullName);
+    formData.append('Email', document.getElementById('email').value);
     formData.append('Phone', document.getElementById('phone').value);
     formData.append('Position', document.getElementById('position').value);
-    formData.append('BaseSalary', parseFloat(document.getElementById('baseSalary').value) || '');
+    formData.append('BaseSalary', document.getElementById('baseSalary').value);
+
+    if (!isEditMode) {
+        formData.append('Username', document.getElementById('username').value);
+        formData.append('Password', document.getElementById('password').value);
+    }
 
     const avatarFile = document.getElementById('avatarFile').files[0];
     if (avatarFile) {
@@ -204,9 +236,9 @@ async function handleFormSubmit(e) {
     }
 }
 
-// ====== DELETE HANDLING ======
+// ====== DELETE (DEACTIVATE) HANDLING ======
 async function handleDelete() {
-    if (!confirm('Bạn có chắc chắn muốn xóa giáo viên này?')) {
+    if (!confirm('Bạn có chắc chắn muốn vô hiệu hóa giáo viên này? \nGiáo viên sẽ bị đăng xuất và không thể truy cập hệ thống nữa.')) {
         return;
     }
 
@@ -218,17 +250,17 @@ async function handleDelete() {
         const result = await response.json();
 
         if (!result.success) {
-            showAlert('error', result.message || 'Lỗi xóa giáo viên');
+            showAlert('error', result.message || 'Lỗi vô hiệu hóa giáo viên');
             return;
         }
 
-        showAlert('success', 'Xóa giáo viên thành công');
+        showAlert('success', 'Vô hiệu hóa giáo viên thành công');
         setTimeout(() => {
             closePanel();
             loadTeachers();
         }, 1500);
     } catch (error) {
-        console.error('Error deleting teacher:', error);
+        console.error('Error deactivating teacher:', error);
         showAlert('error', 'Lỗi kết nối máy chủ');
     }
 }

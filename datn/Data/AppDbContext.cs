@@ -55,6 +55,14 @@ namespace datn.Data
                 .HasForeignKey(a => a.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Account>()
+                .HasIndex(a => a.Username)
+                .IsUnique();
+
+            modelBuilder.Entity<Account>()
+                .HasIndex(a => a.Email)
+                .IsUnique();
+
             // ── RefreshToken ──────────────────────────────────────
             modelBuilder.Entity<RefreshToken>()
                 .HasOne(r => r.Account)

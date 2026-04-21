@@ -219,6 +219,13 @@ namespace datn.Controllers
 
         private async Task<int?> GetCurrentEmployeeIdAsync()
         {
+            var claim = User.FindFirst("EmployeeId");
+            if (claim != null && int.TryParse(claim.Value, out int employeeId))
+            {
+                return employeeId;
+            }
+
+            // Fallback
             var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(accountIdClaim, out var accountId))
                 return null;
@@ -226,6 +233,7 @@ namespace datn.Controllers
             var employee = await _context.Employees
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.AccountId == accountId);
+
             return employee?.Id;
         }
 

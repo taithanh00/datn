@@ -9,41 +9,53 @@ namespace datn.Controllers
 {
     /// <summary>
     /// AccountController: Xử lý các request liên quan tới tài khoản người dùng
-    /// 
-    /// Đặc điểm:
-    /// - Tất cả action đều được bảo vệ bằng [Authorize] - yêu cầu user phải đăng nhập
-    /// - Profile action sẽ hiển thị/cập nhật thông tin cá nhân của user đang đăng nhập
-    /// - Thông tin khác nhau tùy theo role (Employee hoặc Parent)
     /// </summary>
     [Authorize]
     public class AccountController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public AccountController(AppDbContext context)
+        public AccountController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
-        /// <summary>
-        /// GET: /Account/Profile
-        /// Hiển thị form chỉnh sửa thông tin cá nhân của user đang đăng nhập
-        /// 
-        /// Luồng:
-        /// 1. Lấy AccountId từ JWT Claims
-        /// 2. Query Account + Role + Employee hoặc Parent tương ứng
-        /// 3. Truyền dữ liệu vào view để hiển thị form
-        /// </summary>
+        private void SetProfileViewBag(Account account)
+        {
+            ViewBag.Username = account.Username;
+            ViewBag.Email = account.Email;
+            ViewBag.Role = account.Role?.Name;
+
+            string defaultAvatar = account.Role?.Name == "Manager" || account.Role?.Name == "Parent" 
+                ? "/images/lion_orange.png" 
+                : "/images/lion_blue.png";
+
+            if (account.Role?.Name == "Employee")
+            {
+                ViewBag.UserAvatar = account.Employee?.AvatarPath ?? defaultAvatar;
+            }
+            else if (account.Role?.Name == "Parent")
+            {
+                ViewBag.UserAvatar = account.Parent?.AvatarPath ?? defaultAvatar;
+            }
+            else
+            {
+                // Manager might not have Employee record or AvatarPath in some cases, 
+                // but usually Manager is also an Employee in this system.
+                ViewBag.UserAvatar = account.Employee?.AvatarPath ?? defaultAvatar;
+            }
+        }
+
         public async Task<IActionResult> Profile()
         {
-            // Lấy AccountId từ JWT Claims (NameIdentifier)
             var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(accountIdClaim, out int accountId))
             {
                 return BadRequest("Không thể xác định tài khoản");
             }
 
-            // Query Account từ database
             var account = await _context.Accounts
                 .Include(a => a.Role)
                 .Include(a => a.Employee)
@@ -55,19 +67,20 @@ namespace datn.Controllers
                 return NotFound("Tài khoản không tồn tại");
             }
 
-            // Truyền data vào ViewBag
-            ViewBag.Username = account.Username;
-            ViewBag.Email = account.Email;
-            ViewBag.Role = account.Role?.Name;
-            ViewBag.UserAvatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
+            SetProfileViewBag(account);
 
-            // Tạo ViewModel để truyền vào view
             var profileViewModel = new ProfileViewModel
             {
                 AccountId = account.Id,
                 Username = account.Username,
                 Email = account.Email,
                 Role = account.Role?.Name,
+                FullName = account.Employee?.FullName,
+                Phone = account.Employee?.Phone ?? account.Parent?.Phone,
+                Position = account.Employee?.Position,
+                FirstName = account.Parent?.FirstName,
+                LastName = account.Parent?.LastName,
+                Address = account.Parent?.Address,
                 Employee = account.Employee,
                 Parent = account.Parent
             };
@@ -75,28 +88,15 @@ namespace datn.Controllers
             return View(profileViewModel);
         }
 
-        /// <summary>
-        /// POST: /Account/Profile
-        /// Cập nhật thông tin cá nhân của user đang đăng nhập
-        /// 
-        /// Luồng:
-        /// 1. Lấy AccountId từ JWT Claims
-        /// 2. Validate dữ liệu từ form
-        /// 3. Update Account + Employee hoặc Parent
-        /// 4. Lưu vào database
-        /// 5. Redirect về trang Profile với thông báo thành công
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Profile(ProfileViewModel model)
         {
-            // Lấy AccountId từ JWT Claims
             var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(accountIdClaim, out int accountId))
             {
                 return BadRequest("Không thể xác định tài khoản");
             }
 
-            // Query Account từ database
             var account = await _context.Accounts
                 .Include(a => a.Role)
                 .Include(a => a.Employee)
@@ -108,13 +108,47 @@ namespace datn.Controllers
                 return NotFound("Tài khoản không tồn tại");
             }
 
-            // Cập nhật Email
+            // Handle Avatar Upload
+            if (model.AvatarFile != null && model.AvatarFile.Length > 0)
+            {
+                try
+                {
+                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "avatars");
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + model.AvatarFile.FileName;
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.AvatarFile.CopyToAsync(fileStream);
+                    }
+
+                    string avatarRelativePath = "/uploads/avatars/" + uniqueFileName;
+
+                    if (account.Employee != null)
+                    {
+                        account.Employee.AvatarPath = avatarRelativePath;
+                    }
+                    if (account.Parent != null)
+                    {
+                        account.Parent.AvatarPath = avatarRelativePath;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.ErrorMessage = $"Lỗi khi tải ảnh lên: {ex.Message}";
+                }
+            }
+
             if (!string.IsNullOrWhiteSpace(model.Email))
             {
                 account.Email = model.Email;
             }
 
-            // Cập nhật thông tin tùy theo role
             if (account.Role?.Name == "Employee" && account.Employee != null)
             {
                 if (!string.IsNullOrWhiteSpace(model.FullName))
@@ -136,14 +170,12 @@ namespace datn.Controllers
                     account.Parent.Address = model.Address;
             }
 
-            // Cập nhật UpdatedAt
             account.UpdatedAt = DateTime.UtcNow;
 
             try
             {
                 _context.Accounts.Update(account);
                 await _context.SaveChangesAsync();
-
                 ViewBag.SuccessMessage = "Cập nhật thông tin thành công! ✓";
             }
             catch (Exception ex)
@@ -151,11 +183,7 @@ namespace datn.Controllers
                 ViewBag.ErrorMessage = $"Có lỗi khi cập nhật: {ex.Message}";
             }
 
-            // Render lại view với dữ liệu đã cập nhật
-            ViewBag.Username = account.Username;
-            ViewBag.Email = account.Email;
-            ViewBag.Role = account.Role?.Name;
-            ViewBag.UserAvatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
+            SetProfileViewBag(account);
 
             model.AccountId = account.Id;
             model.Username = account.Username;
@@ -167,23 +195,18 @@ namespace datn.Controllers
             return View(model);
         }
 
-        /// <summary>
-        /// GET: /Account/ChangePassword
-        /// Hiển thị form đổi mật khẩu
-        /// </summary>
         public async Task<IActionResult> ChangePassword()
         {
-            // Lấy AccountId từ JWT Claims (NameIdentifier)
             var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(accountIdClaim, out int accountId))
             {
                 return BadRequest("Không thể xác định tài khoản");
             }
 
-            // Query Account từ database
             var account = await _context.Accounts
                 .Include(a => a.Role)
                 .Include(a => a.Employee)
+                .Include(a => a.Parent)
                 .FirstOrDefaultAsync(a => a.Id == accountId && a.IsActive);
 
             if (account == null)
@@ -191,12 +214,8 @@ namespace datn.Controllers
                 return NotFound("Tài khoản không tồn tại");
             }
 
-            // Truyền data vào ViewBag
-            ViewBag.Username = account.Username;
-            ViewBag.Role = account.Role?.Name;
-            ViewBag.UserAvatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
+            SetProfileViewBag(account);
 
-            // Tạo ViewModel
             var changePasswordViewModel = new ProfileViewModel
             {
                 AccountId = account.Id,
@@ -207,22 +226,10 @@ namespace datn.Controllers
             return View(changePasswordViewModel);
         }
 
-        /// <summary>
-        /// POST: /Account/ChangePassword
-        /// Đổi mật khẩu của user đang đăng nhập
-        /// 
-        /// Luồng:
-        /// 1. Lấy AccountId từ JWT Claims
-        /// 2. Verify mật khẩu cũ
-        /// 3. Validate mật khẩu mới (phải khác mật khẩu cũ, đủ mạnh)
-        /// 4. Hash mật khẩu mới và lưu vào database
-        /// 5. Trả về thông báo thành công/lỗi
-        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ProfileViewModel model)
         {
-            // Validate - kiểm tra thông tin điền đầy đủ
             if (string.IsNullOrWhiteSpace(model.OldPassword) || 
                 string.IsNullOrWhiteSpace(model.NewPassword) || 
                 string.IsNullOrWhiteSpace(model.ConfirmPassword))
@@ -231,21 +238,18 @@ namespace datn.Controllers
                 return await LoadProfileViewWithPasswordError();
             }
 
-            // Validate - mật khẩu mới không khớp
             if (model.NewPassword != model.ConfirmPassword)
             {
                 ViewBag.PasswordError = "Mật khẩu mới không khớp";
                 return await LoadProfileViewWithPasswordError();
             }
 
-            // Validate - mật khẩu mới phải >= 6 ký tự
             if (model.NewPassword.Length < 6)
             {
                 ViewBag.PasswordError = "Mật khẩu phải có ít nhất 6 ký tự";
                 return await LoadProfileViewWithPasswordError();
             }
 
-            // Lấy AccountId từ JWT Claims
             var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(accountIdClaim, out int accountId))
             {
@@ -253,7 +257,6 @@ namespace datn.Controllers
                 return await LoadProfileViewWithPasswordError();
             }
 
-            // Query Account từ database
             var account = await _context.Accounts
                 .FirstOrDefaultAsync(a => a.Id == accountId && a.IsActive);
 
@@ -263,14 +266,12 @@ namespace datn.Controllers
                 return await LoadProfileViewWithPasswordError();
             }
 
-            // Verify mật khẩu cũ
             if (!BCrypt.Net.BCrypt.Verify(model.OldPassword, account.PasswordHash))
             {
                 ViewBag.PasswordError = "Mật khẩu cũ không chính xác";
                 return await LoadProfileViewWithPasswordError();
             }
 
-            // Validate - mật khẩu mới không được giống mật khẩu cũ
             if (BCrypt.Net.BCrypt.Verify(model.NewPassword, account.PasswordHash))
             {
                 ViewBag.PasswordError = "Mật khẩu mới không được giống với mật khẩu cũ";
@@ -279,7 +280,6 @@ namespace datn.Controllers
 
             try
             {
-                // Hash mật khẩu mới
                 account.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
                 account.UpdatedAt = DateTime.UtcNow;
 
@@ -296,24 +296,20 @@ namespace datn.Controllers
             }
         }
 
-        /// <summary>
-        /// Helper method: Load ChangePasswordView và preserve PasswordError message
-        /// </summary>
         private async Task<IActionResult> LoadProfileViewWithPasswordError()
         {
             var passwordError = ViewBag.PasswordError;
 
-            // Lấy AccountId từ JWT Claims
             var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(accountIdClaim, out int accountId))
             {
                 return BadRequest("Không thể xác định tài khoản");
             }
 
-            // Query Account từ database
             var account = await _context.Accounts
                 .Include(a => a.Role)
                 .Include(a => a.Employee)
+                .Include(a => a.Parent)
                 .FirstOrDefaultAsync(a => a.Id == accountId && a.IsActive);
 
             if (account == null)
@@ -321,13 +317,9 @@ namespace datn.Controllers
                 return NotFound("Tài khoản không tồn tại");
             }
 
-            // Truyền data vào ViewBag
-            ViewBag.Username = account.Username;
-            ViewBag.Role = account.Role?.Name;
-            ViewBag.UserAvatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
-            ViewBag.PasswordError = passwordError; // Restore password error
+            SetProfileViewBag(account);
+            ViewBag.PasswordError = passwordError;
 
-            // Tạo ViewModel để truyền vào view
             var changePasswordViewModel = new ProfileViewModel
             {
                 AccountId = account.Id,
@@ -338,24 +330,20 @@ namespace datn.Controllers
             return View("ChangePassword", changePasswordViewModel);
         }
 
-        /// <summary>
-        /// Helper method: Load ChangePasswordView và preserve PasswordSuccess message
-        /// </summary>
         private async Task<IActionResult> LoadProfileViewForSuccess()
         {
             var passwordSuccess = ViewBag.PasswordSuccess;
 
-            // Lấy AccountId từ JWT Claims
             var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(accountIdClaim, out int accountId))
             {
                 return BadRequest("Không thể xác định tài khoản");
             }
 
-            // Query Account từ database
             var account = await _context.Accounts
                 .Include(a => a.Role)
                 .Include(a => a.Employee)
+                .Include(a => a.Parent)
                 .FirstOrDefaultAsync(a => a.Id == accountId && a.IsActive);
 
             if (account == null)
@@ -363,13 +351,9 @@ namespace datn.Controllers
                 return NotFound("Tài khoản không tồn tại");
             }
 
-            // Truyền data vào ViewBag
-            ViewBag.Username = account.Username;
-            ViewBag.Role = account.Role?.Name;
-            ViewBag.UserAvatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
-            ViewBag.PasswordSuccess = passwordSuccess; // Restore password success
+            SetProfileViewBag(account);
+            ViewBag.PasswordSuccess = passwordSuccess;
 
-            // Tạo ViewModel để truyền vào view
             var changePasswordViewModel = new ProfileViewModel
             {
                 AccountId = account.Id,
@@ -380,10 +364,6 @@ namespace datn.Controllers
             return View("ChangePassword", changePasswordViewModel);
         }
 
-        /// <summary>
-        /// GET: /Auth/AccessDenied
-        /// Hiển thị trang không có quyền truy cập (403 Forbidden)
-        /// </summary>
         [AllowAnonymous]
         [HttpGet("/Auth/AccessDenied")]
         public async Task<IActionResult> AccessDenied()
@@ -400,11 +380,13 @@ namespace datn.Controllers
                 if (int.TryParse(accountIdClaim, out int accountId))
                 {
                     var account = await _context.Accounts
+                        .Include(a => a.Role)
                         .Include(a => a.Employee)
+                        .Include(a => a.Parent)
                         .FirstOrDefaultAsync(a => a.Id == accountId);
                     if (account != null)
                     {
-                        ViewBag.UserAvatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
+                        SetProfileViewBag(account);
                     }
                 }
             }
@@ -413,9 +395,6 @@ namespace datn.Controllers
         }
     }
 
-    /// <summary>
-    /// ProfileViewModel: Model để truyền dữ liệu từ Controller vào View
-    /// </summary>
     public class ProfileViewModel
     {
         public int AccountId { get; set; }
@@ -423,22 +402,20 @@ namespace datn.Controllers
         public string Email { get; set; }
         public string Role { get; set; }
 
-        // Dùng cho Employee
+        public IFormFile? AvatarFile { get; set; }
+
         public string FullName { get; set; }
         public string Phone { get; set; }
         public string Position { get; set; }
 
-        // Dùng cho Parent
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Address { get; set; }
 
-        // Dùng cho đổi mật khẩu
         public string OldPassword { get; set; }
         public string NewPassword { get; set; }
         public string ConfirmPassword { get; set; }
 
-        // Navigation properties
         public Employee Employee { get; set; }
         public Parent Parent { get; set; }
     }

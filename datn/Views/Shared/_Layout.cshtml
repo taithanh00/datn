@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
     <title>@ViewData["Title"] - School Management System</title>
     <script type="importmap"></script>
     @* <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> *@
@@ -23,9 +22,7 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body> 
-    @RenderBody()
-<body class="ant-design-layout"> 
-    <div id="app-shell">
+    <div id="app-shell" class="ant-design-layout">
         @RenderBody()
     </div>
 

@@ -32,6 +32,8 @@ namespace datn.Controllers
         {
             var account = await _context.Accounts
                 .Include(a => a.Role)
+                .Include(a => a.Employee)
+                .Include(a => a.Parent)
                 .FirstOrDefaultAsync(a => a.Username == username && a.IsActive);
 
             // Kiểm tra account có tồn tại và mật khẩu có đúng không
