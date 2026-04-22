@@ -11,41 +11,13 @@ namespace datn.Controllers
     /// AccountController: Xử lý các request liên quan tới tài khoản người dùng
     /// </summary>
     [Authorize]
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
-        private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public AccountController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
+        public AccountController(AppDbContext context, IWebHostEnvironment webHostEnvironment) : base(context)
         {
-            _context = context;
             _webHostEnvironment = webHostEnvironment;
-        }
-
-        private void SetProfileViewBag(Account account)
-        {
-            ViewBag.Username = account.Username;
-            ViewBag.Email = account.Email;
-            ViewBag.Role = account.Role?.Name;
-
-            string defaultAvatar = account.Role?.Name == "Manager" || account.Role?.Name == "Parent" 
-                ? "/images/lion_orange.png" 
-                : "/images/lion_blue.png";
-
-            if (account.Role?.Name == "Employee")
-            {
-                ViewBag.UserAvatar = account.Employee?.AvatarPath ?? defaultAvatar;
-            }
-            else if (account.Role?.Name == "Parent")
-            {
-                ViewBag.UserAvatar = account.Parent?.AvatarPath ?? defaultAvatar;
-            }
-            else
-            {
-                // Manager might not have Employee record or AvatarPath in some cases, 
-                // but usually Manager is also an Employee in this system.
-                ViewBag.UserAvatar = account.Employee?.AvatarPath ?? defaultAvatar;
-            }
         }
 
         public async Task<IActionResult> Profile()
@@ -66,8 +38,6 @@ namespace datn.Controllers
             {
                 return NotFound("Tài khoản không tồn tại");
             }
-
-            SetProfileViewBag(account);
 
             var profileViewModel = new ProfileViewModel
             {
@@ -183,8 +153,6 @@ namespace datn.Controllers
                 ViewBag.ErrorMessage = $"Có lỗi khi cập nhật: {ex.Message}";
             }
 
-            SetProfileViewBag(account);
-
             model.AccountId = account.Id;
             model.Username = account.Username;
             model.Email = account.Email;
@@ -213,8 +181,6 @@ namespace datn.Controllers
             {
                 return NotFound("Tài khoản không tồn tại");
             }
-
-            SetProfileViewBag(account);
 
             var changePasswordViewModel = new ProfileViewModel
             {
@@ -317,7 +283,6 @@ namespace datn.Controllers
                 return NotFound("Tài khoản không tồn tại");
             }
 
-            SetProfileViewBag(account);
             ViewBag.PasswordError = passwordError;
 
             var changePasswordViewModel = new ProfileViewModel
@@ -351,7 +316,6 @@ namespace datn.Controllers
                 return NotFound("Tài khoản không tồn tại");
             }
 
-            SetProfileViewBag(account);
             ViewBag.PasswordSuccess = passwordSuccess;
 
             var changePasswordViewModel = new ProfileViewModel
@@ -373,23 +337,6 @@ namespace datn.Controllers
             ViewBag.Username = User.Identity?.Name ?? "Guest";
             ViewBag.Role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "User";
             ViewBag.UserAvatar = "/images/lion_blue.png";
-
-            if (User.Identity?.IsAuthenticated == true)
-            {
-                var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (int.TryParse(accountIdClaim, out int accountId))
-                {
-                    var account = await _context.Accounts
-                        .Include(a => a.Role)
-                        .Include(a => a.Employee)
-                        .Include(a => a.Parent)
-                        .FirstOrDefaultAsync(a => a.Id == accountId);
-                    if (account != null)
-                    {
-                        SetProfileViewBag(account);
-                    }
-                }
-            }
 
             return View("~/Views/Auth/AccessDenied.cshtml");
         }

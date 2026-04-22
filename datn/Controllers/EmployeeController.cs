@@ -10,26 +10,10 @@ namespace datn.Controllers
 {
     [Authorize(Roles = "Employee")]
     [Route("[controller]")]
-    public class EmployeeController : Controller
+    public class EmployeeController : BaseController
     {
-        private readonly AppDbContext _context;
-
-        public EmployeeController(AppDbContext context)
+        public EmployeeController(AppDbContext context) : base(context)
         {
-            _context = context;
-        }
-
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            var username = User.Identity?.Name ?? "User";
-            ViewBag.Username = username;
-            ViewBag.Role = User.FindFirst(ClaimTypes.Role)?.Value ?? "User";
-
-            var employee = _context.Employees.Include(e => e.Account)
-                .FirstOrDefault(e => e.Account.Username == username);
-            ViewBag.UserAvatar = employee?.AvatarPath ?? "/images/lion_blue.png";
-
-            base.OnActionExecuting(context);
         }
 
         private async Task<int?> GetCurrentEmployeeId()

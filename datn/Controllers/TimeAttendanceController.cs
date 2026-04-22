@@ -12,7 +12,7 @@ namespace datn.Controllers
 {
     [Authorize(Roles = "Employee")]
     [Route("[controller]")]
-    public class TimeAttendanceController : Controller
+    public class TimeAttendanceController : BaseController
     {
         private const string PendingStatus = "Pending";
         private const decimal LatePenaltyAmount = 20000m;
@@ -20,25 +20,11 @@ namespace datn.Controllers
         private static readonly TimeSpan WorkEnd = new(17, 0, 0);
         private static readonly TimeSpan GraceEnd = new(8, 10, 0);
 
-        private readonly AppDbContext _context;
         private readonly IHubContext<RealtimeHub> _hubContext;
 
-        public TimeAttendanceController(AppDbContext context, IHubContext<RealtimeHub> hubContext)
+        public TimeAttendanceController(AppDbContext context, IHubContext<RealtimeHub> hubContext) : base(context)
         {
-            _context = context;
             _hubContext = hubContext;
-        }
-
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            var username = User.Identity?.Name ?? "User";
-            ViewBag.Username = username;
-            ViewBag.Role = User.FindFirst(ClaimTypes.Role)?.Value ?? "User";
-
-            var employee = _context.Employees.Include(e => e.Account).FirstOrDefault(e => e.Account.Username == username);
-            ViewBag.UserAvatar = employee?.AvatarPath ?? "/images/lion_blue.png";
-
-            base.OnActionExecuting(context);
         }
 
         [HttpGet("")]

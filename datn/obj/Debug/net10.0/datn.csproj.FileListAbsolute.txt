@@ -146,12 +146,6 @@ D:\datn\datn\datn\obj\Debug\net10.0\datn.RazorAssemblyInfo.cs
 D:\datn\datn\datn\obj\Debug\net10.0\datn.sourcelink.json
 D:\datn\datn\datn\bin\Debug\net10.0\appsettings.Development.json
 D:\datn\datn\datn\bin\Debug\net10.0\appsettings.json
-D:\datn\datn\datn\bin\Debug\net10.0\temp_build_verify\appsettings.Development.json
-D:\datn\datn\datn\bin\Debug\net10.0\temp_build_verify\appsettings.json
-D:\datn\datn\datn\bin\Debug\net10.0\temp_build_verify\datn.deps.json
-D:\datn\datn\datn\bin\Debug\net10.0\temp_build_verify\datn.runtimeconfig.json
-D:\datn\datn\datn\bin\Debug\net10.0\temp_build_verify\datn.staticwebassets.endpoints.json
-D:\datn\datn\datn\bin\Debug\net10.0\temp_build_verify\datn.staticwebassets.runtime.json
 D:\datn\datn\datn\bin\Debug\net10.0\datn.staticwebassets.runtime.json
 D:\datn\datn\datn\bin\Debug\net10.0\datn.staticwebassets.endpoints.json
 D:\datn\datn\datn\bin\Debug\net10.0\datn.exe
@@ -391,4 +385,3 @@ D:\datn\datn\datn\obj\Debug\net10.0\compressed\3x56rc2xdj-{0}-dua122eqbq-dua122e
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\rsmdhapjp0-{0}-2e7ldlifyn-2e7ldlifyn.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\q4c3vuvrbf-{0}-3xl8b51idd-3xl8b51idd.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\gnj500cxoh-{0}-yyk1nmzmme-yyk1nmzmme.gz
-D:\datn\datn\datn\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

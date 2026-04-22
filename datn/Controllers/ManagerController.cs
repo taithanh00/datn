@@ -10,33 +10,15 @@ namespace datn.Controllers
 {
     [Authorize(Roles = "Manager")]
     [Route("[controller]")]
-    public class ManagerController : Controller
+    public class ManagerController : BaseController
     {
         private static readonly TimeOnly SchoolStart = new(7, 0);
         private static readonly TimeOnly LunchStart = new(11, 0);
         private static readonly TimeOnly LunchEnd = new(13, 0);
         private static readonly TimeOnly SchoolEnd = new(16, 30);
 
-        private readonly AppDbContext _context;
-
-        public ManagerController(AppDbContext context)
+        public ManagerController(AppDbContext context) : base(context)
         {
-            _context = context;
-        }
-
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            var username = User.Identity?.Name ?? "User";
-            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "User";
-
-            ViewBag.Username = username;
-            ViewBag.Role = role;
-
-            var employee = _context.Employees.Include(e => e.Account)
-                .FirstOrDefault(e => e.Account.Username == username);
-            ViewBag.UserAvatar = employee?.AvatarPath ?? "/images/lion_orange.png";
-
-            base.OnActionExecuting(context);
         }
 
         [HttpGet("")]
@@ -629,6 +611,7 @@ namespace datn.Controllers
         }
 
         [HttpPost("Api/Class")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateClass([FromBody] SaveClassViewModel model)
         {
             if (string.IsNullOrWhiteSpace(model.Name))
@@ -652,6 +635,7 @@ namespace datn.Controllers
         }
 
         [HttpPut("Api/Class/{id:int}")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateClass(int id, [FromBody] SaveClassViewModel model)
         {
             var classroom = await _context.Classes.FindAsync(id);
@@ -676,6 +660,7 @@ namespace datn.Controllers
         }
 
         [HttpDelete("Api/Class/{id:int}")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteClass(int id)
         {
             var classroom = await _context.Classes.FindAsync(id);
@@ -829,6 +814,8 @@ namespace datn.Controllers
                     dayLabel = GetVietnameseDayLabel(cs.DayOfWeek),
                     startTime = cs.StartTime.ToString("HH:mm"),
                     endTime = cs.EndTime.ToString("HH:mm"),
+                    locationId = cs.LocationId,
+                    locationName = cs.Location?.Name,
                     effectiveFrom = cs.EffectiveFrom.ToString("yyyy-MM-dd"),
                     effectiveTo = cs.EffectiveTo?.ToString("yyyy-MM-dd"),
                     note = cs.Note,
@@ -856,6 +843,7 @@ namespace datn.Controllers
                     dayOfWeek = schedule.DayOfWeek,
                     startTime = schedule.StartTime.ToString("HH:mm"),
                     endTime = schedule.EndTime.ToString("HH:mm"),
+                    locationId = schedule.LocationId,
                     effectiveFrom = schedule.EffectiveFrom.ToString("yyyy-MM-dd"),
                     effectiveTo = schedule.EffectiveTo?.ToString("yyyy-MM-dd"),
                     note = schedule.Note,
@@ -865,6 +853,7 @@ namespace datn.Controllers
         }
 
         [HttpPost("Api/ClassSchedule")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateClassSchedule([FromBody] SaveClassScheduleViewModel model)
         {
             var validationMessage = await ValidateScheduleRequestAsync(model, null);
@@ -879,6 +868,7 @@ namespace datn.Controllers
                 DayOfWeek = model.DayOfWeek,
                 StartTime = TimeOnly.Parse(model.StartTime),
                 EndTime = TimeOnly.Parse(model.EndTime),
+                LocationId = model.LocationId,
                 EffectiveFrom = DateOnly.Parse(model.EffectiveFrom),
                 EffectiveTo = string.IsNullOrWhiteSpace(model.EffectiveTo) ? null : DateOnly.Parse(model.EffectiveTo),
                 Note = model.Note?.Trim(),
@@ -891,6 +881,7 @@ namespace datn.Controllers
         }
 
         [HttpPut("Api/ClassSchedule/{id:int}")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateClassSchedule(int id, [FromBody] SaveClassScheduleViewModel model)
         {
             var schedule = await _context.ClassSchedules.FindAsync(id);
@@ -907,6 +898,7 @@ namespace datn.Controllers
             schedule.DayOfWeek = model.DayOfWeek;
             schedule.StartTime = TimeOnly.Parse(model.StartTime);
             schedule.EndTime = TimeOnly.Parse(model.EndTime);
+            schedule.LocationId = model.LocationId;
             schedule.EffectiveFrom = DateOnly.Parse(model.EffectiveFrom);
             schedule.EffectiveTo = string.IsNullOrWhiteSpace(model.EffectiveTo) ? null : DateOnly.Parse(model.EffectiveTo);
             schedule.Note = model.Note?.Trim();
@@ -998,6 +990,17 @@ namespace datn.Controllers
 
             if (teacherOverlap)
                 return "Giáo viên đã có lịch dạy khác trùng khung giờ này.";
+
+            if (model.LocationId.HasValue)
+            {
+                var locationOverlap = sameDaySchedules.Any(cs =>
+                    cs.LocationId == model.LocationId
+                    && DateRangesOverlap(cs.EffectiveFrom, cs.EffectiveTo, effectiveFrom, effectiveTo)
+                    && TimeRangesOverlap(cs.StartTime, cs.EndTime, startTime, endTime));
+
+                if (locationOverlap)
+                    return "Phòng học/Địa điểm này đã được sử dụng cho lớp khác trong khung giờ này.";
+            }
 
             return null;
         }
@@ -1375,6 +1378,7 @@ namespace datn.Controllers
         public int DayOfWeek { get; set; }
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;
+        public int? LocationId { get; set; }
         public string EffectiveFrom { get; set; } = string.Empty;
         public string? EffectiveTo { get; set; }
         public string? Note { get; set; }

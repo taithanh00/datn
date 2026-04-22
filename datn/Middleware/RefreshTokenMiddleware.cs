@@ -1,4 +1,4 @@
-﻿using datn.Data;
+using datn.Data;
 using datn.Models;
 using datn.Services;
 using Microsoft.EntityFrameworkCore;
@@ -102,6 +102,15 @@ namespace datn.Middleware
             // Hành động: Thu hồi TẤT CẢ token của account này để bảo vệ
             if (storedToken.IsRevoked)
             {
+                // Kiểm tra thời gian ân hạn (Grace Period - 60 giây)
+                // Giúp xử lý trường hợp nhiều request đồng thời (race condition)
+                if (storedToken.RevokedAtUtc.HasValue && 
+                    storedToken.RevokedAtUtc.Value.AddSeconds(60) > DateTime.UtcNow)
+                {
+                    _logger.LogInformation("Refresh token {Token} trong thời gian ân hạn. Bỏ qua.", refreshToken);
+                    return;
+                }
+
                 _logger.LogWarning(
                     "CẢNH BÁO: Refresh token bị thu hồi được dùng lại. AccountId: {Id}",
                     storedToken.AccountId);
@@ -137,6 +146,7 @@ namespace datn.Middleware
 
             // Thu hồi Refresh Token cũ (không thể dùng nữa)
             storedToken.IsRevoked = true;
+            storedToken.RevokedAtUtc = DateTime.UtcNow;
 
             // Tạo Refresh Token mới
             var newRefreshToken = new RefreshToken
@@ -153,7 +163,7 @@ namespace datn.Middleware
             var accessOpts = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = false,
+                Secure = context.Request.IsHttps,
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTime.UtcNow.AddMinutes(
                     int.Parse(config["JwtSettings:AccessTokenExpiryMinutes"]))
@@ -163,7 +173,7 @@ namespace datn.Middleware
             var refreshOpts = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = false,
+                Secure = context.Request.IsHttps,
                 SameSite = SameSiteMode.Strict,
                 Expires = newRefreshToken.ExpiresAt
             };

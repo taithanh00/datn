@@ -9,6 +9,7 @@ namespace datn.Models
         public int DayOfWeek { get; set; }
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
+        public int? LocationId { get; set; }
         public DateOnly EffectiveFrom { get; set; }
         public DateOnly? EffectiveTo { get; set; }
         public string? Note { get; set; }
@@ -17,5 +18,6 @@ namespace datn.Models
         public Class Class { get; set; } = null!;
         public Subject Subject { get; set; } = null!;
         public Employee Employee { get; set; } = null!;
+        public Location? Location { get; set; }
     }
 }

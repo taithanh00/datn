@@ -1,3 +1,4 @@
+using datn.Data;
 using datn.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,11 +7,11 @@ namespace datn.Controllers
 {
     [Authorize]
     [Route("[controller]")]
-    public class NotificationController : Controller
+    public class NotificationController : BaseController
     {
         private readonly INotificationService _notificationService;
 
-        public NotificationController(INotificationService notificationService)
+        public NotificationController(AppDbContext context, INotificationService notificationService) : base(context)
         {
             _notificationService = notificationService;
         }

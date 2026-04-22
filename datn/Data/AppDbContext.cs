@@ -1,4 +1,4 @@
-﻿using datn.Models;
+using datn.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace datn.Data
@@ -296,6 +296,12 @@ namespace datn.Data
                 .WithMany(e => e.ClassSchedules)
                 .HasForeignKey(cs => cs.EmployeeId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ClassSchedule>()
+                .HasOne(cs => cs.Location)
+                .WithMany()
+                .HasForeignKey(cs => cs.LocationId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<ClassSchedule>()
                 .HasIndex(cs => new

@@ -1,4 +1,4 @@
-﻿namespace datn.Models
+namespace datn.Models
 {
     /// <summary>
     /// RefreshToken: Mô hình dữ liệu cho Refresh Token
@@ -46,6 +46,7 @@
         /// Mặc định: false
         /// </summary>
         public bool IsRevoked { get; set; } = false;
+        public DateTime? RevokedAtUtc { get; set; }
 
         /// <summary>
         /// CreatedAt: Thời điểm tạo Refresh Token

@@ -13,25 +13,10 @@ namespace datn.Controllers
     /// HomeController: Xử lý các request liên quan tới dashboard
     /// </summary>
     [Authorize]
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
-        private readonly AppDbContext _context;
-
-        public HomeController(AppDbContext context)
+        public HomeController(AppDbContext context) : base(context)
         {
-            _context = context;
-        }
-
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            var username = User.Identity?.Name ?? "User";
-            ViewBag.Username = username;
-            ViewBag.Role = User.FindFirst(ClaimTypes.Role)?.Value ?? "User";
-
-            var employee = _context.Employees.Include(e => e.Account).FirstOrDefault(e => e.Account.Username == username);
-            ViewBag.UserAvatar = employee?.AvatarPath ?? "/images/lion_blue.png";
-
-            base.OnActionExecuting(context);
         }
 
         public IActionResult Index()

@@ -11,27 +11,13 @@ namespace datn.Controllers
 {
     [Authorize]
     [Route("[controller]")]
-    public class TeacherSalaryController : Controller
+    public class TeacherSalaryController : BaseController
     {
-        private readonly AppDbContext _context;
         private readonly INotificationService _notificationService;
 
-        public TeacherSalaryController(AppDbContext context, INotificationService notificationService)
+        public TeacherSalaryController(AppDbContext context, INotificationService notificationService) : base(context)
         {
-            _context = context;
             _notificationService = notificationService;
-        }
-
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            var username = User.Identity?.Name ?? "User";
-            ViewBag.Username = username;
-            ViewBag.Role = User.FindFirst(ClaimTypes.Role)?.Value ?? "User";
-
-            var employee = _context.Employees.Include(e => e.Account).FirstOrDefault(e => e.Account.Username == username);
-            ViewBag.UserAvatar = employee?.AvatarPath ?? "/images/lion_blue.png";
-
-            base.OnActionExecuting(context);
         }
 
         [Authorize(Roles = "Manager")]

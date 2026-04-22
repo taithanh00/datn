@@ -28,6 +28,7 @@ namespace datn.Controllers
             return View();
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string username, string password, bool rememberMe = false)
         {
             var account = await _context.Accounts
@@ -63,7 +64,7 @@ namespace datn.Controllers
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,            // ⭐ An toàn: JavaScript không thể truy cập
-                Secure = false,             // ⚠️ TODO: Đặt true khi deploy HTTPS (production)
+                Secure = Request.IsHttps,             // ⭐ Tự động bật bảo mật nếu dùng HTTPS
                 SameSite = SameSiteMode.Strict,  // ⭐ An toàn: chỉ gửi cho same-site requests
                 Expires = DateTime.UtcNow.AddMinutes(
                     int.Parse(_config["JwtSettings:AccessTokenExpiryMinutes"]))  // Access Token thường 15-30 phút
@@ -84,6 +85,7 @@ namespace datn.Controllers
 
         // LOGOUT
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             var refreshToken = Request.Cookies["refresh_token"];

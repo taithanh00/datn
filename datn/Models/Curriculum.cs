@@ -1,4 +1,4 @@
-﻿namespace datn.Models
+namespace datn.Models
 {
     public class Curriculum
     {

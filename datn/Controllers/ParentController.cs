@@ -10,26 +10,10 @@ namespace datn.Controllers
 {
     [Authorize(Roles = "Parent")]
     [Route("[controller]")]
-    public class ParentController : Controller
+    public class ParentController : BaseController
     {
-        private readonly AppDbContext _context;
-
-        public ParentController(AppDbContext context)
+        public ParentController(AppDbContext context) : base(context)
         {
-            _context = context;
-        }
-
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            var username = User.Identity?.Name ?? "User";
-            ViewBag.Username = username;
-            ViewBag.Role = User.FindFirst(ClaimTypes.Role)?.Value ?? "User";
-
-            var parent = _context.Parents.Include(p => p.Account)
-                .FirstOrDefault(p => p.Account.Username == username);
-            ViewBag.UserAvatar = "/images/lion_orange.png"; // Mặc định cho Parent
-
-            base.OnActionExecuting(context);
         }
 
         private async Task<int?> GetCurrentParentId()
