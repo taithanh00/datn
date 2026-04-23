@@ -1,0 +1,6 @@
+.status-badge { padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:600; }
+.status-badge.planned { background:var(--primary-soft); color:var(--primary); }
+.status-badge.inprogress { background:rgba(251,191,36,0.15); color:#D97706; }
+.status-badge.completed { background:rgba(52,211,153,0.15); color:#059669; }
+.btn-table { background:none; border:none; cursor:pointer; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:600; color:var(--danger); transition:all 0.2s; }
+.btn-table:hover { background:rgba(248,113,113,0.1); }

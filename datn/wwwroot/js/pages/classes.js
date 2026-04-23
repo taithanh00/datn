@@ -14,6 +14,13 @@ async function initializeClassManagementPage() {
         loadSubjects(),
         refreshDropdowns()
     ]);
+    
+    // Khởi tạo pagination sau khi dữ liệu đã load
+    if (typeof initPagination === 'function') {
+        initPagination('classesTable', 10);
+        initPagination('subjectsTable', 10);
+        initPagination('scheduleTable', 10);
+    }
 }
 
 function bindClassManagementEvents() {

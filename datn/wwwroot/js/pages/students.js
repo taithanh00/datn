@@ -14,6 +14,14 @@ async function initializeStudentsPage() {
     setupEventListeners();
     await loadClasses();
     await loadStudents();
+    
+    // Khởi tạo pagination và search sau khi dữ liệu đã được load và render
+    if (typeof initPagination === 'function') {
+        initPagination('studentsTable', 15);
+    }
+    if (typeof initTableSearch === 'function') {
+        initTableSearch('searchStudents', 'studentsTable');
+    }
 }
 
 // ====== EVENT LISTENERS SETUP ======

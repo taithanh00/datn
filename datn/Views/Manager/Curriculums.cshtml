@@ -3,193 +3,43 @@
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
+<div class="page-header">
+    <h1 class="page-title">Chương trình học</h1>
+    <button class="btn btn-primary" id="resetFormBtn" type="button"><i class="fa-solid fa-plus"></i> Tạo chương trình</button>
+</div>
+
+<div class="card">
+    <div id="alert" class="page-alert" style="display:none;"></div>
+    <div class="table-container">
+        <table id="curriculumsTable">
+            <thead><tr><th>Tên chương trình</th><th>Môn học</th><th>Độ tuổi</th><th>Mô tả</th><th>Thao tác</th></tr></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <form id="entityForm" class="mt-3" style="border-top:1px solid var(--border); padding-top:24px;">
+        <input type="hidden" id="entityId" />
+        <div style="display:grid; grid-template-columns:2fr 1fr; gap:16px;">
+            <div class="form-group"><label class="form-label">Tiêu đề</label><input id="title" type="text" class="form-input" required /></div>
+            <div class="form-group"><label class="form-label">Môn học</label><select id="subjectId" class="form-select"></select></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group"><label class="form-label">Tuổi từ</label><input id="ageFrom" type="number" class="form-input" /></div>
+            <div class="form-group"><label class="form-label">Tuổi đến</label><input id="ageTo" type="number" class="form-input" /></div>
+        </div>
+        <div class="form-group"><label class="form-label">Mô tả</label><input id="description" type="text" class="form-input" /></div>
+        <div class="form-group"><label class="form-label">Nội dung chi tiết</label><textarea id="content" class="form-input" rows="5"></textarea></div>
+        <div class="d-flex gap-1 mt-1">
+            <button type="submit" class="btn btn-primary" id="saveBtn">Lưu chương trình</button>
+            <button type="button" class="btn btn-outline" id="clearBtn">Làm mới</button>
+        </div>
+    </form>
+</div>
+
 @section Styles {
-    <link rel="stylesheet" href="~/css/pages/classes.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/curriculums.css" asp-append-version="true" />
 }
 
-<div class="dashboard-card">
-    <div class="card-header">
-        <h2 style="margin: 0;">Danh mục Chương trình học (Curriculum)</h2>
-    </div>
-    <div class="card-body">
-        <p>Manager xây dựng thư viện các chương trình học, chủ đề giáo dục mẫu để áp dụng cho các lớp học.</p>
-    </div>
-</div>
-
-<div class="dashboard-card" style="margin-top: 20px;">
-    <div class="card-header section-header">
-        <h3>Thư viện chương trình</h3>
-        <button class="btn-primary-action" id="resetFormBtn" type="button">Tạo chương trình mới</button>
-    </div>
-    <div class="card-body">
-        <div id="alert" class="page-alert" style="display:none;"></div>
-        <div class="table-responsive">
-            <table class="management-table">
-                <thead>
-                    <tr>
-                        <th>Tên chương trình</th>
-                        <th>Môn học</th>
-                        <th>Độ tuổi</th>
-                        <th>Mô tả</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-
-        <form id="entityForm" class="entity-form" style="margin-top: 20px;">
-            <input type="hidden" id="entityId" />
-            <div class="form-row">
-                <div class="form-group" style="flex: 2;">
-                    <label for="title">Tiêu đề chương trình</label>
-                    <input id="title" type="text" class="form-control" required placeholder="Ví dụ: Bé làm quen với Tiếng Anh tháng 9" />
-                </div>
-                <div class="form-group">
-                    <label for="subjectId">Thuộc môn học (tùy chọn)</label>
-                    <select id="subjectId" class="form-select"></select>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="ageFrom">Độ tuổi từ</label>
-                    <input id="ageFrom" type="number" class="form-control" />
-                </div>
-                <div class="form-group">
-                    <label for="ageTo">Đến</label>
-                    <input id="ageTo" type="number" class="form-control" />
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="description">Mô tả ngắn</label>
-                <input id="description" type="text" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label for="content">Nội dung chi tiết (Mục tiêu, Học liệu...)</label>
-                <textarea id="content" class="form-control" rows="5"></textarea>
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn-primary-action" id="saveBtn">Lưu chương trình</button>
-                <button type="button" class="btn-secondary-action" id="clearBtn">Làm mới</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 @section Scripts {
-    <script>
-        let currentId = null;
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await Promise.all([loadCurriculums(), loadSubjects()]);
-            document.getElementById('entityForm').addEventListener('submit', saveEntity);
-            document.getElementById('resetFormBtn').addEventListener('click', resetForm);
-            document.getElementById('clearBtn').addEventListener('click', resetForm);
-        });
-
-        async function fetchJson(url, options = {}) {
-            try {
-                const response = await fetch(url, {
-                    headers: { 'Content-Type': 'application/json' },
-                    ...options
-                });
-                return await response.json();
-            } catch (e) { return { success: false, message: 'Lỗi kết nối.' }; }
-        }
-
-        async function loadCurriculums() {
-            const result = await fetchJson('/Manager/Api/Curriculums');
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-            if (result.success) {
-                result.data.forEach(c => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>${c.title}</strong></td>
-                            <td>${c.subjectName || 'N/A'}</td>
-                            <td>${c.ageFrom || '?'}-${c.ageTo || '?'} tuổi</td>
-                            <td class="note-muted">${c.description || ''}</td>
-                            <td>
-                                <button class="btn-table" onclick="editEntity(${c.id})">Sửa</button>
-                                <button class="btn-table delete" onclick="deleteEntity(${c.id})">Xóa</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-        }
-
-        async function loadSubjects() {
-            const result = await fetchJson('/Manager/Api/Subjects');
-            const select = document.getElementById('subjectId');
-            select.innerHTML = '<option value="">-- Chọn môn học --</option>';
-            if (result.success) {
-                result.data.forEach(s => {
-                    select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
-                });
-            }
-        }
-
-        async function saveEntity(e) {
-            e.preventDefault();
-            const data = {
-                title: document.getElementById('title').value,
-                description: document.getElementById('description').value,
-                content: document.getElementById('content').value,
-                subjectId: parseInt(document.getElementById('subjectId').value) || null,
-                ageFrom: parseInt(document.getElementById('ageFrom').value) || null,
-                ageTo: parseInt(document.getElementById('ageTo').value) || null
-            };
-
-            const url = currentId ? `/Manager/Api/Curriculum/${currentId}` : '/Manager/Api/Curriculum';
-            const method = currentId ? 'PUT' : 'POST';
-
-            const result = await fetchJson(url, { method, body: JSON.stringify(data) });
-            showAlert(result.success, result.message);
-            if (result.success) {
-                resetForm();
-                loadCurriculums();
-            }
-        }
-
-        async function editEntity(id) {
-            const result = await fetchJson('/Manager/Api/Curriculums');
-            const item = result.data.find(c => c.id === id);
-            if (!item) return;
-
-            currentId = id;
-            document.getElementById('entityId').value = id;
-            document.getElementById('title').value = item.title;
-            document.getElementById('description').value = item.description || '';
-            document.getElementById('content').value = item.content || '';
-            document.getElementById('subjectId').value = item.subjectId || '';
-            document.getElementById('ageFrom').value = item.ageFrom || '';
-            document.getElementById('ageTo').value = item.ageTo || '';
-
-            document.getElementById('saveBtn').textContent = 'Cập nhật chương trình';
-            document.getElementById('entityForm').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        async function deleteEntity(id) {
-            if (!confirm('Xóa chương trình này?')) return;
-            const result = await fetchJson(`/Manager/Api/Curriculum/${id}`, { method: 'DELETE' });
-            showAlert(result.success, result.message);
-            if (result.success) loadCurriculums();
-        }
-
-        function resetForm() {
-            currentId = null;
-            document.getElementById('entityForm').reset();
-            document.getElementById('entityId').value = '';
-            document.getElementById('saveBtn').textContent = 'Lưu chương trình';
-        }
-
-        function showAlert(success, message) {
-            const alert = document.getElementById('alert');
-            alert.textContent = message;
-            alert.className = `page-alert ${success ? 'success' : 'error'}`;
-            alert.style.display = 'block';
-            setTimeout(() => { alert.style.display = 'none'; }, 3000);
-        }
-    </script>
+    <script src="~/js/pages/curriculums.js" asp-append-version="true"></script>
 }

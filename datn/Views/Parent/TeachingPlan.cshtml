@@ -5,102 +5,101 @@
     var selectedStudentId = ViewBag.SelectedStudentId;
 }
 
-<div class="dashboard-card">
-    <div class="card-header">
-        <h2 style="margin: 0;">Kế hoạch học tập của con</h2>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Kế hoạch học tập của con</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Theo dõi các chủ đề và nội dung học tập mà con đang thực hiện tại lớp.</p>
     </div>
-    <div class="card-body">
-        <p>Theo dõi các chủ đề và nội dung học tập mà con đang thực hiện tại lớp.</p>
-        
-        <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
-            <label>Chọn con:</label>
-            <select class="form-select" style="width: 200px;" onchange="location.href='?studentId=' + this.value">
-                @foreach (var child in children)
-                {
-                    <option value="@child.Id" selected="@(child.Id == (int)selectedStudentId)">@child.FirstName @child.LastName</option>
-                }
-            </select>
+    <div class="d-flex gap-2">
+        @if (children.Count > 1)
+        {
+            <div class="d-flex align-center gap-2">
+                <label class="form-label" style="margin-bottom: 0;">Chọn con:</label>
+                <select class="form-select" style="width: 200px;" onchange="location.href='?studentId=' + this.value">
+                    @foreach (var child in children)
+                    {
+                        <option value="@child.Id" selected="@(child.Id == (int)selectedStudentId)">@child.FirstName @child.LastName</option>
+                    }
+                </select>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card">
+    @if (!Model.Any())
+    {
+        <div class="empty-state py-5">
+            <i class="fa-solid fa-book-open"></i>
+            <h3 style="margin-bottom: 8px;">Chưa có kế hoạch</h3>
+            <p>Hiện chưa có kế hoạch học tập nào được cập nhật cho lớp của con.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-container">
+            <table id="teachingPlansTable">
+                <thead>
+                    <tr>
+                        <th>Chủ đề/Chương trình</th>
+                        <th>Môn học</th>
+                        <th>Thời gian</th>
+                        <th>Trạng thái</th>
+                        <th style="text-align: right;">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var statusClass = item.Status?.ToLower();
+                        var statusText = item.Status switch {
+                            "Planned" => "Đã lên lịch",
+                            "InProgress" => "Đang học",
+                            "Completed" => "Đã hoàn thành",
+                            _ => item.Status
+                        };
+
+                        <tr>
+                            <td>
+                                <strong>@item.Curriculum.Title</strong>
+                                <div class="text-muted" style="font-size: 0.85rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">@item.Curriculum.Description</div>
+                            </td>
+                            <td><div class="badge badge-info">@(item.Curriculum.Subject?.Name ?? "Chung")</div></td>
+                            <td>@item.StartDate.ToString("dd/MM/yyyy") <i class="fa-solid fa-arrow-right mx-1 text-muted"></i> @(item.EndDate.HasValue ? item.EndDate.Value.ToString("dd/MM/yyyy") : "...")</td>
+                            <td>
+                                <span class="badge @(statusClass == "planned" ? "badge-info" : statusClass == "inprogress" ? "badge-warning" : "badge-success")">
+                                    @statusText
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" onclick="showDetail('@item.Curriculum.Title', `@(item.Curriculum.Content ?? "")`)">
+                                    <i class="fa-solid fa-eye"></i> Xem nội dung
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Modal xem chi tiết -->
+<div class="modal-overlay" id="pModalOverlay">
+    <div class="modal-card" style="width: 700px; max-width: 95vw;">
+        <div class="modal-header">
+            <div class="modal-title" id="pModalTitle">Chi tiết bài học</div>
+            <button class="modal-close" onclick="closePModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="max-height: 60vh; overflow-y: auto;">
+            <div id="pModalContent" style="white-space: pre-wrap; background: var(--bg-body); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 0.95rem; line-height: 1.6; color: var(--text-main);"></div>
+        </div>
+        <div class="d-flex justify-end mt-3" style="padding-top: 16px; border-top: 1px solid var(--border);">
+            <button type="button" class="btn btn-outline" onclick="closePModal()">Đóng</button>
         </div>
     </div>
 </div>
 
-<div class="dashboard-card" style="margin-top: 20px;">
-    <div class="card-body">
-        @if (!Model.Any())
-        {
-            <div style="text-align: center; padding: 40px; color: #666;">
-                <p>Hiện chưa có kế hoạch học tập nào được cập nhật cho lớp của con.</p>
-            </div>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="management-table">
-                    <thead>
-                        <tr>
-                            <th>Chủ đề/Chương trình</th>
-                            <th>Môn học</th>
-                            <th>Thời gian</th>
-                            <th>Trạng thái</th>
-                            <th>Chi tiết</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>
-                                    <strong>@item.Curriculum.Title</strong>
-                                    <div class="note-muted" style="font-size: 0.85em;">@item.Curriculum.Description</div>
-                                </td>
-                                <td>@(item.Curriculum.Subject?.Name ?? "Chung")</td>
-                                <td>@item.StartDate.ToString("dd/MM/yyyy") @(item.EndDate.HasValue ? " - " + item.EndDate.Value.ToString("dd/MM/yyyy") : "")</td>
-                                <td>
-                                    <span class="status-badge @item.Status?.ToLower()">
-                                        @switch(item.Status) {
-                                            case "Planned": <span>Đã lên lịch</span> break;
-                                            case "InProgress": <span>Đang học</span> break;
-                                            case "Completed": <span>Đã hoàn thành</span> break;
-                                            default: <span>@item.Status</span> break;
-                                        }
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="btn-table" onclick="showDetail('@item.Curriculum.Title', `@item.Curriculum.Content`)">Xem nội dung</button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
-    </div>
-</div>
-
-<!-- Modal xem chi tiết -->
-<div id="parentDetailModal" class="dashboard-card" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 85%; max-width: 700px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
-    <div class="card-header section-header">
-        <h3 id="pModalTitle">Chi tiết bài học</h3>
-        <button type="button" class="btn-table" onclick="closePModal()">Đóng</button>
-    </div>
-    <div class="card-body" style="max-height: 450px; overflow-y: auto;">
-        <div id="pModalContent" style="white-space: pre-wrap; background: #f9f9f9; padding: 15px; border-radius: 4px; border: 1px solid #eee;"></div>
-    </div>
-</div>
-<div id="pModalOverlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="closePModal()"></div>
-
 @section Scripts {
-    <script>
-        function showDetail(title, content) {
-            document.getElementById('pModalTitle').textContent = title;
-            document.getElementById('pModalContent').textContent = content || 'Chưa có nội dung chi tiết.';
-            document.getElementById('parentDetailModal').style.display = 'block';
-            document.getElementById('pModalOverlay').style.display = 'block';
-        }
-
-        function closePModal() {
-            document.getElementById('parentDetailModal').style.display = 'none';
-            document.getElementById('pModalOverlay').style.display = 'none';
-        }
-    </script>
+    <script src="~/js/pages/parent-teaching-plans.js" asp-append-version="true"></script>
 }

@@ -3,219 +3,72 @@
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/pages/teacher-salary.css" asp-append-version="true" />
-}
-
-<div class="dashboard-card">
-    <div class="card-header">
-        <h2 style="margin: 0;"><i class="fa-solid fa-money-check-dollar"></i> Quản lý bảng lương giáo viên</h2>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Quản lý bảng lương</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Tính toán và chốt lương hàng tháng cho giáo viên</p>
     </div>
+</div>
 
-    <div class="card-body">
-        <!-- Status Bar -->
-        <div id="salaryStatusBar" class="salary-status-bar status-open">
-            <i class="fa-solid fa-circle-info"></i>
-            <span>Vui lòng chọn kỳ lương để xem chi tiết.</span>
+<!-- Status Bar -->
+<div id="salaryStatusBar" class="page-alert" style="background: var(--bg-card); color: var(--text-muted); border-left: 4px solid var(--border);">
+    <i class="fa-solid fa-circle-info"></i> Vui lòng chọn kỳ lương để xem chi tiết.
+</div>
+
+<!-- Filter & Actions -->
+<div class="card mb-4">
+    <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+        <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
+            <label for="salaryMonth" class="form-label">Tháng</label>
+            <select id="salaryMonth" class="form-select"></select>
         </div>
-
-        <!-- Filter & Actions -->
-        <div class="filter-section">
-            <div class="filter-group">
-                <label for="salaryMonth">Tháng</label>
-                <select id="salaryMonth" class="filter-control"></select>
-            </div>
-            <div class="filter-group">
-                <label for="salaryYear">Năm</label>
-                <select id="salaryYear" class="filter-control"></select>
-            </div>
-            
-            <div class="salary-actions">
-                <button id="btnLoadSalary" type="button" class="btn-salary btn-view">
-                    <i class="fa-solid fa-eye"></i> Xem bảng lương
-                </button>
-                <button id="btnRecalculateSalary" type="button" class="btn-salary btn-recalculate">
-                    <i class="fa-solid fa-arrows-rotate"></i> Tính lại
-                </button>
-                <button id="btnLockSalary" type="button" class="btn-salary btn-lock">
-                    <i class="fa-solid fa-lock"></i> Chốt lương
-                </button>
-            </div>
+        <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
+            <label for="salaryYear" class="form-label">Năm</label>
+            <select id="salaryYear" class="form-select"></select>
         </div>
-
-        <!-- Salary Table -->
-        <div class="table-responsive">
-            <table class="teachers-table">
-                <thead>
-                    <tr>
-                        <th style="width: 80px;">Mã NV</th>
-                        <th>Họ và tên giáo viên</th>
-                        <th>Lương cơ bản</th>
-                        <th style="text-align: center;">Ngày công duyệt</th>
-                        <th style="text-align: right;">Tổng thực nhận</th>
-                        <th style="text-align: right;">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody id="salaryTableBody">
-                    <tr>
-                        <td colspan="6" class="empty-state">
-                            <i class="fa-solid fa-money-bill-transfer"></i>
-                            <p>Đang chuẩn bị dữ liệu lương...</p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        
+        <div style="display: flex; gap: 8px; flex: 1; justify-content: flex-end;">
+            <button id="btnLoadSalary" type="button" class="btn btn-primary" style="height: 42px;">
+                <i class="fa-solid fa-eye"></i> Xem bảng lương
+            </button>
+            <button id="btnRecalculateSalary" type="button" class="btn btn-outline" style="border-color: var(--warning); color: var(--warning); height: 42px;">
+                <i class="fa-solid fa-arrows-rotate"></i> Tính lại
+            </button>
+            <button id="btnLockSalary" type="button" class="btn btn-outline" style="background: rgba(220,38,38,0.1); border-color: var(--danger); color: var(--danger); height: 42px;">
+                <i class="fa-solid fa-lock"></i> Chốt lương
+            </button>
         </div>
     </div>
 </div>
 
-@section Scripts {
-<script>
-    const monthEl = document.getElementById("salaryMonth");
-    const yearEl = document.getElementById("salaryYear");
-    const statusBar = document.getElementById("salaryStatusBar");
-    const tableBody = document.getElementById("salaryTableBody");
-    const btnRecalculate = document.getElementById("btnRecalculateSalary");
-    const btnLock = document.getElementById("btnLockSalary");
-    let isLocked = false;
-    let currentPeriodId = 0;
-
-    function setStatus(message, type = 'info') {
-        const iconMap = {
-            'open': 'fa-circle-info',
-            'locked': 'fa-lock',
-            'info': 'fa-circle-check',
-            'error': 'fa-triangle-exclamation'
-        };
-        statusBar.className = `salary-status-bar status-${type}`;
-        statusBar.innerHTML = `<i class="fa-solid ${iconMap[type] || 'fa-circle-info'}"></i> <span>${message}</span>`;
-    }
-
-    const fmtMoney = (v) => new Intl.NumberFormat("vi-VN").format(v || 0) + " đ";
-
-    function initFilters() {
-        const now = new Date();
-        const currentMonth = now.getMonth() + 1;
-        const currentYear = now.getFullYear();
-
-        monthEl.innerHTML = Array.from({ length: 12 }, (_, idx) => {
-            const m = idx + 1;
-            return `<option value="${m}" ${m === currentMonth ? "selected" : ""}>Tháng ${m}</option>`;
-        }).join("");
-
-        const years = [];
-        for (let y = currentYear - 1; y <= currentYear + 1; y++) {
-            years.push(`<option value="${y}" ${y === currentYear ? "selected" : ""}>Năm ${y}</option>`);
-        }
-        yearEl.innerHTML = years.join("");
-    }
-
-    async function loadSalarySummary() {
-        const month = monthEl.value;
-        const year = yearEl.value;
-        tableBody.innerHTML = `<tr><td colspan='6' class='empty-state'><i class='fa-solid fa-spinner fa-spin'></i><p>Đang tải bảng lương...</p></td></tr>`;
-
-        try {
-            const res = await fetch(`/TeacherSalary/Api/Summary?month=${month}&year=${year}`);
-            const payload = await res.json();
-
-            if (!payload.success) {
-                setStatus(payload.message || "Lỗi tải dữ liệu.", "error");
-                return;
-            }
-
-            isLocked = payload.isLocked === true;
-            currentPeriodId = payload.periodId; // Cần đảm bảo API trả về periodId
-            btnRecalculate.disabled = isLocked;
-            btnLock.disabled = isLocked;
-
-            if (!payload.data.length) {
-                tableBody.innerHTML = `<tr><td colspan='6' class='empty-state'><i class='fa-solid fa-folder-open'></i><p>Chưa có dữ liệu lương cho kỳ này.</p></td></tr>`;
-                setStatus(`Kỳ lương ${month}/${year} chưa có dữ liệu. Bấm "Tính lại" để khởi tạo.`, "open");
-                return;
-            }
-
-            tableBody.innerHTML = payload.data.map(x => `
+<!-- Salary Table -->
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
                 <tr>
-                    <td><code>#${x.employeeId}</code></td>
-                    <td><strong>${x.employeeName}</strong></td>
-                    <td><span class="base-salary">${fmtMoney(x.baseSalary)}</span></td>
-                    <td style="text-align: center;"><span class="working-days-badge">${x.workingDays} ngày</span></td>
-                    <td style="text-align: right;"><span class="salary-amount">${fmtMoney(x.salaryAmount)}</span></td>
-                    <td style="text-align: right;">
-                        <a href="/TeacherSalary/SalarySlip/${x.employeeId}/${payload.periodId}" class="btn-salary btn-view" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none;">
-                            <i class="fa-solid fa-file-invoice"></i> Chi tiết
-                        </a>
+                    <th style="width: 80px;">Mã NV</th>
+                    <th>Giáo viên</th>
+                    <th>Lương cơ bản</th>
+                    <th style="text-align: center;">Ngày công duyệt</th>
+                    <th style="text-align: right;">Tổng thực nhận</th>
+                    <th style="text-align: right;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="salaryTableBody">
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-money-bill-transfer"></i>
+                            <p>Đang chuẩn bị dữ liệu lương...</p>
+                        </div>
                     </td>
                 </tr>
-            `).join("");
+            </tbody>
+        </table>
+    </div>
+</div>
 
-            if (isLocked) {
-                const lockTime = payload.lockedAtUtc ? new Date(payload.lockedAtUtc).toLocaleString("vi-VN") : "";
-                setStatus(`Bảng lương tháng ${month}/${year} đã chốt vào lúc ${lockTime}.`, "locked");
-            } else {
-                setStatus(`Đã tải bảng lương tháng ${month}/${year}. Bạn có thể chỉnh sửa và tính lại nếu cần.`, "info");
-            }
-        } catch (e) {
-            setStatus("Đã xảy ra lỗi hệ thống.", "error");
-        }
-    }
-
-    async function recalculateSalary() {
-        if (isLocked) return;
-        
-        const month = parseInt(monthEl.value, 10);
-        const year = parseInt(yearEl.value, 10);
-        
-        setStatus("Đang tính toán lại bảng lương...", "open");
-
-        try {
-            const res = await fetch("/TeacherSalary/Api/Recalculate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ month, year })
-            });
-            const payload = await res.json();
-            if (payload.success) {
-                await loadSalarySummary();
-            } else {
-                setStatus(payload.message, "error");
-            }
-        } catch (e) {
-            setStatus("Lỗi kết nối máy chủ.", "error");
-        }
-    }
-
-    async function lockSalary() {
-        const month = parseInt(monthEl.value, 10);
-        const year = parseInt(yearEl.value, 10);
-        
-        if (!confirm(`Xác nhận CHỐT bảng lương tháng ${month}/${year}?\nSau khi chốt, mọi thay đổi về chấm công sẽ không thể cập nhật vào bảng lương này nữa.`)) {
-            return;
-        }
-
-        try {
-            const res = await fetch("/TeacherSalary/Api/Lock", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ month, year })
-            });
-            const payload = await res.json();
-            if (payload.success) {
-                await loadSalarySummary();
-            } else {
-                setStatus(payload.message, "error");
-            }
-        } catch (e) {
-            setStatus("Lỗi kết nối máy chủ.", "error");
-        }
-    }
-
-    document.getElementById("btnLoadSalary").addEventListener("click", loadSalarySummary);
-    document.getElementById("btnRecalculateSalary").addEventListener("click", recalculateSalary);
-    document.getElementById("btnLockSalary").addEventListener("click", lockSalary);
-
-    initFilters();
-    loadSalarySummary();
-</script>
+@section Scripts {
+    <script src="~/js/pages/salary.js" asp-append-version="true"></script>
 }

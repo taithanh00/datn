@@ -110,5 +110,18 @@ namespace datn.Controllers
             // Chuyển hướng về trang Login sau khi đăng xuất
             return RedirectToAction("Login");
         }
+
+        // ACCESS DENIED
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            var username = User.Identity?.Name ?? "Người dùng";
+            var role = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "Chưa xác định";
+
+            ViewBag.Username = username;
+            ViewBag.Role = role;
+
+            return View();
+        }
     }
 }   

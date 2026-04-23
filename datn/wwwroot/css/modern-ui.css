@@ -77,6 +77,11 @@ body {
     flex: 1;
     padding: 16px 12px;
     overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+    display: none;
 }
 
 .nav-item {

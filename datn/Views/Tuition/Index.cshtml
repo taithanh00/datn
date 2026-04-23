@@ -3,197 +3,94 @@
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/pages/tuition.css" asp-append-version="true" />
-}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Thiết lập Học phí</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Định nghĩa và khởi tạo mức học phí cho toàn trường</p>
+    </div>
+</div>
 
-<div class="tuition-container">
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
     <!-- Tuition Plans Section -->
-    <div class="tuition-card">
-        <div class="tuition-header">
-            <div>
-                <h2>Thiết lập Kế hoạch Học phí</h2>
-                <div class="section-subtitle">Định nghĩa mức học phí áp dụng cho từng lứa tuổi học sinh</div>
-            </div>
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 1.1rem;">Mức thu theo lứa tuổi</h3>
             <button class="btn btn-primary" onclick="showCreatePlanModal()">
-                <i class="fa-solid fa-plus me-2"></i> Tạo kế hoạch mới
+                <i class="fa-solid fa-plus"></i> Kế hoạch mới
             </button>
         </div>
 
-        <div id="plansList" class="plans-grid">
-            <!-- Shimmer/Loading -->
-            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #9ca3af;">
-                <i class="fas fa-circle-notch fa-spin me-2"></i> Đang tải danh sách...
+        <div id="plansList" class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+                <div class="spinner"></div><p class="mt-2">Đang tải danh sách...</p>
             </div>
         </div>
     </div>
 
     <!-- Monthly Generation Section -->
-    <div class="tuition-card" style="border-left: 5px solid #22c55e;">
-        <div class="tuition-header">
-            <div>
-                <h2>Khởi tạo Học phí Tháng</h2>
-                <div class="section-subtitle">Tự động sinh hóa đơn học phí cho tất cả học sinh đang theo học</div>
-            </div>
+    <div class="card" style="border-top: 4px solid var(--success);">
+        <h3 style="margin: 0 0 16px 0; font-size: 1.1rem;"><i class="fa-solid fa-bolt text-success me-2"></i> Khởi tạo tháng</h3>
+        <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 20px;">Tự động sinh hóa đơn học phí cho học sinh theo mức phí đã thiết lập.</p>
+        
+        <div class="form-group">
+            <label class="form-label">Chọn Tháng</label>
+            <select id="genMonth" class="form-select">
+                @for (int i = 1; i <= 12; i++) {
+                    var isSelected = DateTime.Now.Month == i;
+                    <option value="@i" selected="@isSelected">Tháng @i</option>
+                }
+            </select>
         </div>
-
-        <div class="gen-form">
-            <div class="gen-input-group">
-                <label class="form-label" style="font-weight: 700;">Chọn Tháng</label>
-                <select id="genMonth" class="form-select">
-                    @for (int i = 1; i <= 12; i++) {
-                        var isSelected = DateTime.Now.Month == i;
-                        <option value="@i" selected="@isSelected">Tháng @i</option>
-                    }
-                </select>
-            </div>
-            <div class="gen-input-group">
-                <label class="form-label" style="font-weight: 700;">Chọn Năm</label>
-                <select id="genYear" class="form-select">
-                    <option value="2026" selected>2026</option>
-                    <option value="2027">2027</option>
-                </select>
-            </div>
-            <div style="flex: 2;">
-                <p style="font-size: 13px; color: #15803d; margin-bottom: 8px;">
-                    <i class="fas fa-info-circle me-1"></i> Hệ thống sẽ dựa vào lứa tuổi của bé để áp dụng mức phí phù hợp nhất.
-                </p>
-                <button class="btn btn-primary" onclick="generateTuitions()" style="width: 100%; height: 42px; background: #22c55e; border-color: #22c55e;">
-                    <i class="fa-solid fa-bolt me-2"></i> Bắt đầu khởi tạo dữ liệu
-                </button>
-            </div>
+        <div class="form-group">
+            <label class="form-label">Chọn Năm</label>
+            <select id="genYear" class="form-select">
+                <option value="2026" selected>2026</option>
+                <option value="2027">2027</option>
+            </select>
         </div>
+        
+        <button class="btn btn-primary" onclick="generateTuitions()" style="width: 100%; justify-content: center; background: var(--success); border-color: var(--success); height: 44px; margin-top: 8px;">
+            <i class="fa-solid fa-play"></i> Bắt đầu khởi tạo
+        </button>
     </div>
 </div>
 
 <!-- Modal Create Plan -->
-<div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tạo Kế hoạch Học phí mới</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="planForm">
-                    <div class="mb-4">
-                        <label class="form-label">Số tiền học phí (VNĐ) <span class="text-danger">*</span></label>
-                        <input type="number" id="planAmount" class="form-control" placeholder="VD: 3500000" required>
+<div class="modal-overlay" id="planModalOverlay">
+    <div class="modal-card" style="width: 500px; max-width: 95vw;">
+        <div class="modal-header">
+            <div class="modal-title">Tạo kế hoạch học phí</div>
+            <button class="modal-close" onclick="closePlanModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div>
+            <form id="planForm">
+                <div class="form-group">
+                    <label class="form-label">Số tiền học phí (VNĐ) <span class="text-danger">*</span></label>
+                    <input type="number" id="planAmount" class="form-input" placeholder="VD: 3500000" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label class="form-label">Từ tuổi <span class="text-danger">*</span></label>
+                        <input type="number" id="planAgeFrom" class="form-input" placeholder="VD: 1" required>
                     </div>
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Từ lứa tuổi <span class="text-danger">*</span></label>
-                            <input type="number" id="planAgeFrom" class="form-control" placeholder="VD: 1" required>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Đến lứa tuổi <span class="text-danger">*</span></label>
-                            <input type="number" id="planAgeTo" class="form-control" placeholder="VD: 5" required>
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label">Đến tuổi <span class="text-danger">*</span></label>
+                        <input type="number" id="planAgeTo" class="form-input" placeholder="VD: 5" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Ghi chú (Tùy chọn)</label>
-                        <textarea id="planNote" class="form-control" rows="2" placeholder="Thông tin thêm..."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer" style="border-top: none;">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" onclick="savePlan()">Lưu kế hoạch</button>
-            </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ghi chú (Tùy chọn)</label>
+                    <textarea id="planNote" class="form-input" rows="2" placeholder="Thông tin thêm..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="d-flex justify-end mt-4 gap-2">
+            <button type="button" class="btn btn-outline" onclick="closePlanModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="savePlan()">Lưu kế hoạch</button>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        $(document).ready(function() {
-            loadPlans();
-        });
-
-        async function loadPlans() {
-            try {
-                const res = await fetch('/Tuition/Api/Plans');
-                const data = await res.json();
-                const list = $('#plansList');
-                
-                if (data.success) {
-                    if (data.data.length === 0) {
-                        list.html('<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #9ca3af; border: 1px dashed #e5e7eb; border-radius: 12px;">Chưa có kế hoạch học phí nào được thiết lập.</div>');
-                        return;
-                    }
-
-                    list.html(data.data.map(p => `
-                        <div class="plan-card">
-                            <div class="plan-title">
-                                <span>Lứa tuổi: ${p.ageFrom} - ${p.ageTo} tuổi</span>
-                                <span class="plan-badge">Đang áp dụng</span>
-                            </div>
-                            <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px;">Mức phí cố định mỗi tháng</div>
-                            <div class="plan-amount">${new Intl.NumberFormat('vi-VN').format(p.amount)} đ</div>
-                            <div style="margin-top: 15px; display: flex; gap: 8px;">
-                                <button class="btn btn-sm btn-outline-primary" style="flex: 1; font-size: 12px; border-radius: 8px;">Sửa</button>
-                                <button class="btn btn-sm btn-outline-danger" style="border-radius: 8px; border: none;"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </div>
-                    `).join(''));
-                }
-            } catch (e) { console.error("Load plans failed", e); }
-        }
-
-        function showCreatePlanModal() {
-            $('#planForm')[0].reset();
-            new bootstrap.Modal(document.getElementById('planModal')).show();
-        }
-
-        async function savePlan() {
-            const model = {
-                amount: parseFloat($('#planAmount').val()),
-                ageFrom: parseInt($('#planAgeFrom').val()),
-                ageTo: parseInt($('#planAgeTo').val())
-            };
-
-            if (!model.amount || isNaN(model.ageFrom)) {
-                alert("Vui lòng nhập đầy đủ thông tin.");
-                return;
-            }
-
-            try {
-                const res = await fetch('/Tuition/Api/Plans/Create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(model)
-                });
-                const result = await res.json();
-                if (result.success) {
-                    bootstrap.Modal.getInstance(document.getElementById('planModal')).hide();
-                    loadPlans();
-                    showToast('Thành công', result.message, 'success');
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        async function generateTuitions() {
-            const month = $('#genMonth').val();
-            const year = $('#genYear').val();
-            
-            if (!confirm(`Xác nhận khởi tạo học phí Tháng ${month}/${year} cho toàn bộ học sinh?`)) return;
-
-            try {
-                const res = await fetch(`/Tuition/Api/GenerateMonthlyTuition?month=${month}&year=${year}`, {
-                    method: 'POST'
-                });
-                const result = await res.json();
-                if (result.success) {
-                    showToast('Khởi tạo xong', result.message, 'success');
-                } else {
-                    alert(result.message);
-                }
-            } catch (e) { alert("Lỗi hệ thống khi khởi tạo."); }
-        }
-
-        function showToast(title, message, type) {
-            if (window.showToast) window.showToast(title, message, type);
-            else alert(title + ": " + message);
-        }
-    </script>
+    <script src="~/js/pages/tuition-plans.js" asp-append-version="true"></script>
 }

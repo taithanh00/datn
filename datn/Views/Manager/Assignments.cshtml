@@ -1,306 +1,105 @@
 @{
     ViewData["Title"] = "Phân công Giảng dạy";
-    Layout = "_DashboardLayout";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/pages/assignments.css" asp-append-version="true" />
-}
-
-<div class="assignments-card">
-    <div class="assignments-header">
-        <div>
-            <h2>Phân công Giảng dạy</h2>
-            <p style="color: #6b7280; margin: 0; font-size: 14px;">Quản lý giáo viên phụ trách các lớp học</p>
-        </div>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assignmentModal" onclick="prepareCreate()">
-            <i class="fas fa-plus me-2"></i> Thêm Phân công
-        </button>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Phân công Giảng dạy</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Quản lý giáo viên phụ trách các lớp học</p>
     </div>
+    <button class="btn btn-primary" onclick="prepareCreate(); openModal('assignmentModal');">
+        <i class="fa-solid fa-plus"></i> Thêm Phân công
+    </button>
+</div>
 
-    <!-- Summary Stats -->
-    <div class="assignments-stats">
-        <div class="mini-stat">
-            <div class="mini-stat-icon blue"><i class="fas fa-user-tie"></i></div>
-            <div class="mini-stat-info">
-                <span class="value" id="statTotalAssignments">0</span>
-                <span class="label">Tổng số phân công</span>
-            </div>
-        </div>
-        <div class="mini-stat">
-            <div class="mini-stat-icon green"><i class="fas fa-school"></i></div>
-            <div class="mini-stat-info">
-                <span class="value" id="statClassesAssigned">0</span>
-                <span class="label">Lớp đã có giáo viên</span>
-            </div>
-        </div>
-        <div class="mini-stat">
-            <div class="mini-stat-icon orange"><i class="fas fa-calendar-check"></i></div>
-            <div class="mini-stat-info">
-                <span class="value" id="statCurrentAssignments">0</span>
-                <span class="label">Đang thực hiện</span>
-            </div>
+<div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="card stat-card">
+        <div class="stat-title">Tổng phân công</div>
+        <div class="stat-value" id="statTotalAssignments">0</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-title">Lớp đã có GV</div>
+        <div class="stat-value" id="statClassesAssigned">0</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-title">Đang thực hiện</div>
+        <div class="stat-value" id="statCurrentAssignments">0</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="d-flex align-center gap-2 mb-2" style="flex-wrap:wrap;">
+        <select class="form-select" id="filterClass" onchange="applyFilters()" style="width:auto; min-width:180px;">
+            <option value="">Tất cả các lớp</option>
+        </select>
+        <div class="search-bar" style="flex:1;">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="searchTeacher" placeholder="Tìm theo tên giáo viên..." onkeyup="applyFilters()" />
         </div>
     </div>
-
-    <!-- Filter Bar -->
-    <div class="filter-bar">
-        <div class="filter-item">
-            <select class="form-select" id="filterClass" onchange="applyFilters()">
-                <option value="">Tất cả các lớp</option>
-            </select>
-        </div>
-        <div class="filter-item" style="flex: 2;">
-            <input type="text" class="form-control" id="searchTeacher" placeholder="Tìm theo tên giáo viên..." onkeyup="applyFilters()">
-        </div>
-    </div>
-
-    <div class="table-responsive">
-        <table class="custom-table" id="assignmentTable">
+    <div class="table-container">
+        <table id="assignmentTable">
             <thead>
                 <tr>
                     <th>Giáo viên</th>
                     <th>Lớp</th>
                     <th>Vai trò</th>
                     <th>Thời gian</th>
-                    <th style="text-align: right;">Thao tác</th>
+                    <th style="text-align:right;">Thao tác</th>
                 </tr>
             </thead>
             <tbody id="assignmentTableBody">
-                <tr>
-                    <td colspan="5" style="text-align: center; padding: 40px; color: #9ca3af;">
-                        <i class="fas fa-circle-notch fa-spin me-2"></i> Đang tải dữ liệu...
-                    </td>
-                </tr>
+                <tr><td colspan="5" style="text-align:center; padding:40px;">
+                    <div class="spinner"></div><p class="text-muted">Đang tải...</p>
+                </td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
 <!-- Assignment Modal -->
-<div class="modal fade" id="assignmentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Thêm Phân công mới</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="assignmentForm">
-                    <div class="mb-4">
-                        <label for="employeeSelect" class="form-label">Giáo viên <span class="text-danger">*</span></label>
-                        <select class="form-select" id="employeeSelect" required>
-                            <option value="">-- Chọn giáo viên --</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label for="classSelect" class="form-label">Lớp học <span class="text-danger">*</span></label>
-                        <select class="form-select" id="classSelect" required>
-                            <option value="">-- Chọn lớp --</option>
-                        </select>
-                    </div>
-                    <div class="row mb-4">
-                        <div class="col-6">
-                            <label for="startDate" class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="startDate" required>
-                        </div>
-                        <div class="col-6">
-                            <label for="endDate" class="form-label">Ngày kết thúc</label>
-                            <input type="date" class="form-control" id="endDate">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="roleInClass" class="form-label">Vai trò trong lớp</label>
-                        <input type="text" class="form-control" id="roleInClass" placeholder="VD: Chủ nhiệm, Giáo viên bộ môn...">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer" style="border-top: none; padding-top: 0;">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; padding: 10px 20px;">Hủy</button>
-                <button type="button" class="btn btn-primary" onclick="saveAssignment()">Xác nhận phân công</button>
-            </div>
+<div class="modal-overlay" id="assignmentModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">Thêm Phân công mới</div>
+            <button class="modal-close" onclick="closeModal('assignmentModal')"><i class="fa-solid fa-xmark"></i></button>
         </div>
+        <form id="assignmentForm">
+            <div class="form-group">
+                <label class="form-label">Giáo viên <span class="text-danger">*</span></label>
+                <select class="form-select" id="employeeSelect" required>
+                    <option value="">-- Chọn giáo viên --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Lớp học <span class="text-danger">*</span></label>
+                <select class="form-select" id="classSelect" required>
+                    <option value="">-- Chọn lớp --</option>
+                </select>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                    <input type="date" class="form-input" id="startDate" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ngày kết thúc</label>
+                    <input type="date" class="form-input" id="endDate" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Vai trò trong lớp</label>
+                <input type="text" class="form-input" id="roleInClass" placeholder="VD: Chủ nhiệm" />
+            </div>
+            <div class="d-flex gap-1 mt-2">
+                <button type="button" class="btn btn-primary" onclick="saveAssignment()">Xác nhận</button>
+                <button type="button" class="btn btn-outline" onclick="closeModal('assignmentModal')">Hủy</button>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        let allAssignments = [];
-
-        $(document).ready(function () {
-            loadAssignments();
-            loadDropdowns();
-        });
-
-        async function loadAssignments() {
-            try {
-                const response = await fetch('/Manager/Api/Assignments');
-                const result = await response.json();
-                if (result.success) {
-                    allAssignments = result.data;
-                    updateStats();
-                    renderAssignments(allAssignments);
-                } else {
-                    alert('Lỗi: ' + result.message);
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        function updateStats() {
-            $('#statTotalAssignments').text(allAssignments.length);
-            
-            const uniqueClasses = new Set(allAssignments.map(a => a.classId)).size;
-            $('#statClassesAssigned').text(uniqueClasses);
-
-            const now = new Date().toISOString().split('T')[0];
-            const active = allAssignments.filter(a => a.startDate <= now && (!a.endDate || a.endDate >= now)).length;
-            $('#statCurrentAssignments').text(active);
-        }
-
-        function renderAssignments(data) {
-            const tbody = $('#assignmentTableBody');
-            if (data.length === 0) {
-                tbody.html('<tr><td colspan="5" style="text-align: center; padding: 40px; color: #9ca3af;">Không tìm thấy dữ liệu phân công nào.</td></tr>');
-                return;
-            }
-
-            tbody.html(data.map(item => {
-                const initial = item.employeeName.charAt(0).toUpperCase();
-                const isPrimary = item.roleInClass?.toLowerCase().includes('chủ nhiệm');
-                const now = new Date().toISOString().split('T')[0];
-                const isActive = item.startDate <= now && (!item.endDate || item.endDate >= now);
-
-                return `
-                    <tr>
-                        <td>
-                            <div class="teacher-cell">
-                                <div class="teacher-avatar-small">${initial}</div>
-                                <div>
-                                    <div style="font-weight: 700;">${item.employeeName}</div>
-                                    <div style="font-size: 11px; color: #9ca3af;">ID: ${item.employeeId}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div style="font-weight: 600;">${item.className}</div>
-                        </td>
-                        <td>
-                            <span class="role-badge ${isPrimary ? 'primary' : ''}">${item.roleInClass || 'Giáo viên'}</span>
-                        </td>
-                        <td>
-                            <div class="date-text">
-                                <i class="far fa-calendar-alt me-1"></i> ${formatDate(item.startDate)} 
-                                ${item.endDate ? ` - ${formatDate(item.endDate)}` : '<span style="color: #10b981;"> (Hiện tại)</span>'}
-                            </div>
-                        </td>
-                        <td style="text-align: right;">
-                            <button class="btn btn-outline-danger btn-sm" style="border-radius: 8px; border: none;" onclick="deleteAssignment(${item.employeeId}, ${item.classId}, '${item.startDate}')">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join(''));
-        }
-
-        function applyFilters() {
-            const classId = $('#filterClass').val();
-            const teacherName = $('#searchTeacher').val().toLowerCase();
-
-            const filtered = allAssignments.filter(a => {
-                const matchClass = !classId || a.classId == classId;
-                const matchTeacher = !teacherName || a.employeeName.toLowerCase().includes(teacherName);
-                return matchClass && matchTeacher;
-            });
-
-            renderAssignments(filtered);
-        }
-
-        async function loadDropdowns() {
-            try {
-                // Teachers
-                const resT = await fetch('/Manager/Api/Teachers');
-                const dataT = await resT.json();
-                if (dataT.success) {
-                    $('#employeeSelect').html('<option value="">-- Chọn giáo viên --</option>' + 
-                        dataT.data.map(i => `<option value="${i.id}">${i.fullName} (${i.position || 'GV'})</option>`).join(''));
-                }
-
-                // Classes
-                const resC = await fetch('/Manager/Api/Classes');
-                const dataC = await resC.json();
-                if (dataC.success) {
-                    const classOptions = dataC.data.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
-                    $('#classSelect').html('<option value="">-- Chọn lớp --</option>' + classOptions);
-                    $('#filterClass').append(classOptions);
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        function prepareCreate() {
-            $('#assignmentForm')[0].reset();
-            $('#startDate').val(new Date().toISOString().split('T')[0]);
-        }
-
-        async function saveAssignment() {
-            const data = {
-                employeeId: parseInt($('#employeeSelect').val()),
-                classId: parseInt($('#classSelect').val()),
-                startDate: $('#startDate').val(),
-                endDate: $('#endDate').val() || null,
-                roleInClass: $('#roleInClass').val()
-            };
-
-            if (!data.employeeId || !data.classId || !data.startDate) {
-                alert('Vui lòng điền đầy đủ các thông tin bắt buộc');
-                return;
-            }
-
-            try {
-                const response = await fetch('/Manager/Api/Assignment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                if (result.success) {
-                    const modalEl = document.getElementById('assignmentModal');
-                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-                    modal.hide();
-                    loadAssignments();
-                    showToast('Thành công', result.message, 'success');
-                } else {
-                    alert('Lỗi: ' + result.message);
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        async function deleteAssignment(empId, clsId, start) {
-            if (!confirm('Bạn có chắc chắn muốn xóa phân công này không?')) return;
-
-            try {
-                const response = await fetch(`/Manager/Api/Assignment?employeeId=${empId}&classId=${clsId}&startDate=${start}`, {
-                    method: 'DELETE'
-                });
-                const result = await response.json();
-                if (result.success) {
-                    loadAssignments();
-                    showToast('Đã xóa', result.message, 'info');
-                } else {
-                    alert('Lỗi: ' + result.message);
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            const d = new Date(dateStr);
-            return d.toLocaleDateString('vi-VN');
-        }
-
-        function showToast(title, message, type) {
-            if (window.showToast) window.showToast(title, message, type);
-            else alert(title + ": " + message);
-        }
-    </script>
+    <script src="~/js/pages/assignments.js" asp-append-version="true"></script>
 }

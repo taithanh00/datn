@@ -5,60 +5,66 @@
     var selectedStudentId = ViewBag.SelectedStudentId;
 }
 
-<div class="dashboard-card">
-    <div class="card-header">
-        <h2 style="margin: 0;">Hoạt động & Sự kiện Ngoại khóa</h2>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Hoạt động Ngoại khóa</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Theo dõi các hoạt động, sự kiện mà con bạn tham gia tại trường.</p>
     </div>
-    <div class="card-body">
-        <p>Theo dõi các hoạt động, sự kiện mà con bạn tham gia tại trường.</p>
-        
-        <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
-            <label>Chọn con:</label>
-            <select class="form-select" style="width: 200px;" onchange="location.href='?studentId=' + this.value">
-                @foreach (var child in children)
-                {
-                    <option value="@child.Id" selected="@(child.Id == (int)selectedStudentId)">@child.FirstName @child.LastName</option>
-                }
-            </select>
-        </div>
+    <div class="d-flex gap-2">
+        @if (children.Count > 1)
+        {
+            <div class="d-flex align-center gap-2">
+                <label class="form-label" style="margin-bottom: 0;">Chọn con:</label>
+                <select class="form-select" style="width: 200px;" onchange="location.href='?studentId=' + this.value">
+                    @foreach (var child in children)
+                    {
+                        <option value="@child.Id" selected="@(child.Id == (int)selectedStudentId)">@child.FirstName @child.LastName</option>
+                    }
+                </select>
+            </div>
+        }
     </div>
 </div>
 
-<div class="dashboard-card" style="margin-top: 20px;">
-    <div class="card-body">
-        @if (!Model.Any())
-        {
-            <div style="text-align: center; padding: 40px; color: #666;">
-                <p>Hiện tại con chưa có hoạt động ngoại khóa nào được ghi nhận.</p>
-            </div>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="management-table">
-                    <thead>
+<div class="card">
+    @if (!Model.Any())
+    {
+        <div class="empty-state py-5">
+            <i class="fa-solid fa-calendar-xmark"></i>
+            <h3 style="margin-bottom: 8px;">Chưa có hoạt động</h3>
+            <p>Hiện tại con chưa có hoạt động ngoại khóa nào được ghi nhận.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-container">
+            <table id="activitiesTable">
+                <thead>
+                    <tr>
+                        <th>Tên hoạt động</th>
+                        <th>Ngày tổ chức</th>
+                        <th>Địa điểm</th>
+                        <th>Người phụ trách</th>
+                        <th>Mô tả</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
                         <tr>
-                            <th>Tên hoạt động</th>
-                            <th>Ngày tổ chức</th>
-                            <th>Địa điểm</th>
-                            <th>Người phụ trách</th>
-                            <th>Mô tả</th>
+                            <td><strong>@item.Activity.Name</strong></td>
+                            <td><div class="badge badge-info"><i class="fa-regular fa-calendar"></i> @item.Activity.Date?.ToString("dd/MM/yyyy")</div></td>
+                            <td>@(item.Activity.Location?.Name ?? "Chưa xác định")</td>
+                            <td>@(item.Activity.Organizer?.FullName ?? "N/A")</td>
+                            <td class="text-muted" style="font-size: 0.9rem;">@item.Activity.Description</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td><strong>@item.Activity.Name</strong></td>
-                                <td>@item.Activity.Date?.ToString("dd/MM/yyyy")</td>
-                                <td>@(item.Activity.Location?.Name ?? "Chưa xác định")</td>
-                                <td>@(item.Activity.Organizer?.FullName ?? "N/A")</td>
-                                <td class="note-muted">@item.Activity.Description</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
-    </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>
+
+@section Scripts {
+    <script src="~/js/pages/parent-activities.js" asp-append-version="true"></script>
+}

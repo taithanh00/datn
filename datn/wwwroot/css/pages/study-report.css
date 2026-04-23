@@ -1,0 +1,10 @@
+.report-table th, .report-table td {
+    vertical-align: middle;
+}
+.ranking-select {
+    min-width: 150px;
+}
+.comment-area {
+    min-width: 250px;
+    resize: vertical;
+}

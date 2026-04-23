@@ -3,95 +3,69 @@
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
-<div class="dashboard-card">
-    <div class="card-header">
-        <h2 style="margin: 0;">⏱️ Chấm công</h2>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Chấm công hàng ngày</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Ghi nhận thời gian làm việc của bạn</p>
+    </div>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; gap: 24px; align-items: stretch; flex-wrap: wrap;">
+        <!-- Vùng check-in/out -->
+        <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: var(--bg-body); border-radius: var(--radius-lg); border: 1px solid var(--border);">
+            <div id="serverTime" style="font-size: 3rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 8px;">--:--:--</div>
+            <div class="text-muted mb-4">Thời gian hệ thống (VNT)</div>
+
+            <div style="display: flex; gap: 16px; width: 100%;">
+                <button id="btnCheckIn" type="button" class="btn btn-primary" style="flex: 1; justify-content: center; height: 48px; font-size: 1rem;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Check-in
+                </button>
+                <button id="btnCheckOut" type="button" class="btn btn-outline" style="flex: 1; justify-content: center; height: 48px; font-size: 1rem;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Check-out
+                </button>
+            </div>
+            
+            <div id="attendanceAlert" class="page-alert mt-4 w-100 text-center" style="margin-bottom: 0;">
+                Đang tải trạng thái chấm công...
+            </div>
+        </div>
+
+        <!-- Thông tin trạng thái -->
+        <div style="flex: 1; min-width: 300px; padding: 16px 0;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">Thông tin hôm nay</h3>
+            
+            <div style="display: grid; gap: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="text-muted"><i class="fa-solid fa-circle-info w-20 text-center me-2"></i> Trạng thái</span>
+                    <span id="statusText" style="font-weight: 600;">--</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="text-muted"><i class="fa-solid fa-right-to-bracket w-20 text-center me-2"></i> Giờ check-in</span>
+                    <span id="checkInText" class="badge badge-info" style="font-size: 0.9rem;">--</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="text-muted"><i class="fa-solid fa-right-from-bracket w-20 text-center me-2"></i> Giờ check-out</span>
+                    <span id="checkOutText" class="badge badge-info" style="font-size: 0.9rem;">--</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border); padding-top: 16px;">
+                    <span class="text-muted"><i class="fa-solid fa-clock w-20 text-center me-2"></i> Đi trễ</span>
+                    <span id="isLateText" style="font-weight: 600;">--</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="text-muted"><i class="fa-solid fa-money-bill-wave w-20 text-center me-2"></i> Tạm tính phạt</span>
+                    <span id="penaltyText" style="font-weight: 700; color: var(--danger); font-size: 1.1rem;">0 đ</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="card-body" style="padding: 24px;">
-        <div style="display:flex; gap:12px; margin-bottom:16px;">
-            <button id="btnCheckIn" type="button" class="btn-create">Check-in</button>
-            <button id="btnCheckOut" type="button" class="btn-save">Check-out</button>
-        </div>
-
-        <div id="attendanceAlert" style="margin-bottom:16px; padding:10px 12px; border-radius:8px; background:#f3f4f6; color:#111827;">
-            Đang tải trạng thái chấm công...
-        </div>
-
-        <div style="display:grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap:10px;">
-            <div><strong>Thời gian hệ thống (VNT):</strong> <span id="serverTime">--:--:--</span></div>
-            <div><strong>Trạng thái:</strong> <span id="statusText">--</span></div>
-            <div><strong>Giờ check-in:</strong> <span id="checkInText">--</span></div>
-            <div><strong>Giờ check-out:</strong> <span id="checkOutText">--</span></div>
-            <div><strong>Đi trễ:</strong> <span id="isLateText">--</span></div>
-            <div><strong>Tạm tính phạt:</strong> <span id="penaltyText">0 đ</span></div>
-        </div>
-
-        <p style="margin-top:16px; color:#6b7280;">
-            Quy định: Chấm công từ Thứ 2 đến Thứ 6, trong khung giờ 08:00 - 17:00 (VNT). Grace period 10 phút.
-        </p>
+    <div style="margin-top: 24px; padding: 16px; background: rgba(59,130,246,0.05); border-left: 4px solid var(--primary); border-radius: var(--radius-sm); color: var(--text-secondary); font-size: 0.9rem;">
+        <i class="fa-solid fa-circle-info me-2 text-primary"></i> <strong>Quy định:</strong> Chấm công từ Thứ 2 đến Thứ 6, trong khung giờ 08:00 - 17:00 (VNT). Thời gian châm chước (Grace period) là 10 phút.
     </div>
 </div>
 
 @section Scripts {
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
-<script>
-    const btnCheckIn = document.getElementById("btnCheckIn");
-    const btnCheckOut = document.getElementById("btnCheckOut");
-    const alertBox = document.getElementById("attendanceAlert");
-
-    function money(v) {
-        return new Intl.NumberFormat("vi-VN").format(v || 0) + " đ";
-    }
-
-    function setAlert(message, isError = false) {
-        alertBox.textContent = message;
-        alertBox.style.background = isError ? "#fee2e2" : "#ecfeff";
-        alertBox.style.color = isError ? "#991b1b" : "#155e75";
-    }
-
-    function syncUi(data) {
-        document.getElementById("serverTime").textContent = data.serverTimeVnt || "--";
-        document.getElementById("statusText").textContent = data.status || "--";
-        document.getElementById("checkInText").textContent = data.checkInAt || "--";
-        document.getElementById("checkOutText").textContent = data.checkOutAt || "--";
-        document.getElementById("isLateText").textContent = data.isLate ? "Có" : "Không";
-        document.getElementById("penaltyText").textContent = money(data.penaltyAmount);
-
-        btnCheckIn.disabled = !data.canCheckIn;
-        btnCheckOut.disabled = !data.canCheckOut;
-
-        if (!data.isAllowedNow) {
-            setAlert("Ngoài giờ làm việc. Nút chấm công đang bị khóa.", true);
-        } else {
-            setAlert("Bạn đang trong khung giờ làm việc.");
-        }
-    }
-
-    async function loadToday() {
-        const res = await fetch("/TimeAttendance/Api/Today");
-        const payload = await res.json();
-        if (!payload.success) {
-            setAlert(payload.message || "Không lấy được trạng thái chấm công.", true);
-            return;
-        }
-        syncUi(payload.data);
-    }
-
-    async function postAction(url) {
-        const res = await fetch(url, { method: "POST" });
-        const payload = await res.json();
-        setAlert(payload.message || "Đã xử lý.", !payload.success);
-        await loadToday();
-    }
-
-    btnCheckIn.addEventListener("click", () => postAction("/TimeAttendance/Api/CheckIn"));
-    btnCheckOut.addEventListener("click", () => postAction("/TimeAttendance/Api/CheckOut"));
-
-    const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/realtime").build();
-    connection.on("attendanceChanged", () => loadToday());
-    connection.start().catch(() => {});
-
-    loadToday();
-</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script src="~/js/pages/time-attendance.js" asp-append-version="true"></script>
 }

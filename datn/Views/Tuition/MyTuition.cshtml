@@ -4,67 +4,86 @@
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/pages/tuition.css" asp-append-version="true" />
-}
-
-<div class="tuition-card">
-    <div class="tuition-header">
-        <div>
-            <h2>Thông báo Học phí</h2>
-            <p style="color: #6b7280; margin: 0;">Xem thông tin các khoản phí của con em mình</p>
-        </div>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Thông báo Học phí</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Xem thông tin các khoản phí của con em mình</p>
     </div>
-
-    @if (!Model.Any())
-    {
-        <div style="text-align: center; padding: 40px; color: #9ca3af;">
-            <i class="fa-solid fa-file-circle-check fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
-            <p>Hiện chưa có thông báo học phí nào cho con bạn.</p>
-        </div>
-    }
-    else
-    {
-        @foreach (var studentGroup in Model.GroupBy(t => t.Student))
-        {
-            <div style="margin-bottom: 30px;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #f3f4f6; padding-bottom: 10px;">
-                    <img src="@(studentGroup.Key.AvatarPath ?? "/images/lion_orange.png")" style="width: 40px; height: 40px; border-radius: 50%;" />
-                    <h3 style="margin: 0; color: #111827;">Học sinh: @studentGroup.Key.FirstName @studentGroup.Key.LastName</h3>
-                </div>
-
-                @foreach (var t in studentGroup)
-                {
-                    <div class="plan-item" style="border-left: 5px solid @(t.IsPaid ? "#22c55e" : "#ef4444");">
-                        <div>
-                            <div style="font-weight: 700; font-size: 15px;">Học phí tháng @t.Month/@t.Year</div>
-                            <div style="font-size: 13px; color: #6b7280;">Hạn nộp: Ngày 15 tháng @t.Month</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="plan-amount">@string.Format("{0:N0}", (t.TuitionPlan?.Amount ?? 0) + (t.ExtraFee ?? 0)) đ</div>
-                            <div class="${t.isPaid ? 'status-paid' : 'status-unpaid'}" style="margin-top: 5px; display: inline-block;">
-                                @if (t.IsPaid)
-                                {
-                                    <span class="status-paid"><i class="fa-solid fa-circle-check"></i> Đã thanh toán</span>
-                                }
-                                else
-                                {
-                                    <span class="status-unpaid"><i class="fa-solid fa-circle-exclamation"></i> Chưa thanh toán</span>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-    }
 </div>
 
-<div class="tuition-card" style="background: #eff6ff; border: 1px solid #dbeafe;">
-    <h3 style="color: #1e40af; margin-top: 0;"><i class="fa-solid fa-circle-info"></i> Hướng dẫn nộp học phí</h3>
-    <p style="color: #374151; font-size: 14px; line-height: 1.6;">
-        Quý phụ huynh vui lòng hoàn thành việc nộp học phí trước ngày 15 hàng tháng qua các hình thức sau:<br/>
-        1. <strong>Nộp trực tiếp:</strong> Tại văn phòng kế toán của trường.<br/>
-        2. <strong>Chuyển khoản:</strong> Ngân hàng ABC - STK: 123456789 - Nội dung: [Mã học sinh] [Tháng nộp].
-    </p>
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+    <div>
+        @if (!Model.Any())
+        {
+            <div class="card py-5 text-center">
+                <div class="empty-state">
+                    <i class="fa-solid fa-file-circle-check"></i>
+                    <p>Hiện chưa có thông báo học phí nào cho con bạn.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            @foreach (var studentGroup in Model.GroupBy(t => t.Student))
+            {
+                <div class="card mb-4" style="padding: 0; overflow: hidden;">
+                    <div style="background: var(--bg-body); padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px;">
+                        <img src="@(studentGroup.Key.AvatarPath ?? "/images/lion_orange.png")" style="width: 48px; height: 48px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
+                        <div>
+                            <div class="text-muted" style="font-size: 0.85rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Học sinh</div>
+                            <h3 style="margin: 0; font-size: 1.25rem;">@studentGroup.Key.FirstName @studentGroup.Key.LastName</h3>
+                        </div>
+                    </div>
+
+                    <div style="padding: 24px;">
+                        @foreach (var t in studentGroup)
+                        {
+                            <div style="border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid @(t.IsPaid ? "var(--success)" : "var(--danger)"); background: @(t.IsPaid ? "rgba(52,211,153,0.05)" : "rgba(248,113,113,0.05)");">
+                                <div>
+                                    <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-main);">Học phí tháng @t.Month/@t.Year</div>
+                                    <div class="text-muted" style="font-size: 0.9rem; margin-top: 4px;"><i class="fa-regular fa-calendar text-muted me-1"></i> Hạn nộp: Ngày 15 tháng @t.Month</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);">@string.Format("{0:N0}", (t.TuitionPlan?.Amount ?? 0) + (t.ExtraFee ?? 0)) đ</div>
+                                    <div style="margin-top: 8px;">
+                                        @if (t.IsPaid)
+                                        {
+                                            <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Đã thanh toán</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-danger"><i class="fa-solid fa-circle-exclamation"></i> Chưa thanh toán</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <div>
+        <div class="card" style="background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2);">
+            <h3 style="color: var(--primary); margin-top: 0; font-size: 1.1rem;"><i class="fa-solid fa-circle-info me-2"></i> Hướng dẫn nộp học phí</h3>
+            <div style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin-top: 16px;">
+                Quý phụ huynh vui lòng hoàn thành việc nộp học phí trước <strong>ngày 15 hàng tháng</strong> qua các hình thức sau:
+                
+                <div style="margin-top: 16px; padding: 12px; background: white; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                    <div style="font-weight: 600; color: var(--text-main); margin-bottom: 4px;"><i class="fa-solid fa-building text-muted me-2"></i> 1. Nộp trực tiếp</div>
+                    <div class="text-muted" style="padding-left: 24px;">Tại văn phòng kế toán của trường.</div>
+                </div>
+
+                <div style="margin-top: 12px; padding: 12px; background: white; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                    <div style="font-weight: 600; color: var(--text-main); margin-bottom: 4px;"><i class="fa-solid fa-money-bill-transfer text-muted me-2"></i> 2. Chuyển khoản</div>
+                    <div class="text-muted" style="padding-left: 24px;">
+                        Ngân hàng: <strong>ABC Bank</strong><br/>
+                        STK: <strong>123456789</strong><br/>
+                        Nội dung: <em>[Mã học sinh] [Tháng nộp]</em>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

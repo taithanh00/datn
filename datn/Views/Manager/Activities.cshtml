@@ -3,169 +3,82 @@
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Hoạt động & Sự kiện</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Quản lý hoạt động ngoại khóa, địa điểm tổ chức và lớp tham gia</p>
+    </div>
+    <button class="btn btn-primary" id="resetActivityBtn" type="button"><i class="fa-solid fa-plus"></i> Tạo hoạt động</button>
+</div>
+
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:24px;">
+    <!-- Activities -->
+    <div class="card">
+        <h3 class="mb-2">Danh sách hoạt động</h3>
+        <div id="activityAlert" class="page-alert" style="display:none;"></div>
+        <div class="table-container">
+            <table id="activitiesTable">
+                <thead><tr><th>Tên</th><th>Ngày</th><th>Địa điểm</th><th>Phụ trách</th><th>Lớp</th><th>Thao tác</th></tr></thead>
+                <tbody id="activitiesTableBody"></tbody>
+            </table>
+        </div>
+
+        <form id="activityForm" class="mt-3" style="border-top:1px solid var(--border); padding-top:24px;">
+            <input type="hidden" id="activityId" />
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group"><label class="form-label">Tên hoạt động</label><input id="activityName" type="text" class="form-input" required /></div>
+                <div class="form-group"><label class="form-label">Ngày tổ chức</label><input id="activityDate" type="date" class="form-input" required /></div>
+            </div>
+            <div class="form-group"><label class="form-label">Mô tả</label><textarea id="activityDescription" class="form-input" rows="3"></textarea></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group"><label class="form-label">Địa điểm</label><select id="locationSelect" class="form-select" required></select></div>
+                <div class="form-group"><label class="form-label">Người phụ trách</label><select id="organizerSelect" class="form-select"></select></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Lớp tham gia</label>
+                <div id="classCheckboxList" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; border:1px solid var(--border); padding:12px; border-radius:8px; max-height:150px; overflow-y:auto;"></div>
+            </div>
+            <div class="d-flex gap-1 mt-1">
+                <button type="submit" class="btn btn-primary" id="saveActivityBtn">Lưu hoạt động</button>
+                <button type="button" class="btn btn-outline" id="clearActivityBtn">Làm mới</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Locations -->
+    <div class="card">
+        <h3 class="mb-2">Địa điểm</h3>
+        <div id="locationAlert" class="page-alert" style="display:none;"></div>
+        <div class="table-container">
+            <table><thead><tr><th>Tên</th><th>Sức chứa</th><th></th></tr></thead>
+            <tbody id="locationsTableBody"></tbody></table>
+        </div>
+        <form id="locationForm" class="mt-2" style="border-top:1px solid var(--border); padding-top:16px;">
+            <div class="form-group"><label class="form-label">Tên địa điểm</label><input id="locationName" type="text" class="form-input" required /></div>
+            <div class="form-group"><label class="form-label">Sức chứa</label><input id="locationCapacity" type="number" class="form-input" /></div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">Thêm địa điểm</button>
+        </form>
+    </div>
+</div>
+
 @section Styles {
-    <link rel="stylesheet" href="~/css/pages/classes.css" asp-append-version="true" />
     <style>
-        .activities-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .class-checkbox-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-            max-height: 150px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 4px;
-        }
-
-        .class-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
-        }
-
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-
-        .tag {
-            background: #e3f2fd;
-            color: #1976d2;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            border: 1px solid #bbdefb;
-        }
+        .tag-list { display:flex; flex-wrap:wrap; gap:4px; }
+        .tag { background:var(--primary-soft); color:var(--primary); padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:600; }
+        .class-item { display:flex; align-items:center; gap:6px; font-size:0.85rem; }
+        .btn-table { background:none; border:none; cursor:pointer; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:600; color:var(--primary); transition:all 0.2s; }
+        .btn-table:hover { background:var(--primary-soft); }
+        .btn-table.delete { color:var(--danger); }
+        .btn-table.delete:hover { background:rgba(248,113,113,0.1); }
     </style>
 }
-
-<div class="dashboard-card">
-    <div class="card-header">
-        <h2 style="margin: 0;">Quản lý Hoạt động & Sự kiện Ngoại khóa</h2>
-    </div>
-    <div class="card-body">
-        <p>Quản lý các hoạt động sự kiện chung của trường, địa điểm tổ chức và chỉ định các lớp tham gia.</p>
-    </div>
-</div>
-
-<div class="activities-grid">
-    <section class="dashboard-card">
-        <div class="card-header section-header">
-            <h3>Danh sách hoạt động</h3>
-            <button class="btn-primary-action" id="resetActivityBtn" type="button">Tạo hoạt động mới</button>
-        </div>
-        <div class="card-body">
-            <div id="activityAlert" class="page-alert" style="display:none;"></div>
-            <div class="table-responsive">
-                <table class="management-table">
-                    <thead>
-                        <tr>
-                            <th>Tên hoạt động</th>
-                            <th>Ngày tổ chức</th>
-                            <th>Địa điểm</th>
-                            <th>Người tổ chức</th>
-                            <th>Lớp tham gia</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="activitiesTableBody"></tbody>
-                </table>
-            </div>
-
-            <form id="activityForm" class="entity-form" style="margin-top: 20px;">
-                <input type="hidden" id="activityId" />
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="activityName">Tên hoạt động</label>
-                        <input id="activityName" type="text" class="form-control" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="activityDate">Ngày tổ chức</label>
-                        <input id="activityDate" type="date" class="form-control" required />
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="activityDescription">Mô tả chi tiết</label>
-                    <textarea id="activityDescription" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="locationSelect">Địa điểm</label>
-                        <select id="locationSelect" class="form-select" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="organizerSelect">Người phụ trách (GV/NV)</label>
-                        <select id="organizerSelect" class="form-select"></select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Lớp tham gia</label>
-                    <div id="classCheckboxList" class="class-checkbox-list"></div>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn-primary-action" id="saveActivityBtn">Lưu hoạt động</button>
-                    <button type="button" class="btn-secondary-action" id="clearActivityBtn">Làm mới</button>
-                </div>
-            </form>
-        </div>
-    </section>
-
-    <section class="dashboard-card">
-        <div class="card-header section-header">
-            <h3>Danh mục Địa điểm</h3>
-        </div>
-        <div class="card-body">
-            <div id="locationAlert" class="page-alert" style="display:none;"></div>
-            <div class="table-responsive">
-                <table class="management-table">
-                    <thead>
-                        <tr>
-                            <th>Tên địa điểm</th>
-                            <th>Sức chứa</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="locationsTableBody"></tbody>
-                </table>
-            </div>
-
-            <form id="locationForm" class="entity-form" style="margin-top: 20px;">
-                <div class="form-group">
-                    <label for="locationName">Tên địa điểm</label>
-                    <input id="locationName" type="text" class="form-control" placeholder="Ví dụ: Sân cỏ nhân tạo" required />
-                </div>
-                <div class="form-group">
-                    <label for="locationCapacity">Sức chứa (người)</label>
-                    <input id="locationCapacity" type="number" class="form-control" />
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn-primary-action">Thêm địa điểm</button>
-                </div>
-            </form>
-        </div>
-    </section>
-</div>
 
 @section Scripts {
     <script>
         let currentActivityId = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            await Promise.all([
-                loadActivities(),
-                loadLocations(),
-                loadClassesAndTeachers()
-            ]);
-
+            await Promise.all([loadActivities(), loadLocations(), loadClassesAndTeachers()]);
             document.getElementById('activityForm').addEventListener('submit', saveActivity);
             document.getElementById('locationForm').addEventListener('submit', saveLocation);
             document.getElementById('resetActivityBtn').addEventListener('click', resetActivityForm);
@@ -173,40 +86,25 @@
         });
 
         async function fetchJson(url, options = {}) {
-            try {
-                const response = await fetch(url, {
-                    headers: { 'Content-Type': 'application/json' },
-                    ...options
-                });
-                return await response.json();
-            } catch (e) {
-                console.error('Fetch error:', e);
-                return { success: false, message: 'Lỗi kết nối hệ thống.' };
-            }
+            try { const r = await fetch(url, { headers: {'Content-Type':'application/json'}, ...options }); return await r.json(); }
+            catch(e) { return {success:false, message:'Lỗi kết nối.'}; }
         }
 
         async function loadActivities() {
             const result = await fetchJson('/Manager/Api/Activities');
             const tbody = document.getElementById('activitiesTableBody');
             tbody.innerHTML = '';
-
             if (result.success) {
                 result.data.forEach(a => {
-                    const classesHtml = a.classes.map(c => `<span class="tag">${c.name}</span>`).join('');
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>${a.name}</strong></td>
-                            <td>${a.date}</td>
-                            <td>${a.locationName || 'Chưa xác định'}</td>
-                            <td>${a.organizerName || 'N/A'}</td>
-                            <td><div class="tag-list">${classesHtml}</div></td>
-                            <td>
-                                <button class="btn-table" onclick="editActivity(${a.id})">Sửa</button>
-                                <button class="btn-table delete" onclick="deleteActivity(${a.id})">Xóa</button>
-                            </td>
-                        </tr>
-                    `;
+                    const cls = a.classes.map(c => `<span class="tag">${c.name}</span>`).join('');
+                    tbody.innerHTML += `<tr>
+                        <td><strong>${a.name}</strong></td><td>${a.date}</td>
+                        <td>${a.locationName||'--'}</td><td>${a.organizerName||'--'}</td>
+                        <td><div class="tag-list">${cls}</div></td>
+                        <td><button class="btn-table" onclick="editActivity(${a.id})">Sửa</button><button class="btn-table delete" onclick="deleteActivity(${a.id})">Xóa</button></td>
+                    </tr>`;
                 });
+                initPagination('activitiesTable', 10);
             }
         }
 
@@ -214,143 +112,63 @@
             const result = await fetchJson('/Manager/Api/Locations');
             const tbody = document.getElementById('locationsTableBody');
             const select = document.getElementById('locationSelect');
-            
-            tbody.innerHTML = '';
-            select.innerHTML = '<option value="">-- Chọn địa điểm --</option>';
-
+            tbody.innerHTML = ''; select.innerHTML = '<option value="">-- Chọn --</option>';
             if (result.success) {
                 result.data.forEach(l => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${l.name}</td>
-                            <td>${l.capacity || 'N/A'}</td>
-                            <td>
-                                <button class="btn-table delete" onclick="deleteLocation(${l.id})">Xóa</button>
-                            </td>
-                        </tr>
-                    `;
+                    tbody.innerHTML += `<tr><td>${l.name}</td><td>${l.capacity||'--'}</td><td><button class="btn-table delete" onclick="deleteLocation(${l.id})">Xóa</button></td></tr>`;
                     select.innerHTML += `<option value="${l.id}">${l.name}</option>`;
                 });
             }
         }
 
         async function loadClassesAndTeachers() {
-            const [classesRes, teachersRes] = await Promise.all([
-                fetchJson('/Manager/Api/Classes'),
-                fetchJson('/Manager/Api/Teachers')
-            ]);
-
-            if (classesRes.success) {
-                const container = document.getElementById('classCheckboxList');
-                container.innerHTML = '';
-                classesRes.data.forEach(c => {
-                    container.innerHTML += `
-                        <div class="class-item">
-                            <input type="checkbox" id="class_${c.id}" value="${c.id}" name="participatingClasses" />
-                            <label for="class_${c.id}">${c.name}</label>
-                        </div>
-                    `;
-                });
+            const [cR, tR] = await Promise.all([fetchJson('/Manager/Api/Classes'), fetchJson('/Manager/Api/Teachers')]);
+            if (cR.success) {
+                document.getElementById('classCheckboxList').innerHTML = cR.data.map(c => `<div class="class-item"><input type="checkbox" id="class_${c.id}" value="${c.id}" name="participatingClasses"/><label for="class_${c.id}">${c.name}</label></div>`).join('');
             }
-
-            if (teachersRes.success) {
-                const select = document.getElementById('organizerSelect');
-                select.innerHTML = '<option value="">-- Chọn người phụ trách --</option>';
-                teachersRes.data.forEach(t => {
-                    select.innerHTML += `<option value="${t.id}">${t.fullName}</option>`;
-                });
+            if (tR.success) {
+                document.getElementById('organizerSelect').innerHTML = '<option value="">-- Chọn --</option>' + tR.data.map(t => `<option value="${t.id}">${t.fullName}</option>`).join('');
             }
         }
 
         async function saveActivity(e) {
             e.preventDefault();
             const classIds = Array.from(document.querySelectorAll('input[name="participatingClasses"]:checked')).map(cb => parseInt(cb.value));
-            
-            const data = {
-                name: document.getElementById('activityName').value,
-                description: document.getElementById('activityDescription').value,
-                date: document.getElementById('activityDate').value,
-                locationId: parseInt(document.getElementById('locationSelect').value) || null,
-                organizerId: parseInt(document.getElementById('organizerSelect').value) || null,
-                classIds: classIds
-            };
-
+            const data = { name:document.getElementById('activityName').value, description:document.getElementById('activityDescription').value, date:document.getElementById('activityDate').value, locationId:parseInt(document.getElementById('locationSelect').value)||null, organizerId:parseInt(document.getElementById('organizerSelect').value)||null, classIds };
             const url = currentActivityId ? `/Manager/Api/Activity/${currentActivityId}` : '/Manager/Api/Activity';
-            const method = currentActivityId ? 'PUT' : 'POST';
-
-            const result = await fetchJson(url, { method, body: JSON.stringify(data) });
+            const result = await fetchJson(url, { method: currentActivityId?'PUT':'POST', body:JSON.stringify(data) });
             showAlert('activityAlert', result.success, result.message);
-            if (result.success) {
-                resetActivityForm();
-                loadActivities();
-            }
+            if (result.success) { resetActivityForm(); loadActivities(); }
         }
 
         async function editActivity(id) {
-            const result = await fetchJson('/Manager/Api/Activities'); // Lấy lại list và filter cho nhanh
-            const activity = result.data.find(a => a.id === id);
-            if (!activity) return;
-
+            const result = await fetchJson('/Manager/Api/Activities');
+            const a = result.data.find(x => x.id === id); if(!a)return;
             currentActivityId = id;
-            document.getElementById('activityId').value = id;
-            document.getElementById('activityName').value = activity.name;
-            document.getElementById('activityDescription').value = activity.description || '';
-            document.getElementById('activityDate').value = activity.date;
-            document.getElementById('locationSelect').value = activity.locationId || '';
-            document.getElementById('organizerSelect').value = activity.organizerId || '';
-
-            // Reset and check checkboxes
-            document.querySelectorAll('input[name="participatingClasses"]').forEach(cb => {
-                cb.checked = activity.classes.some(c => c.id === parseInt(cb.value));
-            });
-
-            document.getElementById('saveActivityBtn').textContent = 'Cập nhật hoạt động';
-            document.getElementById('activityForm').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('activityName').value = a.name;
+            document.getElementById('activityDescription').value = a.description||'';
+            document.getElementById('activityDate').value = a.date;
+            document.getElementById('locationSelect').value = a.locationId||'';
+            document.getElementById('organizerSelect').value = a.organizerId||'';
+            document.querySelectorAll('input[name="participatingClasses"]').forEach(cb => { cb.checked = a.classes.some(c => c.id === parseInt(cb.value)); });
+            document.getElementById('saveActivityBtn').textContent = 'Cập nhật';
+            document.getElementById('activityForm').scrollIntoView({behavior:'smooth'});
         }
 
-        async function deleteActivity(id) {
-            if (!confirm('Bạn có chắc muốn xóa hoạt động này?')) return;
-            const result = await fetchJson(`/Manager/Api/Activity/${id}`, { method: 'DELETE' });
-            showAlert('activityAlert', result.success, result.message);
-            if (result.success) loadActivities();
-        }
+        async function deleteActivity(id) { if(!confirm('Xóa?'))return; const r=await fetchJson(`/Manager/Api/Activity/${id}`,{method:'DELETE'}); showAlert('activityAlert',r.success,r.message); if(r.success)loadActivities(); }
 
         async function saveLocation(e) {
             e.preventDefault();
-            const data = {
-                name: document.getElementById('locationName').value,
-                capacity: parseInt(document.getElementById('locationCapacity').value) || null
-            };
-
-            const result = await fetchJson('/Manager/Api/Location', { method: 'POST', body: JSON.stringify(data) });
-            showAlert('locationAlert', result.success, result.message);
-            if (result.success) {
-                document.getElementById('locationForm').reset();
-                loadLocations();
-            }
+            const data = { name:document.getElementById('locationName').value, capacity:parseInt(document.getElementById('locationCapacity').value)||null };
+            const r = await fetchJson('/Manager/Api/Location',{method:'POST',body:JSON.stringify(data)});
+            showAlert('locationAlert',r.success,r.message);
+            if(r.success){document.getElementById('locationForm').reset(); loadLocations();}
         }
 
-        async function deleteLocation(id) {
-            if (!confirm('Bạn có chắc muốn xóa địa điểm này?')) return;
-            const result = await fetchJson(`/Manager/Api/Location/${id}`, { method: 'DELETE' });
-            showAlert('locationAlert', result.success, result.message);
-            if (result.success) loadLocations();
-        }
+        async function deleteLocation(id) { if(!confirm('Xóa?'))return; const r=await fetchJson(`/Manager/Api/Location/${id}`,{method:'DELETE'}); showAlert('locationAlert',r.success,r.message); if(r.success)loadLocations(); }
 
-        function resetActivityForm() {
-            currentActivityId = null;
-            document.getElementById('activityForm').reset();
-            document.getElementById('activityId').value = '';
-            document.getElementById('saveActivityBtn').textContent = 'Lưu hoạt động';
-            document.querySelectorAll('input[name="participatingClasses"]').forEach(cb => cb.checked = false);
-        }
+        function resetActivityForm() { currentActivityId=null; document.getElementById('activityForm').reset(); document.getElementById('saveActivityBtn').textContent='Lưu hoạt động'; document.querySelectorAll('input[name="participatingClasses"]').forEach(cb=>cb.checked=false); }
 
-        function showAlert(id, success, message) {
-            const alert = document.getElementById(id);
-            alert.textContent = message;
-            alert.className = `page-alert ${success ? 'success' : 'error'}`;
-            alert.style.display = 'block';
-            setTimeout(() => { alert.style.display = 'none'; }, 3000);
-        }
+        function showAlert(id,success,message) { const el=document.getElementById(id); el.textContent=message; el.className=`page-alert ${success?'success':'error'}`; el.style.display='block'; setTimeout(()=>{el.style.display='none';},3000); }
     </script>
 }

@@ -4,52 +4,228 @@
     var selectedClassId = ViewBag.SelectedClassId as int?;
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/pages/work-schedule.css" asp-append-version="true" />
-}
-
 <input type="hidden" id="initialClassId" value="@(selectedClassId ?? 0)" />
 
-<div class="dashboard-card">
-    <div class="card-header">
-        <h2 style="margin: 0;">Lịch dạy hôm nay</h2>
-    </div>
-    <div class="card-body">
-        <p id="todayLabel" class="schedule-intro">Đang tải lịch dạy...</p>
-        <div id="todayScheduleContainer" class="today-schedule-grid"></div>
-    </div>
-</div>
-
-<div class="dashboard-card">
-    <div class="card-header section-header">
-        <h3>Học sinh lớp đang quản lý</h3>
-        <div class="header-inline">
-            <label for="managedClassSelect">Chọn lớp</label>
-            <select id="managedClassSelect" class="form-control compact-select"></select>
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-top: 24px;">
+    <!-- Today's Schedule -->
+    <div class="card">
+        <h3 class="mb-3">Lịch dạy hôm nay</h3>
+        <p id="todayLabel" class="text-muted" style="font-size: 0.85rem; margin-bottom: 16px;">Đang tải lịch dạy...</p>
+        <div id="todayScheduleContainer">
+            <!-- Timeline will be injected here -->
         </div>
     </div>
-    <div class="card-body">
+
+    <!-- Managed Students -->
+    <div class="card">
+        <div class="d-flex align-center justify-between mb-3">
+            <h3 style="margin: 0;">Học sinh lớp đang quản lý</h3>
+            <div class="d-flex align-center gap-2">
+                <label for="managedClassSelect" class="form-label" style="margin-bottom: 0;">Chọn lớp</label>
+                <select id="managedClassSelect" class="form-select" style="min-width: 150px;"></select>
+            </div>
+        </div>
+
         <div id="studentsAlert" class="page-alert" style="display:none;"></div>
-        <div class="table-responsive">
-            <table class="management-table">
+        
+        <div class="table-container">
+            <table id="managedStudentsTable">
                 <thead>
                     <tr>
                         <th>Ảnh</th>
                         <th>Họ và tên</th>
                         <th>Giới tính</th>
                         <th>Ngày sinh</th>
-                        <th>Địa chỉ</th>
-                        <th>Ngày nhập học</th>
                         <th>Điểm danh hôm nay</th>
                         <th>Thao tác</th>
                     </tr>
                 </thead>
-                <tbody id="managedStudentsTableBody"></tbody>
+                <tbody id="managedStudentsTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px;">
+                            <div class="spinner"></div>
+                            <p class="text-muted mt-2">Đang tải...</p>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
 </div>
 
+@section Styles {
+    <style>
+        /* Timeline specific to schedule */
+        .schedule-item { 
+            display: flex; gap: 16px; padding: 16px; 
+            border-left: 3px solid var(--border);
+            margin-left: 8px; position: relative;
+            background: var(--bg-body); border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin-bottom: 12px;
+        }
+        .schedule-item::before {
+            content: ''; position: absolute; left: -9px; top: 20px;
+            width: 14px; height: 14px; border-radius: 50%;
+            background: var(--primary); border: 3px solid var(--bg-card);
+        }
+        .schedule-time { 
+            font-size: 0.85rem; font-weight: 700; color: var(--primary); min-width: 90px; 
+        }
+        .schedule-subject { font-weight: 700; font-size: 1rem; color: var(--text-main); margin-bottom: 4px; }
+        .schedule-class { font-size: 0.85rem; color: var(--text-muted); }
+        .schedule-badge { 
+            position: absolute; right: 16px; top: 16px; 
+            padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;
+        }
+        .schedule-badge.active { background: rgba(52,211,153,0.15); color: var(--success); }
+        .schedule-badge.pending { background: rgba(251,191,36,0.15); color: var(--warning); }
+        .schedule-badge.past { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border); }
+    </style>
+}
+
 @section Scripts {
-    <script src="~/js/pages/work-schedule.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await Promise.all([
+                loadTodaySchedule(),
+                loadManagedClasses()
+            ]);
+
+            document.getElementById('managedClassSelect').addEventListener('change', (e) => {
+                loadManagedStudents(e.target.value);
+            });
+        });
+
+        async function fetchJson(url, options = {}) {
+            try {
+                const response = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...options });
+                return await response.json();
+            } catch (e) {
+                return { success: false, message: 'Lỗi kết nối.' };
+            }
+        }
+
+        async function loadTodaySchedule() {
+            const container = document.getElementById('todayScheduleContainer');
+            const label = document.getElementById('todayLabel');
+            
+            const result = await fetchJson('/Employee/Api/TodaySchedule');
+            
+            if (result.success) {
+                if (result.data.length === 0) {
+                    label.textContent = "Bạn không có tiết dạy nào được xếp trong ngày hôm nay.";
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fa-solid fa-calendar-xmark"></i>
+                            <p>Không có lịch dạy hôm nay</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                label.textContent = `Bạn có ${result.data.length} tiết dạy trong ngày hôm nay.`;
+                
+                const now = new Date();
+                const currentTimeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+                container.innerHTML = result.data.map(s => {
+                    let statusClass = 'pending';
+                    let statusText = 'Sắp diễn ra';
+                    
+                    if (s.endTime < currentTimeStr) {
+                        statusClass = 'past';
+                        statusText = 'Đã kết thúc';
+                    } else if (s.startTime <= currentTimeStr && s.endTime >= currentTimeStr) {
+                        statusClass = 'active';
+                        statusText = 'Đang diễn ra';
+                    }
+
+                    return `
+                        <div class="schedule-item">
+                            <div class="schedule-time">${s.startTime} - ${s.endTime}</div>
+                            <div style="flex: 1;">
+                                <div class="schedule-subject">${s.subjectName}</div>
+                                <div class="schedule-class">
+                                    <i class="fa-solid fa-school" style="margin-right: 4px;"></i> Lớp: ${s.className}
+                                </div>
+                            </div>
+                            <div class="schedule-badge ${statusClass}">${statusText}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                label.textContent = "Lỗi khi tải lịch dạy.";
+                container.innerHTML = `<div class="page-alert error">${result.message}</div>`;
+            }
+        }
+
+        async function loadManagedClasses() {
+            const result = await fetchJson('/Employee/Api/MyClasses');
+            const select = document.getElementById('managedClassSelect');
+            
+            if (result.success) {
+                const initialClassId = document.getElementById('initialClassId').value;
+                let html = '';
+                
+                if (result.data.length === 0) {
+                    select.innerHTML = '<option value="">-- Không có lớp --</option>';
+                    document.getElementById('managedStudentsTableBody').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Bạn chưa được phân công lớp nào.</td></tr>';
+                    return;
+                }
+
+                result.data.forEach(item => {
+                    const isSelected = (initialClassId && initialClassId == item.classId) || (!initialClassId && html === '');
+                    html += `<option value="${item.classId}" ${isSelected ? 'selected' : ''}>${item.className} (${item.role})</option>`;
+                });
+                select.innerHTML = html;
+                
+                // Load students for the first/selected class
+                loadManagedStudents(select.value);
+            }
+        }
+
+        async function loadManagedStudents(classId) {
+            if (!classId) return;
+            
+            const tbody = document.getElementById('managedStudentsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;"><div class="spinner"></div></td></tr>';
+            
+            const result = await fetchJson(`/Employee/Api/ClassStudents/${classId}`);
+            
+            if (result.success) {
+                if (result.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding: 40px;">Lớp này chưa có học sinh nào.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = result.data.map(s => {
+                    let attBadge = '<span class="badge" style="background:var(--bg-body);color:var(--text-muted); border:1px solid var(--border);">Chưa điểm danh</span>';
+                    if (s.attendanceStatus === 'Present') attBadge = '<span class="badge badge-success"><i class="fa-solid fa-check"></i> Có mặt</span>';
+                    else if (s.attendanceStatus === 'Excused') attBadge = '<span class="badge badge-warning"><i class="fa-solid fa-info"></i> Có phép</span>';
+                    else if (s.attendanceStatus === 'Absent') attBadge = '<span class="badge badge-danger"><i class="fa-solid fa-xmark"></i> Vắng mặt</span>';
+
+                    return `
+                        <tr>
+                            <td><img src="${s.avatarPath || '/images/lion_orange.png'}" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border);" onerror="this.src='/images/lion_orange.png'"></td>
+                            <td>
+                                <div style="font-weight: 600;">${s.fullName}</div>
+                            </td>
+                            <td>${s.gender}</td>
+                            <td>${new Date(s.dateOfBirth).toLocaleDateString('vi-VN')}</td>
+                            <td>${attBadge}</td>
+                            <td>
+                                <a href="/Parent/Children/Details/${s.id}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" target="_blank">
+                                    <i class="fa-solid fa-eye"></i> Hồ sơ
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                initPagination('managedStudentsTable', 10);
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${result.message}</td></tr>`;
+            }
+        }
+    </script>
 }

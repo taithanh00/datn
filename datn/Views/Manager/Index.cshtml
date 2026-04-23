@@ -1,211 +1,94 @@
 @{
-    ViewData["Title"] = "Bảng điều khiển Quản lý";
+    ViewData["Title"] = "Bảng điều khiển";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/pages/dashboard-v2.css" asp-append-version="true" />
-    <style>
-        .revenue-value { color: #22c55e; }
-        .attendance-stat { font-size: 13px; color: #6b7280; margin-top: 10px; text-align: center; }
-    </style>
-}
-
-<div class="dashboard-v2-grid">
-    <div class="stat-card">
-        <div class="stat-icon blue"><i class="fa-solid fa-user-graduate"></i></div>
-        <div class="stat-info">
-            <span class="stat-value" id="statStudents">...</span>
-            <span class="stat-label">Học sinh</span>
+<div class="stats-grid">
+    <div class="card stat-card">
+        <div class="d-flex align-center gap-2">
+            <div class="avatar" style="background:var(--primary);">
+                <i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <div>
+                <div class="stat-title">Học sinh</div>
+                <div class="stat-value" id="statStudents">...</div>
+            </div>
         </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-icon orange"><i class="fa-solid fa-chalkboard-user"></i></div>
-        <div class="stat-info">
-            <span class="stat-value" id="statTeachers">...</span>
-            <span class="stat-label">Giáo viên</span>
+    <div class="card stat-card">
+        <div class="d-flex align-center gap-2">
+            <div class="avatar" style="background:#F59E0B;">
+                <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+            <div>
+                <div class="stat-title">Giáo viên</div>
+                <div class="stat-value" id="statTeachers">...</div>
+            </div>
         </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-icon green"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-        <div class="stat-info">
-            <span class="stat-value" id="statRevenue">...</span>
-            <span class="stat-label">Doanh thu tháng</span>
+    <div class="card stat-card">
+        <div class="d-flex align-center gap-2">
+            <div class="avatar" style="background:var(--success);">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div>
+                <div class="stat-title">Doanh thu tháng</div>
+                <div class="stat-value" id="statRevenue">...</div>
+            </div>
         </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-icon red"><i class="fa-solid fa-envelope-open-text"></i></div>
-        <div class="stat-info">
-            <span class="stat-value" id="statPendingLeaves">...</span>
-            <span class="stat-label">Đơn nghỉ chờ duyệt</span>
+    <div class="card stat-card">
+        <div class="d-flex align-center gap-2">
+            <div class="avatar" style="background:var(--danger);">
+                <i class="fa-solid fa-envelope-open-text"></i>
+            </div>
+            <div>
+                <div class="stat-title">Đơn nghỉ chờ duyệt</div>
+                <div class="stat-value" id="statPendingLeaves">...</div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="charts-grid">
-    <div class="chart-card">
-        <div class="chart-header">
-            <h3>Xu hướng doanh thu (6 tháng gần nhất)</h3>
-        </div>
-        <div style="position: relative; height: 250px;">
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;">
+    <div class="card">
+        <h3 style="margin-bottom:16px;">Xu hướng doanh thu</h3>
+        <div style="position:relative; height:250px;">
             <canvas id="revenueChart"></canvas>
         </div>
     </div>
-    <div class="chart-card">
-        <div class="chart-header">
-            <h3>Sĩ số học sinh hôm nay</h3>
-        </div>
-        <div style="height: 200px; display: flex; align-items: center; justify-content: center;">
+    <div class="card">
+        <h3 style="margin-bottom:16px;">Sĩ số hôm nay</h3>
+        <div style="height:200px; display:flex; align-items:center; justify-content:center;">
             <canvas id="attendanceChart"></canvas>
         </div>
-        <div id="attendanceInfo" class="attendance-stat">Đang tính toán...</div>
+        <div id="attendanceInfo" class="text-muted" style="text-align:center; font-size:0.85rem; margin-top:12px;">Đang tính toán...</div>
     </div>
 </div>
 
-<div class="data-card">
-    <div class="chart-header">
+<div class="card">
+    <div class="d-flex align-center justify-between mb-2">
         <h3>Đơn nghỉ phép mới nhất</h3>
-        <a href="/LeaveApproval" class="btn-text">Xem tất cả</a>
+        <a href="/LeaveApproval" class="btn btn-outline" data-transition>Xem tất cả</a>
     </div>
-    <table class="custom-table">
-        <thead>
-            <tr>
-                <th>Giáo viên</th>
-                <th>Thời gian nghỉ</th>
-                <th>Lý do</th>
-                <th style="text-align: right;">Thao tác</th>
-            </tr>
-        </thead>
-        <tbody id="latestLeavesTable">
-            <tr><td colspan="4" style="text-align:center; color:#9ca3af;">Đang tải dữ liệu...</td></tr>
-        </tbody>
-    </table>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Giáo viên</th>
+                    <th>Thời gian nghỉ</th>
+                    <th>Lý do</th>
+                    <th style="text-align:right;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="latestLeavesTable">
+                <tr><td colspan="4" class="text-muted" style="text-align:center; padding:32px;">Đang tải...</td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // FIX: Khai báo biến lưu instance chart ở ngoài để có thể destroy khi cần
-        let revenueChartInstance = null;
-        let attendanceChartInstance = null;
-
-        $(document).ready(function() {
-            loadDashboardData();
-        });
-
-        async function loadDashboardData() {
-            try {
-                const res = await fetch('/Manager/Api/DashboardStats');
-                const data = await res.json();
-                if (data.success) {
-                    // Update Stats
-                    $('#statStudents').text(data.stats.totalStudents);
-                    $('#statTeachers').text(data.stats.totalTeachers);
-                    $('#statRevenue').text(new Intl.NumberFormat('vi-VN').format(data.stats.monthlyRevenue) + ' đ');
-                    $('#statPendingLeaves').text(data.stats.pendingLeaves);
-
-                    // Render Revenue Chart
-                    renderRevenueChart(data.charts.revenue);
-
-                    // Render Attendance Chart
-                    renderAttendanceChart(data.charts.attendance);
-
-                    // Render Table
-                    renderLeavesTable(data.latestLeaves);
-                }
-            } catch (e) { console.error("Load dashboard failed", e); }
-        }
-
-        function renderRevenueChart(data) {
-            // FIX: Destroy instance cũ trước khi tạo mới
-            if (revenueChartInstance) {
-                revenueChartInstance.destroy();
-                revenueChartInstance = null;
-            }
-
-            const ctx = document.getElementById('revenueChart').getContext('2d');
-            revenueChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.map(x => x.label),
-                    datasets: [{
-                        label: 'Doanh thu (VNĐ)',
-                        data: data.map(x => x.value),
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#3b82f6',
-                        pointBorderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#f3f4f6' },
-                            ticks: { callback: (v) => v >= 1000000 ? (v/1000000) + 'M' : v }
-                        },
-                        x: { grid: { display: false } }
-                    }
-                }
-            });
-        }
-
-        function renderAttendanceChart(data) {
-            // FIX: Destroy instance cũ trước khi tạo mới
-            if (attendanceChartInstance) {
-                attendanceChartInstance.destroy();
-                attendanceChartInstance = null;
-            }
-
-            const ctx = document.getElementById('attendanceChart').getContext('2d');
-            const total = data.present + data.absent;
-            const percent = total > 0 ? Math.round((data.present / total) * 100) : 0;
-
-            $('#attendanceInfo').html(`Hiện diện: <strong>${data.present}</strong> / Vắng: <strong>${data.absent}</strong> (Tỉ lệ: ${percent}%)`);
-
-            attendanceChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Hiện diện', 'Vắng mặt'],
-                    datasets: [{
-                        data: [data.present, data.absent],
-                        backgroundColor: ['#22c55e', '#f3f4f6'],
-                        borderWidth: 0,
-                        cutout: '75%'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        function renderLeavesTable(leaves) {
-            const tbody = $('#latestLeavesTable');
-            if (leaves.length === 0) {
-                tbody.html('<tr><td colspan="4" style="text-align:center; color:#9ca3af;">Không có đơn nghỉ phép nào đang chờ</td></tr>');
-                return;
-            }
-            tbody.html(leaves.map(l => `
-                <tr>
-                    <td><strong>${l.name}</strong></td>
-                    <td>${l.startDate} - ${l.endDate}</td>
-                    <td title="${l.reason}">${l.reason.length > 30 ? l.reason.substring(0,30)+'...' : l.reason}</td>
-                    <td style="text-align: right;">
-                        <a href="/LeaveApproval" class="btn-text">Duyệt ngay</a>
-                    </td>
-                </tr>
-            `).join(''));
-        }
-    </script>
+    <script src="~/js/pages/manager-dashboard.js" asp-append-version="true"></script>
 }

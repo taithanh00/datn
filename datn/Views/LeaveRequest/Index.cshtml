@@ -3,33 +3,57 @@
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
-<div class="dashboard-card">
-    <div class="card-header">
-        <h2 style="margin: 0;">📝 Tạo đơn nghỉ phép</h2>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Đơn nghỉ phép</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Tạo và theo dõi trạng thái các đơn xin nghỉ phép của bạn</p>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
+    <!-- Form tạo đơn -->
+    <div class="card">
+        <h3 style="margin-bottom: 16px; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 12px;">Tạo đơn mới</h3>
+        <div class="form-group">
+            <label class="form-label" for="startDate">Từ ngày</label>
+            <input id="startDate" type="date" class="form-input" required />
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="endDate">Đến ngày</label>
+            <input id="endDate" type="date" class="form-input" required />
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="reason">Lý do</label>
+            <textarea id="reason" class="form-input" rows="3" placeholder="Nhập lý do nghỉ phép..." required></textarea>
+        </div>
+        
+        <button id="btnCreateLeave" type="button" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            <i class="fa-solid fa-paper-plane"></i> Gửi đơn
+        </button>
+        
+        <div id="leaveAlert" class="page-alert mt-3" style="display: none;"></div>
     </div>
 
-    <div class="card-body" style="padding: 24px;">
-        <div style="display:grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap:10px; margin-bottom:12px;">
-            <input id="startDate" type="date" class="form-control" />
-            <input id="endDate" type="date" class="form-control" />
-            <input id="reason" type="text" class="form-control" placeholder="Lý do nghỉ phép" />
-        </div>
-        <button id="btnCreateLeave" type="button" class="btn-create">Tạo đơn nghỉ phép</button>
-        <div id="leaveAlert" style="margin-top:12px; padding:10px 12px; border-radius:8px; background:#f3f4f6;">Sẵn sàng tạo đơn.</div>
-
-        <h3 style="margin-top:18px; margin-bottom:10px;">Đơn gần đây của bạn</h3>
-        <div class="table-responsive">
-            <table class="teachers-table">
+    <!-- Danh sách đơn -->
+    <div class="card">
+        <h3 style="margin-bottom: 16px; font-size: 1.1rem;">Đơn gần đây của bạn</h3>
+        <div class="table-container">
+            <table>
                 <thead>
                     <tr>
-                        <th>Từ ngày</th>
-                        <th>Đến ngày</th>
+                        <th>Thời gian</th>
                         <th>Lý do</th>
                         <th>Trạng thái</th>
                         <th>Ghi chú duyệt</th>
                     </tr>
                 </thead>
-                <tbody id="myLeaveTableBody"></tbody>
+                <tbody id="myLeaveTableBody">
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <div class="spinner"></div>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
@@ -43,46 +67,85 @@
 
     function setAlert(message, isError = false) {
         leaveAlert.textContent = message;
-        leaveAlert.style.background = isError ? "#fee2e2" : "#ecfeff";
-        leaveAlert.style.color = isError ? "#991b1b" : "#155e75";
+        leaveAlert.className = `page-alert mt-3 ${isError ? 'error' : 'success'}`;
+        leaveAlert.style.display = 'block';
+        setTimeout(() => leaveAlert.style.display = 'none', 4000);
     }
 
     async function loadMyRequests() {
-        const res = await fetch("/LeaveRequest/Api/MyRequests");
-        const payload = await res.json();
-        if (!payload.success) {
-            setAlert(payload.message || "Không tải được danh sách đơn.", true);
-            return;
+        try {
+            const res = await fetch("/LeaveRequest/Api/MyRequests");
+            const payload = await res.json();
+            if (!payload.success) {
+                body.innerHTML = `<tr><td colspan='4' class="text-center text-danger py-4">${payload.message || "Không tải được danh sách đơn."}</td></tr>`;
+                return;
+            }
+            if (!payload.data.length) {
+                body.innerHTML = "<tr><td colspan='4' class='text-center text-muted py-5'><div class='empty-state'><i class='fa-solid fa-mug-hot'></i><p>Chưa có đơn nghỉ phép nào.</p></div></td></tr>";
+                return;
+            }
+            
+            body.innerHTML = payload.data.map(x => {
+                let statusClass = 'badge-info';
+                let statusText = x.status;
+                if (statusText === 'Approved') { statusClass = 'badge-success'; statusText = 'Đã duyệt'; }
+                else if (statusText === 'Rejected') { statusClass = 'badge-danger'; statusText = 'Từ chối'; }
+                else if (statusText === 'Pending') { statusClass = 'badge-warning'; statusText = 'Chờ duyệt'; }
+
+                return `
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">${x.startDate}</div>
+                        <div class="text-muted" style="font-size: 0.85rem;"><i class="fa-solid fa-arrow-down" style="font-size: 0.7rem; margin: 2px 0;"></i></div>
+                        <div style="font-weight: 600;">${x.endDate}</div>
+                    </td>
+                    <td class="text-muted" style="font-size: 0.9rem; max-width: 200px;">${x.reason || "--"}</td>
+                    <td><span class="badge ${statusClass}">${statusText}</span></td>
+                    <td class="text-muted" style="font-size: 0.9rem;">${x.reviewNote || "--"}</td>
+                </tr>
+            `}).join("");
+        } catch(e) {
+            body.innerHTML = "<tr><td colspan='4' class='text-center text-danger py-4'>Lỗi kết nối.</td></tr>";
         }
-        if (!payload.data.length) {
-            body.innerHTML = "<tr><td colspan='5'>Chưa có đơn nghỉ phép nào.</td></tr>";
-            return;
-        }
-        body.innerHTML = payload.data.map(x => `
-            <tr>
-                <td>${x.startDate}</td>
-                <td>${x.endDate}</td>
-                <td>${x.reason || ""}</td>
-                <td>${x.status}</td>
-                <td>${x.reviewNote || ""}</td>
-            </tr>
-        `).join("");
     }
 
     async function createRequest() {
+        const btn = document.getElementById("btnCreateLeave");
         const startDate = document.getElementById("startDate").value;
         const endDate = document.getElementById("endDate").value;
         const reason = document.getElementById("reason").value;
 
-        const res = await fetch("/LeaveRequest/Api/Create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ startDate, endDate, reason })
-        });
-        const payload = await res.json();
-        setAlert(payload.message || "Đã xử lý.", !payload.success);
-        if (payload.success) {
-            await loadMyRequests();
+        if (!startDate || !endDate) {
+            setAlert("Vui lòng chọn ngày bắt đầu và kết thúc.", true);
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang gửi...';
+
+        try {
+            const res = await fetch("/LeaveRequest/Api/Create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ startDate, endDate, reason })
+            });
+            const payload = await res.json();
+            
+            if (payload.success) {
+                setAlert(payload.message || "Đã gửi đơn nghỉ phép thành công.", false);
+                document.getElementById("startDate").value = '';
+                document.getElementById("endDate").value = '';
+                document.getElementById("reason").value = '';
+                if (window.showToast) window.showToast('Thành công', 'Đã gửi đơn nghỉ phép.', 'success');
+                await loadMyRequests();
+            } else {
+                setAlert(payload.message || "Có lỗi xảy ra.", true);
+            }
+        } catch (e) {
+            setAlert("Lỗi hệ thống.", true);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi đơn';
         }
     }
 

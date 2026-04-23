@@ -3,69 +3,60 @@
     Layout = "_DashboardLayout";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/pages/parent.css" asp-append-version="true" />
-}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Hồ sơ của bé</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Thông tin chi tiết các bé nhà bạn</p>
+    </div>
+</div>
 
-<div class="container-fluid px-4">
-    <h1 class="mt-4">Hồ sơ của bé</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
-        <li class="breadcrumb-item active">Hồ sơ của bé</li>
-    </ol>
-
-    <div class="row g-4">
-        @foreach (var student in Model)
-        {
-            <div class="col-xl-6">
-                <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 16px;">
-                    <div class="card-body p-0">
-                        <div class="row g-0">
-                            <div class="col-md-4 text-center p-4 bg-light d-flex flex-column align-items-center justify-content-center">
-                                <img src="@(student.AvatarPath ?? "/images/lion_orange.png")" 
-                                     class="rounded-circle shadow-sm border border-4 border-white mb-3" 
-                                     style="width: 120px; height: 120px; object-fit: cover;"
-                                     onerror="this.src='/images/lion_orange.png'">
-                                <h4 class="mb-1 fw-bold">@student.FirstName @student.LastName</h4>
-                                <span class="badge bg-primary rounded-pill px-3">@student.Class?.Name</span>
-                            </div>
-                            <div class="col-md-8 p-4">
-                                <h5 class="border-bottom pb-2 mb-3 fw-bold text-primary">Thông tin chi tiết</h5>
-                                <div class="row g-3">
-                                    <div class="col-6">
-                                        <label class="small text-muted d-block">Giới tính</label>
-                                        <span class="fw-bold">@(student.Gender == true ? "Nam" : "Nữ")</span>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="small text-muted d-block">Ngày sinh</label>
-                                        <span class="fw-bold">@(student.DateOfBirth?.ToString("dd/MM/yyyy") ?? "N/A")</span>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="small text-muted d-block">Ngày nhập học</label>
-                                        <span class="fw-bold">@(student.EnrollDate?.ToString("dd/MM/yyyy") ?? "N/A")</span>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="small text-muted d-block">Mã học sinh</label>
-                                        <span class="fw-bold">#@student.Id</span>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="small text-muted d-block">Địa chỉ</label>
-                                        <span class="fw-bold text-truncate d-block">@student.Address</span>
-                                    </div>
-                                </div>
-                                <div class="mt-4 pt-3 border-top d-flex gap-2">
-                                    <a href="/Parent/StudyReports?studentId=@student.Id" class="btn btn-outline-primary btn-sm rounded-pill flex-grow-1">
-                                        <i class="fas fa-chart-line me-1"></i> Học tập
-                                    </a>
-                                    <a href="/Parent/AttendanceReport?studentId=@student.Id" class="btn btn-outline-info btn-sm rounded-pill flex-grow-1">
-                                        <i class="fas fa-calendar-check me-1"></i> Chuyên cần
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+<div class="card-grid" style="grid-template-columns: 1fr 1fr;">
+    @foreach (var student in Model)
+    {
+        <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="background: linear-gradient(135deg, var(--primary) 0%, #4338CA 100%); padding: 32px 24px; text-align: center; color: white;">
+                <img src="@(student.AvatarPath ?? "/images/lion_orange.png")" 
+                     style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255,255,255,0.2); box-shadow: 0 8px 16px rgba(0,0,0,0.1); margin-bottom: 16px; background: white;"
+                     onerror="this.src='/images/lion_orange.png'">
+                <h2 style="margin: 0 0 8px 0; font-size: 1.5rem; font-weight: 700; color: white;">@student.FirstName @student.LastName</h2>
+                <div class="badge" style="background: rgba(255,255,255,0.2); color: white; border: none; font-size: 0.85rem;"><i class="fa-solid fa-school"></i> Lớp @student.Class?.Name</div>
+            </div>
+            
+            <div style="padding: 24px;">
+                <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 16px; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Thông tin cá nhân</h4>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                    <div>
+                        <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Giới tính</div>
+                        <div style="font-weight: 600;">@(student.Gender == true ? "Nam" : "Nữ")</div>
+                    </div>
+                    <div>
+                        <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Ngày sinh</div>
+                        <div style="font-weight: 600;">@(student.DateOfBirth?.ToString("dd/MM/yyyy") ?? "N/A")</div>
+                    </div>
+                    <div>
+                        <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Ngày nhập học</div>
+                        <div style="font-weight: 600;">@(student.EnrollDate?.ToString("dd/MM/yyyy") ?? "N/A")</div>
+                    </div>
+                    <div>
+                        <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Mã học sinh</div>
+                        <div style="font-weight: 600; color: var(--primary);">#@student.Id</div>
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Địa chỉ</div>
+                        <div style="font-weight: 600;">@student.Address</div>
                     </div>
                 </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-top: 1px solid var(--border); padding-top: 20px;">
+                    <a href="/Parent/StudyReports?studentId=@student.Id" class="btn btn-primary" style="justify-content: center;">
+                        <i class="fa-solid fa-chart-line"></i> Học tập
+                    </a>
+                    <a href="/Parent/AttendanceReport?studentId=@student.Id" class="btn btn-outline" style="justify-content: center;">
+                        <i class="fa-solid fa-calendar-check"></i> Chuyên cần
+                    </a>
+                </div>
             </div>
-        }
-    </div>
+        </div>
+    }
 </div>

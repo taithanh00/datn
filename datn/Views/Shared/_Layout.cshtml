@@ -1,101 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - School Management System</title>
-    <script type="importmap"></script>
-    @* <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> *@
-    @* Reset css và khai báo font chữ sử dụng trong dự án  *@
-    <link rel="stylesheet" href="~/css/base/reset.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/base/typography.css" asp-append-version="true" />
-    
-    @* Font Awesome cho Icon *@
+    <title>@ViewData["Title"] - KinderCare</title>
+
+    @* Font Awesome *@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    
-    @* Sử dụng font chữ Plus Jakarta Sans từ Google Fonts *@
+
+    @* Google Fonts *@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    
+
+    @* Design System *@
     <link rel="stylesheet" href="~/css/modern-ui.css" asp-append-version="true" />
-    
-    @*Để cho từng page tự định nghĩa CSS*@
+    <link rel="stylesheet" href="~/css/components.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dark-mode.css" asp-append-version="true" />
+
+    @* Instant theme apply to avoid flash *@
+    <script>
+        (function(){
+            var t = localStorage.getItem('kindercare-theme');
+            if (t) document.documentElement.setAttribute('data-theme', t);
+            else if (window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'dark');
+        })();
+    </script>
+
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body> 
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <div class="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <i class="fa-solid fa-graduation-cap mr-2"></i>
+                <i class="fa-solid fa-graduation-cap" style="font-size:1.4rem"></i>
                 <span>KinderCare</span>
             </div>
-            
+
             <nav class="sidebar-nav">
-                <a href="/" class="nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" && ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")">
+                <a href="/" class="nav-item" data-transition>
                     <i class="fa-solid fa-chart-line"></i> Tổng quan
                 </a>
 
                 @if (User.IsInRole("Manager"))
                 {
                     <div class="nav-label">Quản trị hệ thống</div>
-                    <a href="/Manager/Classes" class="nav-item">
+                    <a href="/Manager/Classes" class="nav-item" data-transition>
                         <i class="fa-solid fa-school"></i> Quản lý Lớp học
                     </a>
-                    <a href="/Manager/Students" class="nav-item">
+                    <a href="/Manager/Students" class="nav-item" data-transition>
                         <i class="fa-solid fa-user-graduate"></i> Quản lý Học sinh
                     </a>
-                    <a href="/Manager/Employees" class="nav-item">
+                    <a href="/Manager/Teachers" class="nav-item" data-transition>
                         <i class="fa-solid fa-user-tie"></i> Quản lý Nhân sự
                     </a>
-
-                    <div class="nav-label">Đào tạo & Tài chính</div>
-                    <a href="/Manager/Schedules" class="nav-item">
-                        <i class="fa-solid fa-calendar-days"></i> Thời khóa biểu
+                    <a href="/Manager/Activities" class="nav-item" data-transition>
+                        <i class="fa-solid fa-calendar-star"></i> Hoạt động
                     </a>
-                    <a href="/Tuition" class="nav-item">
+
+                    <div class="nav-label">Đào tạo &amp; Tài chính</div>
+                    <a href="/Manager/Assignments" class="nav-item" data-transition>
+                        <i class="fa-solid fa-calendar-days"></i> Phân công giảng dạy
+                    </a>
+                    <a href="/Manager/TeachingPlans" class="nav-item" data-transition>
+                        <i class="fa-solid fa-list-check"></i> Kế hoạch giảng dạy
+                    </a>
+                    <a href="/Tuition" class="nav-item" data-transition>
                         <i class="fa-solid fa-file-invoice-dollar"></i> Quản lý Học phí
                     </a>
-                    <a href="/TeacherSalary" class="nav-item">
+                    <a href="/TeacherSalary" class="nav-item" data-transition>
                         <i class="fa-solid fa-money-check-dollar"></i> Quản lý Tiền lương
+                    </a>
+
+                    <div class="nav-label">Phê duyệt</div>
+                    <a href="/LeaveApproval" class="nav-item" data-transition>
+                        <i class="fa-solid fa-clipboard-check"></i> Duyệt nghỉ phép
                     </a>
                 }
 
                 @if (User.IsInRole("Employee"))
                 {
                     <div class="nav-label">Giảng dạy</div>
-                    <a href="/Employee/MyClasses" class="nav-item">
-                        <i class="fa-solid fa- chalkboard-user"></i> Lớp của tôi
+                    <a href="/Employee/Classes" class="nav-item" data-transition>
+                        <i class="fa-solid fa-chalkboard-user"></i> Lớp của tôi
                     </a>
-                    <a href="/Employee/Attendance" class="nav-item">
+                    <a href="/Employee/Attendance" class="nav-item" data-transition>
                         <i class="fa-solid fa-clipboard-user"></i> Điểm danh bé
                     </a>
-                    
+                    <a href="/Employee/StudyReport" class="nav-item" data-transition>
+                        <i class="fa-solid fa-file-signature"></i> Nhận xét & Báo cáo
+                    </a>
+                    <a href="/Employee/TeachingPlan" class="nav-item" data-transition>
+                        <i class="fa-solid fa-book-open-reader"></i> Kế hoạch giảng dạy
+                    </a>
+                    <a href="/Employee/Activities" class="nav-item" data-transition>
+                        <i class="fa-solid fa-calendar-check"></i> Hoạt động
+                    </a>
+
                     <div class="nav-label">Cá nhân</div>
-                    <a href="/Employee/WorkAttendance" class="nav-item">
+                    <a href="/TimeAttendance" class="nav-item" data-transition>
                         <i class="fa-solid fa-clock"></i> Chấm công
                     </a>
-                    <a href="/Employee/LeaveRequest" class="nav-item">
+                    <a href="/LeaveRequest" class="nav-item" data-transition>
                         <i class="fa-solid fa-calendar-minus"></i> Xin nghỉ phép
+                    </a>
+                    <a href="/Employee/WorkSchedule" class="nav-item" data-transition>
+                        <i class="fa-solid fa-calendar-days"></i> Lịch dạy cá nhân
+                    </a>
+                    <a href="/TeacherSalary/MySalary" class="nav-item" data-transition>
+                        <i class="fa-solid fa-wallet"></i> Phiếu lương
                     </a>
                 }
 
                 @if (User.IsInRole("Parent"))
                 {
                     <div class="nav-label">Thông tin của bé</div>
-                    <a href="/Parent/MyStudent" class="nav-item">
-                        <i class="fa-solid fa-child"></i> Kết quả học tập
+                    <a href="/Parent/Children" class="nav-item" data-transition>
+                        <i class="fa-solid fa-child"></i> Con của tôi
                     </a>
-                    <a href="/Parent/Tuition" class="nav-item">
-                        <i class="fa-solid fa-wallet"></i> Học phí của bé
+                    <a href="/Parent/AttendanceReport" class="nav-item" data-transition>
+                        <i class="fa-solid fa-calendar-check"></i> Chuyên cần
+                    </a>
+                    <a href="/Parent/StudyReports" class="nav-item" data-transition>
+                        <i class="fa-solid fa-chart-bar"></i> Kết quả học tập
+                    </a>
+                    <a href="/Parent/TeachingPlan" class="nav-item" data-transition>
+                        <i class="fa-solid fa-book"></i> Kế hoạch lớp
+                    </a>
+                    <a href="/Parent/Activities" class="nav-item" data-transition>
+                        <i class="fa-solid fa-calendar-heart"></i> Hoạt động của bé
+                    </a>
+                    <a href="/Tuition/MyTuition" class="nav-item" data-transition>
+                        <i class="fa-solid fa-wallet"></i> Học phí
                     </a>
                 }
 
                 <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border);">
+                    <a href="/Account/Profile" class="nav-item" data-transition>
+                        <i class="fa-solid fa-user-gear"></i> Tài khoản
+                    </a>
                     <form asp-controller="Auth" asp-action="Logout" method="post">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="nav-item" style="width: 100%; background: none; border: none; cursor: pointer;">
+                        <button type="submit" class="nav-item" style="width:100%; background:none; border:none; cursor:pointer; text-align:left; font-family:inherit; font-size:inherit; color:inherit;">
                             <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
                         </button>
                     </form>
@@ -106,30 +155,45 @@
         <!-- Main Content -->
         <div class="main-wrapper">
             <header class="header">
-                <div class="header-left">
-                    <div class="breadcrumb">Dashboards / <span>@ViewData["Title"]</span></div>
+                <div class="header-left d-flex align-center gap-2">
+                    <button class="hamburger" id="hamburgerBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="breadcrumb">
+                        @{
+                            var controller = ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
+                            var action = ViewContext.RouteData.Values["Action"]?.ToString() ?? "";
+                        }
+                        <span style="color:var(--text-muted)">@controller</span> / <span>@ViewData["Title"]</span>
+                    </div>
                 </div>
-                <div class="header-right">
-                    <div class="user-profile" style="display: flex; align-items: center; gap: 12px;">
-                        <div class="user-info" style="text-align: right;">
-                            <div style="font-size: 0.85rem; font-weight: 600;">@User.Identity?.Name</div>
-                            <div style="font-size: 0.75rem; color: var(--text-muted);">
+                <div class="header-right d-flex align-center gap-2">
+                    <button class="theme-toggle" id="themeToggle" data-tooltip="Chuyển giao diện">
+                        <i class="fa-solid fa-moon"></i>
+                        <i class="fa-solid fa-sun"></i>
+                    </button>
+                    <div class="d-flex align-center gap-1" style="cursor:pointer;">
+                        <div style="text-align:right;">
+                            <div style="font-size:0.85rem; font-weight:600;">@User.Identity?.Name</div>
+                            <div style="font-size:0.72rem; color:var(--text-muted);">
                                 @(User.IsInRole("Manager") ? "Quản lý" : User.IsInRole("Employee") ? "Giáo viên" : "Phụ huynh")
                             </div>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name=@User.Identity?.Name&background=007AFF&color=fff" 
-                             alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%;">
+                        <img src="/images/lion_orange.png"
+                             alt="Avatar" style="width:36px; height:36px; border-radius:50%; border:2px solid white;">
                     </div>
                 </div>
             </header>
 
-            <main class="content-body">
+            <main class="content-body page-wrapper">
                 @RenderBody()
             </main>
         </div>
     </div>
 
-    @* Để cho từng page tự định nghĩa JS *@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script src="~/js/app.js" asp-append-version="true"></script>
+    <script src="~/js/layout.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

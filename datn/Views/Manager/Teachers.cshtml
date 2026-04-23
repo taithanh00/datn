@@ -1,134 +1,107 @@
 @{
-    ViewData["Title"] = "Danh sách Giáo viên";
+    ViewData["Title"] = "Nhân sự";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/pages/teachers.css" asp-append-version="true" />
-}
-
-<div class="dashboard-card">
-    <div class="card-header">
-        <h2 style="margin: 0;">👨‍🏫 Quản lý Giáo viên</h2>
-        <button class="btn-create" id="btnCreateTeacher">
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-            Thêm giáo viên
-        </button>
-    </div>
-
-    <div class="card-body">
-        <!-- Teachers Table -->
-        <div class="table-responsive">
-            <table class="teachers-table" id="teachersTable">
-                <thead>
-                    <tr>
-                        <th>STT</th>
-                        <th>Họ và tên</th>
-                        <th>Điện thoại</th>
-                        <th>Chức vụ</th>
-                        <th>Trạng thái</th>
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody id="teachersTableBody">
-                    <tr class="loading-row">
-                        <td colspan="6" style="text-align: center; padding: 40px;">
-                            <div class="spinner"></div>
-                            <p>Đang tải dữ liệu...</p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+<div class="page-header">
+    <h1 class="page-title">Quản lý Nhân sự</h1>
+    <div class="page-actions">
+        <div class="search-bar">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="searchTeachers" placeholder="Tìm kiếm nhân sự..." />
         </div>
+        <button class="btn btn-primary" id="btnCreateTeacher">
+            <i class="fa-solid fa-plus"></i> Thêm giáo viên
+        </button>
     </div>
 </div>
 
-<!-- Modal Overlay -->
+<div class="card">
+    <div class="table-container">
+        <table id="teachersTable">
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Họ và tên</th>
+                    <th>Điện thoại</th>
+                    <th>Chức vụ</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="teachersTableBody">
+                <tr class="loading-row">
+                    <td colspan="6" style="text-align:center; padding:40px;">
+                        <div class="spinner"></div>
+                        <p class="text-muted">Đang tải dữ liệu...</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <div class="modal-overlay" id="modalOverlay"></div>
 
-<!-- Slide-out Panel for Edit -->
 <div class="slide-panel" id="slidePanel">
     <div class="slide-panel-header">
         <h3 id="panelTitle">Thông tin giáo viên</h3>
         <button class="close-btn" id="closePanelBtn">
-            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <i class="fa-solid fa-xmark" style="font-size:1.2rem;"></i>
         </button>
     </div>
-
     <div class="slide-panel-body">
-        <form id="editTeacherForm" class="edit-form">
+        <form id="editTeacherForm">
             <input type="hidden" id="teacherId" />
 
             <div class="form-section">
                 <h4>Thông tin tài khoản</h4>
                 <div class="form-group" id="usernameGroup">
-                    <label for="username">Tên đăng nhập <span class="text-danger">*</span></label>
+                    <label class="form-label" for="username">Tên đăng nhập <span class="text-danger">*</span></label>
                     <input type="text" id="username" name="Username" class="form-control" placeholder="Nhập tên đăng nhập" required />
                 </div>
-
                 <div class="form-group">
-                    <label for="email">Email <span class="text-danger">*</span></label>
-                    <input type="email" id="email" name="Email" class="form-control" placeholder="Nhập địa chỉ email" required />
+                    <label class="form-label" for="email">Email <span class="text-danger">*</span></label>
+                    <input type="email" id="email" name="Email" class="form-control" placeholder="Nhập email" required />
                 </div>
-
                 <div class="form-group" id="passwordGroup">
-                    <label for="password">Mật khẩu</label>
-                    <input type="password" id="password" name="Password" class="form-control" placeholder="Để trống nếu dùng mặc định (123456)" />
+                    <label class="form-label" for="password">Mật khẩu</label>
+                    <input type="password" id="password" name="Password" class="form-control" placeholder="Mặc định: 123456" />
                 </div>
             </div>
 
             <div class="form-section">
-                <h4>Thông tin cơ bản</h4>
-
-                <div class="form-group mb-4 text-center">
-                    <label>Ảnh đại diện</label>
+                <h4>Thông tin cá nhân</h4>
+                <div class="form-group" style="text-align:center; margin-bottom:20px;">
                     <div class="avatar-upload-container">
-                        <img id="avatarPreview" src="/images/lion_blue.png" alt="Avatar Preview" class="img-thumbnail rounded-circle mb-2" style="width: 120px; height: 120px; object-fit: cover;" />
-                        <input type="file" id="avatarFile" name="Avatar" class="form-control" accept="image/*" onchange="previewAvatar(this)" />
+                        <img id="avatarPreview" src="/images/lion_blue.png" alt="Avatar" style="width:100px; height:100px; object-fit:cover;" />
+                        <input type="file" id="avatarFile" name="Avatar" class="form-control" accept="image/*" onchange="previewAvatar(this)" style="margin-top:12px;" />
                     </div>
                 </div>
-
                 <div class="form-group">
-                    <label for="fullName">Họ và tên</label>
+                    <label class="form-label" for="fullName">Họ và tên</label>
                     <input type="text" id="fullName" name="FullName" class="form-control" placeholder="Nhập họ và tên" required />
                 </div>
-
                 <div class="form-group">
-                    <label for="phone">Điện thoại</label>
-                    <input type="tel" id="phone" name="Phone" class="form-control" placeholder="Nhập số điện thoại" />
+                    <label class="form-label" for="phone">Điện thoại</label>
+                    <input type="tel" id="phone" name="Phone" class="form-control" placeholder="Nhập SĐT" />
                 </div>
-
                 <div class="form-group">
-                    <label for="position">Chức vụ</label>
-                    <input type="text" id="position" name="Position" class="form-control" placeholder="Nhập chức vụ (vd: Giáo viên môn Toán)" />
+                    <label class="form-label" for="position">Chức vụ</label>
+                    <input type="text" id="position" name="Position" class="form-control" placeholder="VD: Giáo viên" />
                 </div>
-
                 <div class="form-group">
-                    <label for="baseSalary">Lương cơ bản</label>
-                    <input type="number" id="baseSalary" name="BaseSalary" class="form-control" placeholder="Nhập lương cơ bản" step="0.01" />
+                    <label class="form-label" for="baseSalary">Lương cơ bản</label>
+                    <input type="number" id="baseSalary" name="BaseSalary" class="form-control" step="0.01" />
                 </div>
             </div>
 
-            <!-- Alert Messages -->
-            <div id="editFormAlert" class="form-alert" style="display: none;"></div>
+            <div id="editFormAlert" class="form-alert" style="display:none;"></div>
 
-            <!-- Action Buttons -->
             <div class="form-actions">
-                <button type="submit" class="btn-save">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.3A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
-                    </svg>
-                    Lưu thay đổi
-                </button>
-                <button type="button" class="btn-delete" id="deleteTeacherBtn" style="display: none;">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                    </svg>
-                    Xóa giáo viên
+                <button type="submit" class="btn-save"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu</button>
+                <button type="button" class="btn-delete" id="deleteTeacherBtn" style="display:none;">
+                    <i class="fa-solid fa-trash"></i> Xóa
                 </button>
             </div>
         </form>

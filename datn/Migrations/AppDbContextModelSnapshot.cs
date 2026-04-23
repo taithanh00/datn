@@ -217,6 +217,9 @@ namespace datn.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("LocationId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Note")
                         .HasColumnType("nvarchar(max)");
 
@@ -229,6 +232,8 @@ namespace datn.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EmployeeId");
+
+                    b.HasIndex("LocationId");
 
                     b.HasIndex("SubjectId");
 
@@ -544,6 +549,9 @@ namespace datn.Migrations
 
                     b.Property<bool>("IsRevoked")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("RevokedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Token")
                         .IsRequired()
@@ -965,6 +973,11 @@ namespace datn.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("datn.Models.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("datn.Models.Subject", "Subject")
                         .WithMany("ClassSchedules")
                         .HasForeignKey("SubjectId")
@@ -974,6 +987,8 @@ namespace datn.Migrations
                     b.Navigation("Class");
 
                     b.Navigation("Employee");
+
+                    b.Navigation("Location");
 
                     b.Navigation("Subject");
                 });

@@ -3,138 +3,65 @@
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/pages/tuition.css" asp-append-version="true" />
-}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Theo dõi nộp học phí</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Kiểm tra và xác nhận tình trạng đóng phí của học sinh</p>
+    </div>
+</div>
 
-<div class="tuition-container">
-    <div class="tuition-card">
-        <div class="tuition-header">
-            <div>
-                <h2>Theo dõi nộp học phí</h2>
-                <div class="section-subtitle">Kiểm tra và xác nhận tình trạng đóng phí của học sinh</div>
-            </div>
+<div class="card mb-4">
+    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+            <label class="form-label">Tháng</label>
+            <select id="monMonth" class="form-select" onchange="loadMonitoring()">
+                @for (int i = 1; i <= 12; i++) {
+                    var isSelected = DateTime.Now.Month == i;
+                    <option value="@i" selected="@isSelected">Tháng @i</option>
+                }
+            </select>
         </div>
-
-        <!-- Filter Bar -->
-        <div class="filter-bar" style="background: #f9fafb; padding: 20px; border-radius: 12px; margin-bottom: 24px; display: flex; gap: 15px;">
-            <div style="flex: 1;">
-                <label class="form-label">Tháng</label>
-                <select id="monMonth" class="form-select" onchange="loadMonitoring()">
-                    @for (int i = 1; i <= 12; i++) {
-                        var isSelected = DateTime.Now.Month == i;
-                        <option value="@i" selected="@isSelected">Tháng @i</option>
-                    }
-                </select>
-            </div>
-            <div style="flex: 1;">
-                <label class="form-label">Năm</label>
-                <select id="monYear" class="form-select" onchange="loadMonitoring()">
-                    <option value="2026" selected>2026</option>
-                    <option value="2027">2027</option>
-                </select>
-            </div>
-            <div style="flex: 1;">
-                <label class="form-label">Trạng thái</label>
-                <select id="monStatus" class="form-select" onchange="loadMonitoring()">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="true">Đã hoàn thành</option>
-                    <option value="false">Chưa thanh toán</option>
-                </select>
-            </div>
+        <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+            <label class="form-label">Năm</label>
+            <select id="monYear" class="form-select" onchange="loadMonitoring()">
+                <option value="2026" selected>2026</option>
+                <option value="2027">2027</option>
+            </select>
         </div>
-
-        <div class="table-responsive">
-            <table class="custom-table">
-                <thead>
-                    <tr>
-                        <th>Học sinh</th>
-                        <th>Lớp học</th>
-                        <th>Học phí + Phụ phí</th>
-                        <th style="text-align: center;">Tình trạng</th>
-                        <th style="text-align: right;">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody id="monitoringTable">
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 40px; color: #9ca3af;">
-                            <i class="fas fa-circle-notch fa-spin me-2"></i> Đang tải dữ liệu...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+            <label class="form-label">Trạng thái</label>
+            <select id="monStatus" class="form-select" onchange="loadMonitoring()">
+                <option value="">Tất cả trạng thái</option>
+                <option value="true">Đã hoàn thành</option>
+                <option value="false">Chưa thanh toán</option>
+            </select>
         </div>
     </div>
 </div>
 
+<div class="card">
+    <div class="table-container">
+        <table id="monitoringTableEl">
+            <thead>
+                <tr>
+                    <th>Học sinh</th>
+                    <th>Lớp học</th>
+                    <th>Học phí + Phụ phí</th>
+                    <th style="text-align: center;">Tình trạng</th>
+                    <th style="text-align: right;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="monitoringTable">
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <div class="spinner"></div><p class="mt-2">Đang tải dữ liệu...</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 @section Scripts {
-    <script>
-        $(document).ready(function() {
-            loadMonitoring();
-        });
-
-        async function loadMonitoring() {
-            const month = $('#monMonth').val();
-            const year = $('#monYear').val();
-            const isPaid = $('#monStatus').val();
-
-            try {
-                const res = await fetch(`/Tuition/Api/Monitoring?month=${month}&year=${year}${isPaid ? '&isPaid=' + isPaid : ''}`);
-                const data = await res.json();
-                if (data.success) {
-                    const tbody = $('#monitoringTable');
-                    if (data.data.length === 0) {
-                        tbody.html('<tr><td colspan="5" style="text-align:center; padding: 40px; color:#9ca3af;">Không có dữ liệu hóa đơn nào cho kỳ này.</td></tr>');
-                        return;
-                    }
-
-                    tbody.html(data.data.map(t => `
-                        <tr>
-                            <td>
-                                <div class="student-name-cell">${t.studentName}</div>
-                                <div style="font-size: 11px; color: #9ca3af;">ID: #${t.id}</div>
-                            </td>
-                            <td>
-                                <div class="class-name-cell">${t.className}</div>
-                            </td>
-                            <td>
-                                <div class="amount-cell">${new Intl.NumberFormat('vi-VN').format(t.total)} đ</div>
-                                ${t.extraFee > 0 ? `<div style="font-size: 11px; color: #10b981;">+ Phụ phí: ${new Intl.NumberFormat('vi-VN').format(t.extraFee)} đ</div>` : ''}
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="${t.isPaid ? 'status-paid' : 'status-unpaid'}">
-                                    ${t.isPaid ? '<i class="fa-solid fa-check-circle"></i> Đã nộp' : '<i class="fa-solid fa-clock"></i> Chờ nộp'}
-                                </span>
-                            </td>
-                            <td style="text-align: right;">
-                                ${!t.isPaid ? `
-                                    <button class="btn btn-sm btn-success" onclick="confirmPaid(${t.id})" 
-                                            style="border-radius: 8px; font-weight: 600; padding: 6px 12px; font-size: 12px; border: none; background: #059669;">
-                                        Xác nhận nộp
-                                    </button>` : `
-                                    <button class="btn btn-sm btn-outline-secondary" disabled 
-                                            style="border-radius: 8px; font-weight: 600; padding: 6px 12px; font-size: 12px; border: none;">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                `}
-                            </td>
-                        </tr>
-                    `).join(''));
-                }
-            } catch (e) { console.error("Load monitoring failed", e); }
-        }
-
-        async function confirmPaid(id) {
-            if (!confirm("Bạn có chắc chắn xác nhận học sinh này đã hoàn thành nghĩa vụ học phí?")) return;
-
-            try {
-                const res = await fetch(`/Tuition/Api/ConfirmPaid/${id}`, { method: 'POST' });
-                const result = await res.json();
-                if (result.success) {
-                    loadMonitoring();
-                    if (window.showToast) window.showToast('Thành công', result.message, 'success');
-                }
-            } catch (e) { console.error("Confirm paid failed", e); }
-        }
-    </script>
+    <script src="~/js/pages/tuition-monitoring.js" asp-append-version="true"></script>
 }

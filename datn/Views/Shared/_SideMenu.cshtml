@@ -362,32 +362,4 @@
     </div>
 </aside>
 
-<script>
-    document.getElementById('sidebarToggleMobile')?.addEventListener('click', function () {
-        document.querySelector('.sidebar')?.classList.toggle('mobile-open');
-    });
 
-    function initMenuToggle(toggleId, subMenuId) {
-        document.getElementById(toggleId)?.addEventListener('click', function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-
-            const subMenu = document.getElementById(subMenuId);
-            const chevron = this.querySelector('.nav-chevron');
-            const isOpen = subMenu?.style.display !== 'none';
-
-            if (subMenu) {
-                subMenu.style.display = isOpen ? 'none' : 'block';
-            }
-
-            this.setAttribute('aria-expanded', (!isOpen).toString());
-
-            if (chevron) {
-                chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
-            }
-        });
-    }
-
-    initMenuToggle('teacherMenuToggle', 'teacherSubMenu');
-    initMenuToggle('financeMenuToggle', 'financeSubMenu');
-</script>

@@ -13,6 +13,14 @@ document.addEventListener('DOMContentLoaded', function () {
 async function initializeTeachersPage() {
     setupEventListeners();
     await loadTeachers();
+    
+    // Khởi tạo pagination và search sau khi dữ liệu đã được load và render
+    if (typeof initPagination === 'function') {
+        initPagination('teachersTable', 15);
+    }
+    if (typeof initTableSearch === 'function') {
+        initTableSearch('searchTeachers', 'teachersTable');
+    }
 }
 
 // ====== EVENT LISTENERS SETUP ======

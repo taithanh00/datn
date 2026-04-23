@@ -1,0 +1,8 @@
+.attendance-row { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border); }
+.attendance-row:last-child { border-bottom:none; }
+.att-options { display:flex; gap:8px; }
+.att-btn { padding:8px 16px; border-radius:8px; border:1px solid var(--border); cursor:pointer; font-size:0.85rem; font-weight:600; transition:all 0.2s; background:var(--bg-card); color:var(--text-secondary); }
+.att-btn:hover { border-color:var(--primary); }
+.att-btn.selected-present { background:rgba(52,211,153,0.15); border-color:var(--success); color:#059669; }
+.att-btn.selected-excused { background:rgba(251,191,36,0.15); border-color:var(--warning); color:#D97706; }
+.att-btn.selected-absent { background:rgba(248,113,113,0.15); border-color:var(--danger); color:#DC2626; }
