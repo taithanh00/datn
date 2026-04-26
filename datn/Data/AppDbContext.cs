@@ -91,6 +91,10 @@ namespace datn.Data
                 .HasForeignKey(s => s.ClassId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<Student>()
+                .HasIndex(s => s.StudentCode)
+                .IsUnique();
+
             // ── ParentStudent (composite PK) ──────────────────────
             modelBuilder.Entity<ParentStudent>()
                 .HasKey(ps => new { ps.ParentId, ps.StudentId });

@@ -1,2 +1,0 @@
-D:\datn\datn\datn\wwwroot\css\site.css
-D:\datn\datn\datn\wwwroot\js\site.js

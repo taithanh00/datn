@@ -1,0 +1,322 @@
+@model datn.Models.Student
+@{
+    Layout = "_DashboardLayout";
+}
+
+<div class="page-header">
+    <div class="header-left">
+        <div class="header-icon">
+            <i class="fa-solid fa-user-graduate"></i>
+        </div>
+        <div>
+            <h2 class="page-title">Hồ sơ học sinh</h2>
+            <p class="page-subtitle">Quản lý thông tin chi tiết của học sinh</p>
+        </div>
+    </div>
+    <div class="header-actions">
+        <a href="/Manager/Students" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+<div class="student-profile-grid">
+    <!-- Left Column: Avatar & Basic Stats -->
+    <div class="profile-sidebar">
+        <div class="card profile-card">
+            <div class="avatar-wrapper">
+                <img src="@(Model.AvatarPath ?? "/images/lion_orange.png")" alt="Avatar" />
+                <div class="status-indicator active"></div>
+            </div>
+            <h3 class="student-name">@Model.FirstName @Model.LastName</h3>
+            <span class="student-code">@Model.StudentCode</span>
+            
+            <div class="quick-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Lớp</span>
+                    <span class="stat-value">@(Model.Class?.Name ?? "N/A")</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Giới tính</span>
+                    <span class="stat-value">@(Model.Gender ? "Nam" : "Nữ")</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card info-card mt-4">
+            <h4>Thông tin liên hệ</h4>
+            <div class="info-list">
+                <div class="info-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <div>
+                        <label>Địa chỉ</label>
+                        <p>@(Model.Address ?? "Chưa cập nhật")</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fa-solid fa-calendar-day"></i>
+                    <div>
+                        <label>Ngày nhập học</label>
+                        <p>@(Model.EnrollDate?.ToString("dd/MM/yyyy") ?? "N/A")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Detailed Info & Tabs -->
+    <div class="profile-main">
+        <div class="card main-card">
+            <div class="card-header-tabs">
+                <button class="tab-btn active" data-tab="basic">Thông tin cá nhân</button>
+                <button class="tab-btn" data-tab="parents">Phụ huynh</button>
+                <button class="tab-btn" data-tab="history">Lịch sử học tập</button>
+            </div>
+            
+            <div class="tab-content active" id="basic">
+                <div class="detail-grid">
+                    <div class="detail-group">
+                        <label>Họ</label>
+                        <p>@Model.LastName</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Tên</label>
+                        <p>@Model.FirstName</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Ngày sinh</label>
+                        <p>@Model.DateOfBirth.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Giới tính</label>
+                        <p>@(Model.Gender ? "Nam" : "Nữ")</p>
+                    </div>
+                    <div class="detail-group full-width">
+                        <label>Ghi chú</label>
+                        <p class="text-muted">Chưa có ghi chú nào cho học sinh này.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="parents">
+                <div class="detail-grid">
+                    <div class="detail-group">
+                        <label>Họ tên Bố</label>
+                        <p>@(Model.FatherName ?? "Chưa cập nhật")</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Họ tên Mẹ</label>
+                        <p>@(Model.MotherName ?? "Chưa cập nhật")</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="history">
+                <div class="empty-state">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <p>Chưa có dữ liệu lịch sử học tập</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .student-profile-grid {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 24px;
+        margin-top: 24px;
+    }
+
+    .profile-card {
+        text-align: center;
+        padding: 40px 24px;
+    }
+
+    .avatar-wrapper {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 20px;
+    }
+
+    .avatar-wrapper img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--bg-main);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .status-indicator {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 3px solid white;
+    }
+
+    .status-indicator.active { background: #10b981; }
+
+    .student-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .student-code {
+        display: inline-block;
+        background: var(--primary-soft);
+        color: var(--primary);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-bottom: 24px;
+    }
+
+    .quick-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border-top: 1px solid var(--border);
+        padding-top: 20px;
+    }
+
+    .stat-item .stat-label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .stat-item .stat-value {
+        font-weight: 600;
+        color: var(--text-main);
+    }
+
+    .info-card h4 {
+        margin-bottom: 20px;
+        font-size: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .info-item i {
+        color: var(--primary);
+        font-size: 1.1rem;
+        margin-top: 4px;
+    }
+
+    .info-item label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-bottom: 2px;
+    }
+
+    .info-item p {
+        margin: 0;
+        font-weight: 500;
+    }
+
+    /* Main Card Styling */
+    .card-header-tabs {
+        display: flex;
+        gap: 32px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 30px;
+        padding: 0 24px;
+    }
+
+    .tab-btn {
+        background: none;
+        border: none;
+        padding: 16px 0;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        position: relative;
+        transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+        color: var(--primary);
+    }
+
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: var(--primary);
+    }
+
+    .tab-content {
+        display: none;
+        padding: 0 24px 30px;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    .detail-group label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+
+    .detail-group p {
+        background: var(--bg-main);
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+        margin: 0;
+    }
+
+    .detail-group.full-width {
+        grid-column: span 2;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 0;
+        color: var(--text-muted);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+</style>
+
+<script>
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            btn.classList.add('active');
+            document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+    });
+</script>

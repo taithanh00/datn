@@ -21,19 +21,25 @@
         <table id="studentsTable">
             <thead>
                 <tr>
-                    <th>STT</th>
-                    <th>Ảnh</th>
-                    <th>Họ và tên</th>
+                    <th class="sticky-col first-col">STT</th>
+                    <th class="sticky-col second-col">Mã HS</th>
+                    <th class="sticky-col third-col">Ảnh</th>
+                    <th class="sticky-col fourth-col">Họ và tên</th>
+                    <th>Trạng thái</th>
                     <th>Giới tính</th>
                     <th>Ngày sinh</th>
+                    <th>Tên Bố</th>
+                    <th>Tên Mẹ</th>
+                    <th>Địa chỉ</th>
                     <th>Lớp</th>
                     <th>Ngày nhập học</th>
-                    <th>Hành động</th>
+                    <th>Ngày tạo</th>
+                    <th class="text-end">Hành động</th>
                 </tr>
             </thead>
             <tbody id="studentsTableBody">
                 <tr class="loading-row">
-                    <td colspan="8" style="text-align:center; padding:40px;">
+                    <td colspan="14" style="text-align:center; padding:40px;">
                         <div class="spinner"></div>
                         <p class="text-muted">Đang tải dữ liệu...</p>
                     </td>
@@ -60,10 +66,17 @@
 
             <div class="form-section">
                 <h4>Thông tin cơ bản</h4>
-                <div class="form-group" style="text-align:center; margin-bottom:20px;">
-                    <div class="avatar-upload-container">
-                        <img id="avatarPreview" src="/images/lion_orange.png" alt="Avatar" style="width:100px; height:100px; object-fit:cover;" />
-                        <input type="file" id="avatarFile" name="Avatar" class="form-control" accept="image/*" onchange="previewAvatar(this)" style="margin-top:12px;" />
+                <div class="form-group" style="text-align:center; margin-bottom:24px;">
+                    <div class="avatar-upload-wrapper">
+                        <div class="avatar-preview-container" onclick="document.getElementById('avatarFile').click()">
+                            <img id="avatarPreview" src="/images/lion_orange.png" alt="Avatar Preview">
+                            <div class="avatar-overlay">
+                                <i class="fa-solid fa-camera"></i>
+                                <span>THAY ĐỔI</span>
+                            </div>
+                        </div>
+                        <input type="file" id="avatarFile" name="Avatar" accept="image/*" hidden onchange="previewAvatar(this)">
+                        <p class="text-muted small mt-2">Nhấp vào ảnh để thay đổi</p>
                     </div>
                 </div>
                 <div class="form-group">
@@ -88,7 +101,28 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="address">Địa chỉ</label>
-                    <textarea id="address" name="Address" class="form-control" rows="3" placeholder="Nhập địa chỉ"></textarea>
+                    <textarea id="address" name="Address" class="form-control" rows="2" placeholder="Nhập địa chỉ"></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="fatherName">Tên bố</label>
+                            <input type="text" id="fatherName" name="FatherName" class="form-control" placeholder="Họ tên bố" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="motherName">Tên mẹ</label>
+                            <input type="text" id="motherName" name="MotherName" class="form-control" placeholder="Họ tên mẹ" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="status">Trạng thái</label>
+                    <select id="status" name="Status" class="form-control">
+                        <option value="0">Đang học</option>
+                        <option value="1">Đã nghỉ</option>
+                    </select>
                 </div>
             </div>
 
@@ -117,6 +151,27 @@
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/students.css" asp-append-version="true" />
+}
+
+<!-- Duplicate Confirmation Modal -->
+<div class="modal-overlay" id="duplicateModalOverlay" style="z-index: 1001;"></div>
+<div class="confirm-modal" id="duplicateModal">
+    <div class="confirm-modal-header">
+        <i class="fa-solid fa-triangle-exclamation text-warning"></i>
+        <h4>Cảnh báo trùng lặp</h4>
+    </div>
+    <div class="confirm-modal-body">
+        <p id="duplicateMessage"></p>
+    </div>
+    <div class="confirm-modal-footer">
+        <button type="button" class="btn-secondary" id="viewExistingBtn">Xem hồ sơ cũ</button>
+        <button type="button" class="btn-primary" id="forceCreateBtn">Vẫn tạo mới</button>
+        <button type="button" class="btn-link" id="cancelDuplicateBtn">Hủy</button>
     </div>
 </div>
 

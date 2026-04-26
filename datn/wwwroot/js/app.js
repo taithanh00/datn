@@ -2,23 +2,13 @@
 (function () {
     'use strict';
 
-    // === Dark Mode ===
-    const THEME_KEY = 'kindercare-theme';
-
     function initTheme() {
-        const saved = localStorage.getItem(THEME_KEY);
+        const saved = localStorage.getItem('kindercare-theme');
         if (saved) {
             document.documentElement.setAttribute('data-theme', saved);
         } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.setAttribute('data-theme', 'dark');
         }
-    }
-
-    function toggleTheme() {
-        const current = document.documentElement.getAttribute('data-theme');
-        const next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem(THEME_KEY, next);
     }
 
     // === Sidebar Active State ===
@@ -35,25 +25,7 @@
         });
     }
 
-    // === Mobile Sidebar ===
-    function initMobileSidebar() {
-        const hamburger = document.querySelector('.hamburger');
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.querySelector('.sidebar-overlay');
 
-        if (hamburger) {
-            hamburger.addEventListener('click', () => {
-                sidebar.classList.toggle('open');
-                overlay.classList.toggle('show');
-            });
-        }
-        if (overlay) {
-            overlay.addEventListener('click', () => {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('show');
-            });
-        }
-    }
 
     // === Page Transitions ===
     function initPageTransitions() {
@@ -84,22 +56,39 @@
         const tbody = table.querySelector('tbody');
         if (!tbody) return;
 
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        const totalPages = Math.ceil(rows.length / pageSize);
-        let currentPage = 1;
-
-        // Create pagination container
-        let pagEl = table.parentElement.querySelector('.pagination');
-        if (!pagEl) {
-            pagEl = document.createElement('div');
-            pagEl.className = 'pagination';
-            table.parentElement.appendChild(pagEl);
-        }
-
         function render() {
-            rows.forEach((row, i) => {
-                row.style.display = (i >= (currentPage - 1) * pageSize && i < currentPage * pageSize) ? '' : 'none';
+            // Only count rows that are NOT explicitly hidden by search (exclude .searching-hidden)
+            const allRows = Array.from(tbody.querySelectorAll('tr:not(.searching-hidden)'));
+            const totalPages = Math.ceil(allRows.length / pageSize) || 1;
+            
+            // Adjust current page if it's out of bounds
+            if (table._currentPage > totalPages) table._currentPage = totalPages;
+            if (table._currentPage < 1) table._currentPage = 1;
+            
+            const currentPage = table._currentPage || 1;
+
+            // Hide all rows first
+            tbody.querySelectorAll('tr').forEach(row => row.style.display = 'none');
+            
+            // Show only rows for current page that are NOT hidden by search
+            allRows.forEach((row, i) => {
+                if (i >= (currentPage - 1) * pageSize && i < currentPage * pageSize) {
+                    row.style.display = '';
+                }
             });
+
+            // Render buttons
+            let pagEl = table.parentElement.querySelector('.pagination');
+            if (!pagEl) {
+                pagEl = document.createElement('div');
+                pagEl.className = 'pagination';
+                table.parentElement.appendChild(pagEl);
+            }
+
+            if (totalPages <= 1) {
+                pagEl.innerHTML = '';
+                return;
+            }
 
             let html = '';
             html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}"><i class="fa-solid fa-chevron-left"></i></button>`;
@@ -123,14 +112,17 @@
                 btn.addEventListener('click', () => {
                     const pg = parseInt(btn.getAttribute('data-page'));
                     if (pg >= 1 && pg <= totalPages) {
-                        currentPage = pg;
+                        table._currentPage = pg;
                         render();
                     }
                 });
             });
         }
 
-        if (totalPages > 1) render();
+        table._currentPage = 1;
+        table._pageSize = pageSize;
+        table._refreshPagination = render;
+        render();
     };
 
     // === Search Filter ===
@@ -142,10 +134,27 @@
         input.addEventListener('input', function () {
             const query = this.value.toLowerCase();
             const rows = table.querySelectorAll('tbody tr');
+            
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(query) ? '' : 'none';
+                if (text.includes(query)) {
+                    row.classList.remove('searching-hidden');
+                } else {
+                    row.classList.add('searching-hidden');
+                }
             });
+
+            // Reset to first page when searching
+            table._currentPage = 1;
+            
+            if (typeof table._refreshPagination === 'function') {
+                table._refreshPagination();
+            } else {
+                // Fallback if no pagination
+                rows.forEach(row => {
+                    row.style.display = row.classList.contains('searching-hidden') ? 'none' : '';
+                });
+            }
         });
     };
 
@@ -163,12 +172,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         initTheme();
         initSidebarActive();
-        initMobileSidebar();
         initPageTransitions();
-
-        // Theme toggle button
-        const toggleBtn = document.getElementById('themeToggle');
-        if (toggleBtn) toggleBtn.addEventListener('click', toggleTheme);
 
         // Close modals on overlay click
         document.querySelectorAll('.modal-overlay').forEach(overlay => {

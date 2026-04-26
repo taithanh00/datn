@@ -1,0 +1,212 @@
+@model datn.Models.Parent
+@{
+    Layout = "_DashboardLayout";
+}
+
+<div class="page-header">
+    <div class="header-left">
+        <div class="header-icon" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary);">
+            <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <div>
+            <h2 class="page-title">Hồ sơ phụ huynh</h2>
+            <p class="page-subtitle">Quản lý thông tin chi tiết và danh sách con em</p>
+        </div>
+    </div>
+    <div class="header-actions">
+        <a href="/Manager/Parents" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+<div class="student-profile-grid">
+    <!-- Left Column: Avatar & Basic Stats -->
+    <div class="profile-sidebar">
+        <div class="card profile-card">
+            <div class="avatar-wrapper">
+                <img src="@(Model.AvatarPath ?? "/images/lion_orange.png")" alt="Avatar" />
+                <div class="status-indicator @(Model.Account.IsActive ? "active" : "inactive")"></div>
+            </div>
+            <h3 class="student-name">@Model.LastName @Model.FirstName</h3>
+            <span class="student-code">Phụ huynh</span>
+            
+            <div class="quick-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Tài khoản</span>
+                    <span class="stat-value">@Model.Account.Username</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Số con</span>
+                    <span class="stat-value">@Model.ParentStudents.Count</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card info-card mt-4">
+            <h4>Thông tin liên hệ</h4>
+            <div class="info-list">
+                <div class="info-item">
+                    <i class="fa-solid fa-phone"></i>
+                    <div>
+                        <label>Số điện thoại</label>
+                        <p>@(Model.Phone ?? "Chưa cập nhật")</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fa-solid fa-envelope"></i>
+                    <div>
+                        <label>Email</label>
+                        <p>@Model.Account.Email</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <div>
+                        <label>Địa chỉ</label>
+                        <p>@(Model.Address ?? "Chưa cập nhật")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Detailed Info & Tabs -->
+    <div class="profile-main">
+        <div class="card main-card">
+            <div class="card-header-tabs">
+                <button class="tab-btn active" data-tab="basic">Thông tin tài khoản</button>
+                <button class="tab-btn" data-tab="children">Danh sách con em</button>
+            </div>
+            
+            <div class="tab-content active" id="basic">
+                <div class="detail-grid">
+                    <div class="detail-group">
+                        <label>Họ</label>
+                        <p>@Model.LastName</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Tên</label>
+                        <p>@Model.FirstName</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Tên đăng nhập</label>
+                        <p>@Model.Account.Username</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Ngày tham gia</label>
+                        <p>@Model.Account.CreatedAt.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Trạng thái tài khoản</label>
+                        <p>@(Model.Account.IsActive ? "Đang hoạt động" : "Đã khóa")</p>
+                    </div>
+                    <div class="detail-group full-width">
+                        <label>Ghi chú</label>
+                        <p class="text-muted">Không có ghi chú đặc biệt.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="children">
+                @if (Model.ParentStudents != null && Model.ParentStudents.Any())
+                {
+                    <div class="children-grid">
+                        @foreach (var ps in Model.ParentStudents)
+                        {
+                            <div class="child-card">
+                                <div class="child-avatar">
+                                    <img src="@(ps.Student.AvatarPath ?? "/images/lion_orange.png")" alt="Avatar" />
+                                </div>
+                                <div class="child-info">
+                                    <a href="/Manager/StudentDetail/@ps.StudentId" class="child-name">@ps.Student.LastName @ps.Student.FirstName</a>
+                                    <span class="child-code">@ps.Student.StudentCode</span>
+                                    <div class="child-meta">
+                                        <span class="badge bg-light text-dark">Lớp: @(ps.Student.Class?.Name ?? "N/A")</span>
+                                        <span class="badge bg-primary-soft text-primary">Quan hệ: @ps.Relationship</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fa-solid fa-users-slash"></i>
+                        <p>Chưa liên kết với học sinh nào.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .children-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .child-card {
+        display: flex;
+        gap: 16px;
+        padding: 16px;
+        background: var(--bg-main);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        transition: transform 0.2s;
+    }
+
+    .child-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .child-avatar img {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        object-fit: cover;
+    }
+
+    .child-name {
+        display: block;
+        font-weight: 700;
+        color: var(--text-main);
+        text-decoration: none;
+        margin-bottom: 2px;
+    }
+
+    .child-name:hover { color: var(--primary); }
+
+    .child-code {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .child-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .bg-primary-soft { background: var(--primary-soft); }
+
+    /* Reusing StudentDetail styles through common layout or explicit style tag here */
+</style>
+
+<script>
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            btn.classList.add('active');
+            document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+    });
+</script>

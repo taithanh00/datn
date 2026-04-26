@@ -28,11 +28,11 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
                     <div>
                         <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Giới tính</div>
-                        <div style="font-weight: 600;">@(student.Gender == true ? "Nam" : "Nữ")</div>
+                        <div style="font-weight: 600;">@(student.Gender ? "Nam" : "Nữ")</div>
                     </div>
                     <div>
                         <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Ngày sinh</div>
-                        <div style="font-weight: 600;">@(student.DateOfBirth?.ToString("dd/MM/yyyy") ?? "N/A")</div>
+                        <div style="font-weight: 600;">@student.DateOfBirth.ToString("dd/MM/yyyy")</div>
                     </div>
                     <div>
                         <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Ngày nhập học</div>

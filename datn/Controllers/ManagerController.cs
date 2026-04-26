@@ -1,5 +1,6 @@
 using datn.Data;
 using datn.Models;
+using datn.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -17,8 +18,13 @@ namespace datn.Controllers
         private static readonly TimeOnly LunchEnd = new(13, 0);
         private static readonly TimeOnly SchoolEnd = new(16, 30);
 
-        public ManagerController(AppDbContext context) : base(context)
+        private readonly IStudentService _studentService;
+        private readonly IParentService _parentService;
+
+        public ManagerController(AppDbContext context, IStudentService studentService, IParentService parentService) : base(context)
         {
+            _studentService = studentService;
+            _parentService = parentService;
         }
 
         [HttpGet("")]
@@ -109,6 +115,16 @@ namespace datn.Controllers
         {
             ViewData["Title"] = "Danh sách Học sinh";
             return View();
+        }
+
+        [HttpGet("StudentDetail/{id:int}")]
+        public async Task<IActionResult> StudentDetail(int id)
+        {
+            var student = await _studentService.GetStudentByIdAsync(id);
+            if (student == null) return NotFound();
+            
+            ViewData["Title"] = $"Hồ sơ học sinh - {student.FirstName} {student.LastName}";
+            return View(student);
         }
 
         [HttpGet("Teachers")]
@@ -228,11 +244,18 @@ namespace datn.Controllers
                 var result = students.Select(s => new
                 {
                     id = s.Id,
+                    studentCode = s.StudentCode,
                     fullName = $"{s.FirstName} {s.LastName}".Trim(),
-                    gender = s.Gender.HasValue ? (s.Gender.Value ? "Nam" : "Nữ") : "Chưa xác định",
-                    dateOfBirth = s.DateOfBirth?.ToString("dd/MM/yyyy") ?? "N/A",
+                    gender = s.Gender ? "Nam" : "Nữ",
+                    dateOfBirth = s.DateOfBirth.ToString("dd/MM/yyyy"),
+                    fatherName = s.FatherName ?? "N/A",
+                    motherName = s.MotherName ?? "N/A",
+                    address = s.Address ?? "N/A",
                     className = s.Class?.Name ?? "Chưa có lớp",
                     enrollDate = s.EnrollDate?.ToString("dd/MM/yyyy") ?? "N/A",
+                    status = (int)s.Status,
+                    statusText = s.Status == StudentStatus.Active ? "Đang học" : "Đã nghỉ",
+                    createdAt = s.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss"),
                     avatarPath = s.AvatarPath ?? "/images/lion_orange.png"
                 }).ToList();
                 return Json(new { success = true, data = result });
@@ -259,8 +282,8 @@ namespace datn.Controllers
                         id = s.Id,
                         firstName = s.FirstName,
                         lastName = s.LastName,
-                        gender = s.Gender?.ToString().ToLower(),
-                        dateOfBirth = s.DateOfBirth?.ToString("yyyy-MM-dd"),
+                        gender = s.Gender.ToString().ToLower(),
+                        dateOfBirth = s.DateOfBirth.ToString("yyyy-MM-dd"),
                         address = s.Address,
                         classId = s.ClassId,
                         enrollDate = s.EnrollDate?.ToString("yyyy-MM-dd"),
@@ -282,9 +305,10 @@ namespace datn.Controllers
                 var student = await _context.Students.FindAsync(id);
                 if (student == null) return Json(new { success = false, message = "Không tìm thấy" });
 
-                _context.Students.Remove(student);
+                student.Status = StudentStatus.Inactive;
+                _context.Students.Update(student);
                 await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Xóa học sinh thành công" });
+                return Json(new { success = true, message = "Đã chuyển trạng thái học sinh sang 'Đã nghỉ'" });
             }
             catch (Exception ex)
             {
@@ -293,32 +317,40 @@ namespace datn.Controllers
         }
 
         [HttpPost("Api/Student")]
-        public async Task<IActionResult> CreateStudent([FromForm] CreateStudentViewModel model)
+        public async Task<IActionResult> CreateStudent([FromForm] datn.DTOs.CreateStudentDto model)
         {
             try
             {
-                var student = new Student
+                if (!ModelState.IsValid)
                 {
-                    FirstName = model.FirstName,
-                    LastName = model.LastName,
-                    Gender = model.Gender == "true",
-                    DateOfBirth = string.IsNullOrEmpty(model.DateOfBirth) ? null : DateOnly.Parse(model.DateOfBirth),
-                    Address = model.Address,
-                    ClassId = model.ClassId > 0 ? model.ClassId : null,
-                    EnrollDate = string.IsNullOrEmpty(model.EnrollDate) ? null : DateOnly.Parse(model.EnrollDate)
-                };
+                    return Json(new { success = false, message = "Dữ liệu nhập vào không hợp lệ" });
+                }
 
-                if (model.Avatar != null) student.AvatarPath = await SaveAvatar(model.Avatar, "student");
+                // 1. Kiểm tra trùng lặp nếu không phải ép buộc tạo mới
+                if (!model.ForceCreate)
+                {
+                    var duplicate = await _studentService.CheckPotentialDuplicateAsync(model);
+                    if (duplicate != null)
+                    {
+                        return StatusCode(409, new { 
+                            success = false, 
+                            message = $"Có một học sinh tên là {duplicate.FirstName} {duplicate.LastName}, ngày sinh {duplicate.DateOfBirth:dd/MM/yyyy} đã tồn tại trong hệ thống. Bạn có chắc muốn tạo mới không?",
+                            existingStudentId = duplicate.Id
+                        });
+                    }
+                }
 
-                _context.Students.Add(student);
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Thêm học sinh thành công" });
+                // 2. Tạo mới học sinh thông qua Service
+                var student = await _studentService.CreateStudentAsync(model);
+                
+                return Json(new { success = true, message = "Thêm học sinh thành công", studentCode = student.StudentCode });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
 
         [HttpPut("Api/Student/{id:int}")]
         public async Task<IActionResult> UpdateStudent(int id, [FromForm] UpdateStudentViewModel model)
@@ -328,12 +360,27 @@ namespace datn.Controllers
                 var student = await _context.Students.FindAsync(id);
                 if (student == null) return Json(new { success = false, message = "Không tìm thấy" });
 
+                var dob = string.IsNullOrEmpty(model.DateOfBirth) ? student.DateOfBirth : DateOnly.Parse(model.DateOfBirth);
+
+                // Kiểm tra trùng lặp (loại trừ chính bản thân học sinh đang cập nhật)
+                var isDuplicate = await _context.Students.AnyAsync(s => 
+                    s.Id != id &&
+                    s.FirstName == model.FirstName && 
+                    s.LastName == model.LastName && 
+                    s.DateOfBirth == dob);
+
+                if (isDuplicate)
+                {
+                    return Json(new { success = false, message = "Thông tin cập nhật trùng với một học sinh khác đã tồn tại." });
+                }
+
                 student.FirstName = model.FirstName;
                 student.LastName = model.LastName;
                 student.Gender = model.Gender == "true";
-                if (!string.IsNullOrEmpty(model.DateOfBirth)) student.DateOfBirth = DateOnly.Parse(model.DateOfBirth);
+                student.DateOfBirth = dob;
                 student.Address = model.Address;
                 student.ClassId = model.ClassId > 0 ? model.ClassId : null;
+                student.Status = (StudentStatus)model.Status;
                 student.EnrollDate = string.IsNullOrEmpty(model.EnrollDate) ? student.EnrollDate : DateOnly.Parse(model.EnrollDate);
 
                 if (model.Avatar != null) student.AvatarPath = await SaveAvatar(model.Avatar, "student");
@@ -372,12 +419,206 @@ namespace datn.Controllers
                     avatarPath = t.AvatarPath ?? "/images/lion_blue.png",
                     isActive = t.Account?.IsActive ?? true
                 }).ToList();
+                
+                var total = teachers.Count;
+                return Json(new { success = true, data = result, total });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ==========================================
+        // PARENT MANAGEMENT
+        // ==========================================
+
+        [HttpGet("Parents")]
+        public IActionResult Parents()
+        {
+            ViewData["Title"] = "Phụ huynh";
+            return View();
+        }
+
+        [HttpGet("Api/Parents")]
+        public async Task<IActionResult> GetParents(string search = "", int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                var query = _context.Parents
+                    .Include(p => p.ParentStudents).ThenInclude(ps => ps.Student)
+                    .AsQueryable();
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    search = search.ToLower();
+                    query = query.Where(p => 
+                        p.FirstName.ToLower().Contains(search) || 
+                        p.LastName.ToLower().Contains(search) || 
+                        (p.Phone != null && p.Phone.Contains(search)));
+                }
+
+                var total = await query.CountAsync();
+                var result = await query
+                    .OrderByDescending(p => p.Id)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new {
+                        id = p.Id,
+                        fullName = p.LastName + " " + p.FirstName,
+                        phone = p.Phone ?? "N/A",
+                        address = p.Address ?? "N/A",
+                        avatarPath = p.AvatarPath ?? "/images/lion_orange.png",
+                        childrenCount = p.ParentStudents.Count,
+                        children = p.ParentStudents.Select(ps => new {
+                            id = ps.StudentId,
+                            fullName = ps.Student.LastName + " " + ps.Student.FirstName,
+                            relationship = ps.Relationship
+                        }).ToList()
+                    })
+                    .ToListAsync();
+
+                return Json(new { success = true, data = result, total });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("ParentDetail/{id:int}")]
+        public async Task<IActionResult> ParentDetail(int id)
+        {
+            var parent = await _context.Parents
+                .Include(p => p.Account)
+                .Include(p => p.ParentStudents).ThenInclude(ps => ps.Student).ThenInclude(s => s.Class)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (parent == null) return NotFound();
+
+            ViewData["Title"] = "Chi tiết Phụ huynh";
+            return View(parent);
+        }
+
+        [HttpGet("Api/Parent/{id:int}")]
+        public async Task<IActionResult> GetParent(int id)
+        {
+            try
+            {
+                var p = await _context.Parents
+                    .Include(p => p.Account)
+                    .Include(p => p.ParentStudents).ThenInclude(ps => ps.Student)
+                    .FirstOrDefaultAsync(p => p.Id == id);
+
+                if (p == null) return Json(new { success = false, message = "Không tìm thấy" });
+
+                var result = new {
+                    id = p.Id,
+                    username = p.Account.Username,
+                    email = p.Account.Email,
+                    firstName = p.FirstName,
+                    lastName = p.LastName,
+                    phone = p.Phone,
+                    address = p.Address,
+                    avatarPath = p.AvatarPath ?? "/images/lion_orange.png",
+                    createdAt = p.Account.CreatedAt.ToString("dd/MM/yyyy"),
+                    children = p.ParentStudents.Select(ps => new {
+                        id = ps.StudentId,
+                        fullName = ps.Student.LastName + " " + ps.Student.FirstName,
+                        relationship = ps.Relationship
+                    }).ToList()
+                };
+
                 return Json(new { success = true, data = result });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        [HttpPost("Api/Parent")]
+        public async Task<IActionResult> CreateParent([FromForm] datn.DTOs.CreateParentDto model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return Json(new { success = false, message = errors });
+            }
+
+            try
+            {
+                if (await _parentService.IsEmailOrUsernameExists(model.Email, model.Username))
+                {
+                    return Json(new { success = false, message = "Email hoặc Tên đăng nhập đã tồn tại" });
+                }
+
+                await _parentService.CreateParentAsync(model);
+                return Json(new { success = true, message = "Tạo tài khoản phụ huynh thành công" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPut("Api/Parent/{id:int}")]
+        public async Task<IActionResult> UpdateParent(int id, [FromForm] datn.DTOs.CreateParentDto model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return Json(new { success = false, message = errors });
+            }
+
+            try
+            {
+                if (await _parentService.IsEmailOrUsernameExists(model.Email, model.Username, id))
+                {
+                    return Json(new { success = false, message = "Email hoặc Tên đăng nhập đã tồn tại" });
+                }
+
+                var parent = await _parentService.UpdateParentAsync(id, model);
+                if (parent == null) return Json(new { success = false, message = "Không tìm thấy" });
+
+                return Json(new { success = true, message = "Cập nhật thành công" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("Api/Parent/{id:int}")]
+        public async Task<IActionResult> DeleteParent(int id)
+        {
+            var success = await _parentService.DeleteParentAsync(id);
+            return Json(new { success, message = success ? "Xóa thành công" : "Lỗi khi xóa" });
+        }
+
+        [HttpPost("Api/Parent/LinkStudent")]
+        public async Task<IActionResult> LinkStudent(int parentId, int studentId, string relationship)
+        {
+            var success = await _parentService.LinkStudentAsync(parentId, studentId, relationship);
+            return Json(new { success, message = success ? "Liên kết thành công" : "Lỗi khi liên kết" });
+        }
+
+        [HttpDelete("Api/Parent/UnlinkStudent")]
+        public async Task<IActionResult> UnlinkStudent(int parentId, int studentId)
+        {
+            var success = await _parentService.UnlinkStudentAsync(parentId, studentId);
+            return Json(new { success, message = success ? "Hủy liên kết thành công" : "Lỗi khi hủy liên kết" });
+        }
+
+        [HttpGet("Api/Students/Search")]
+        public async Task<IActionResult> SearchStudents(string q)
+        {
+            var students = await _context.Students
+                .Where(s => s.FirstName.Contains(q) || s.LastName.Contains(q) || s.StudentCode.Contains(q))
+                .Take(10)
+                .Select(s => new { id = s.Id, fullName = s.LastName + " " + s.FirstName, code = s.StudentCode })
+                .ToListAsync();
+            return Json(new { success = true, data = students });
         }
 
         [HttpGet("Api/Teacher/{id:int}")]
@@ -1329,6 +1570,7 @@ namespace datn.Controllers
         public string Address { get; set; } = string.Empty;
         public int? ClassId { get; set; }
         public string EnrollDate { get; set; } = string.Empty;
+        public int Status { get; set; } = 0;
         public IFormFile? Avatar { get; set; }
     }
 

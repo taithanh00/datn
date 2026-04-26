@@ -1,11 +1,35 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // === Theme Management ===
+    const THEME_KEY = 'kindercare-theme';
+    const themeToggle = document.getElementById('themeToggle');
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem(THEME_KEY, next);
+    }
+
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+
     // Sidebar Mobile Toggle
-    const sidebarToggleMobile = document.getElementById('sidebarToggleMobile');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
     const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
     
-    if (sidebarToggleMobile && sidebar) {
-        sidebarToggleMobile.addEventListener('click', function () {
-            sidebar.classList.toggle('mobile-open');
+    if (hamburgerBtn && sidebar) {
+        hamburgerBtn.addEventListener('click', function () {
+            sidebar.classList.toggle('open');
+            if(overlay) overlay.classList.toggle('show');
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
         });
     }
 

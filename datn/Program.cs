@@ -99,6 +99,8 @@ builder.Services.AddSignalR()
     });
 builder.Services.AddScoped<JwtService>();                               // Dịch vụ tạo JWT
 builder.Services.AddScoped<INotificationService, NotificationService>();   // Dịch vụ thông báo
+builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IParentService, ParentService>();           // Dịch vụ quản lý học sinh
 builder.Services.AddHostedService<TokenCleanupService>();               // Dịch vụ dọn dẹp token hết hạn
 builder.Services.AddHostedService<PayrollAutoCalculationService>();     // Tự động tính lương ngày 5 hàng tháng
 

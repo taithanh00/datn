@@ -13,11 +13,15 @@ document.addEventListener('DOMContentLoaded', function () {
 async function initializeStudentsPage() {
     setupEventListeners();
     await loadClasses();
+    await refreshData();
+}
+
+async function refreshData() {
     await loadStudents();
     
     // Khởi tạo pagination và search sau khi dữ liệu đã được load và render
     if (typeof initPagination === 'function') {
-        initPagination('studentsTable', 15);
+        initPagination('studentsTable', 7);
     }
     if (typeof initTableSearch === 'function') {
         initTableSearch('searchStudents', 'studentsTable');
@@ -40,13 +44,40 @@ function setupEventListeners() {
 
     // Delete Button
     document.getElementById('deleteStudentBtn').addEventListener('click', handleDelete);
+
+    // Duplicate Modal Buttons
+    document.getElementById('forceCreateBtn').addEventListener('click', () => submitForm(true));
+    document.getElementById('viewExistingBtn').addEventListener('click', () => {
+        const id = document.getElementById('duplicateModal').dataset.existingId;
+        window.open(`/Manager/StudentDetail/${id}`, '_blank');
+        closeDuplicateModal();
+    });
+    document.getElementById('cancelDuplicateBtn').addEventListener('click', closeDuplicateModal);
 }
 
 // Preview Avatar
+// Helper to format date: 24 Apr 2026 / 10:00AM
+function formatPremiumDate(dateString) {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    
+    let hours = date.getHours();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; 
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    
+    return `${day} ${month} ${year} / ${hours}:${minutes}${ampm}`;
+}
+
 function previewAvatar(input) {
     if (input.files && input.files[0]) {
-        var reader = new FileReader();
-        reader.onload = function (e) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
             document.getElementById('avatarPreview').src = e.target.result;
         };
         reader.readAsDataURL(input.files[0]);
@@ -98,26 +129,37 @@ function renderStudentsTable(students) {
     tbody.innerHTML = '';
 
     if (students.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">Không có học sinh nào</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="13" class="text-center">Không tìm thấy dữ liệu</td></tr>';
         return;
     }
 
-    students.forEach((student, index) => {
+    students.forEach((s, index) => {
+        const statusClass = s.status === 0 ? 'badge-active' : 'badge-inactive';
+
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${index + 1}</td>
-            <td style="text-align: center;">
-                <img src="${student.avatarPath}" alt="Avatar" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 1px solid #ddd;" />
+            <td class="sticky-col first-col">${index + 1}</td>
+            <td class="sticky-col second-col"><span class="student-code">${s.studentCode}</span></td>
+            <td class="sticky-col third-col">
+                <img src="${s.avatarPath}" class="student-avatar" alt="avatar" onerror="this.src='/images/lion_orange.png'">
             </td>
-            <td><strong>${student.fullName}</strong></td>
-            <td>${student.gender}</td>
-            <td>${student.dateOfBirth}</td>
-            <td><span class="class-badge">${student.className}</span></td>
-            <td>${student.enrollDate}</td>
-            <td>
-                <button type="button" class="btn-edit" onclick="openEditPanel(${student.id})">
-                    Thay đổi
-                </button>
+            <td class="sticky-col fourth-col">
+                <a href="/Manager/StudentDetail/${s.id}" target="_blank" class="student-name-link" title="${s.fullName}">${s.fullName}</a>
+            </td>
+            <td><span class="badge ${statusClass}">${s.statusText}</span></td>
+            <td><span class="badge ${s.gender === 'Nam' ? 'badge-primary' : 'badge-secondary'}">${s.gender}</span></td>
+            <td>${s.dateOfBirth}</td>
+            <td><div class="father-name-cell" title="${s.fatherName}">${s.fatherName}</div></td>
+            <td><div class="mother-name-cell" title="${s.motherName}">${s.motherName}</div></td>
+            <td><div class="address-cell" title="${s.address}">${s.address}</div></td>
+            <td><span class="badge badge-outline">${s.className}</span></td>
+            <td>${s.enrollDate}</td>
+            <td><span class="premium-date">${formatPremiumDate(s.createdAt)}</span></td>
+            <td class="text-end">
+                <div class="table-actions">
+                    <button class="btn-icon btn-edit" onclick="openEditPanel(${s.id})" title="Chỉnh sửa"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="btn-icon btn-delete" onclick="handleDelete(${s.id})" title="Ngừng học"><i class="fa-solid fa-user-slash"></i></button>
+                </div>
             </td>
         `;
         tbody.appendChild(row);
@@ -126,7 +168,7 @@ function renderStudentsTable(students) {
 
 function showTableError(message) {
     const tbody = document.getElementById('studentsTableBody');
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 20px; color: red;">${message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px; color: red;">${message}</td></tr>`;
 }
 
 // ====== PANEL MANAGEMENT ======
@@ -172,6 +214,9 @@ async function openEditPanel(studentId) {
         document.getElementById('address').value = student.address;
         document.getElementById('classId').value = student.classId;
         document.getElementById('enrollDate').value = student.enrollDate;
+        document.getElementById('fatherName').value = student.fatherName || '';
+        document.getElementById('motherName').value = student.motherName || '';
+        document.getElementById('status').value = student.status;
         
         // Avatar preview
         document.getElementById('avatarPreview').src = student.avatarPath || '/images/lion_orange.png';
@@ -208,7 +253,10 @@ function closePanel() {
 // ====== FORM HANDLING ======
 async function handleFormSubmit(e) {
     e.preventDefault();
+    submitForm(false);
+}
 
+async function submitForm(forceCreate = false) {
     const firstName = document.getElementById('firstName').value.trim();
     const lastName = document.getElementById('lastName').value.trim();
 
@@ -223,8 +271,11 @@ async function handleFormSubmit(e) {
     formData.append('gender', document.getElementById('gender').value);
     formData.append('dateOfBirth', document.getElementById('dateOfBirth').value);
     formData.append('address', document.getElementById('address').value);
+    formData.append('fatherName', document.getElementById('fatherName').value.trim());
+    formData.append('motherName', document.getElementById('motherName').value.trim());
     formData.append('classId', parseInt(document.getElementById('classId').value) || 0);
     formData.append('enrollDate', document.getElementById('enrollDate').value);
+    formData.append('forceCreate', forceCreate);
 
     const avatarFile = document.getElementById('avatarFile').files[0];
     if (avatarFile) {
@@ -243,13 +294,19 @@ async function handleFormSubmit(e) {
             body: formData
         });
 
+        if (response.status === 409) {
+            const result = await response.json();
+            showDuplicateModal(result.message, result.existingStudentId);
+            return;
+        }
+
         const result = await response.json();
 
         if (result.success) {
             showFormAlert(result.message, 'success');
             setTimeout(() => {
                 closePanel();
-                loadStudents();
+                refreshData();
             }, 1500);
         } else {
             showFormAlert(result.message || 'Lỗi không xác định', 'error');
@@ -260,15 +317,16 @@ async function handleFormSubmit(e) {
     }
 }
 
-async function handleDelete() {
-    if (!currentStudentId) return;
+async function handleDelete(id) {
+    const studentId = id || currentStudentId;
+    if (!studentId) return;
 
-    if (!confirm('Bạn chắc chắn muốn xóa học sinh này?')) {
+    if (!confirm('Bạn có chắc chắn muốn chuyển trạng thái học sinh này sang "Đã thôi học"?')) {
         return;
     }
 
     try {
-        const response = await fetch(`/Manager/Api/Student/${currentStudentId}`, {
+        const response = await fetch(`/Manager/Api/Student/${studentId}`, {
             method: 'DELETE'
         });
 
@@ -278,7 +336,7 @@ async function handleDelete() {
             showFormAlert(result.message, 'success');
             setTimeout(() => {
                 closePanel();
-                loadStudents();
+                refreshData();
             }, 1500);
         } else {
             showFormAlert(result.message || 'Lỗi xóa học sinh', 'error');
@@ -302,4 +360,17 @@ function showFormAlert(message, type) {
 function hideFormAlert() {
     const alertContainer = document.getElementById('editFormAlert');
     alertContainer.style.display = 'none';
+}
+
+// ====== DUPLICATE MODAL ======
+function showDuplicateModal(message, existingId) {
+    document.getElementById('duplicateMessage').textContent = message;
+    document.getElementById('duplicateModal').dataset.existingId = existingId;
+    document.getElementById('duplicateModalOverlay').classList.add('active');
+    document.getElementById('duplicateModal').classList.add('active');
+}
+
+function closeDuplicateModal() {
+    document.getElementById('duplicateModalOverlay').classList.remove('active');
+    document.getElementById('duplicateModal').classList.remove('active');
 }

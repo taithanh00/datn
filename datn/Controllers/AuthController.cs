@@ -83,7 +83,7 @@ namespace datn.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // LOGOUT
+        // LOGOUT   
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()

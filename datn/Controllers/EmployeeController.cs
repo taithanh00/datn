@@ -349,10 +349,10 @@ namespace datn.Controllers
                     {
                         id = s.Id,
                         fullName = ((s.FirstName ?? "") + " " + (s.LastName ?? "")).Trim(),
-                        gender = s.Gender.HasValue ? (s.Gender.Value ? "Nam" : "Nữ") : "Chưa xác định",
-                        dateOfBirth = s.DateOfBirth != null ? s.DateOfBirth.Value.ToString("dd/MM/yyyy") : "N/A",
+                        gender = s.Gender ? "Nam" : "Nữ",
+                        dateOfBirth = s.DateOfBirth.ToString("dd/MM/yyyy"),
                         address = s.Address ?? "Chưa cập nhật",
-                        enrollDate = s.EnrollDate != null ? s.EnrollDate.Value.ToString("dd/MM/yyyy") : "N/A",
+                        enrollDate = s.EnrollDate.HasValue ? s.EnrollDate.Value.ToString("dd/MM/yyyy") : "N/A",
                         avatarPath = s.AvatarPath ?? "/images/lion_orange.png",
                         attendanceStatus = _context.Attendances
                             .Where(a => a.StudentId == s.Id && a.Date == today)
@@ -390,7 +390,7 @@ namespace datn.Controllers
                     {
                         id = s.Id,
                         fullName = ((s.FirstName ?? "") + " " + (s.LastName ?? "")).Trim(),
-                        gender = s.Gender.HasValue ? (s.Gender.Value ? "Nam" : "Nữ") : "N/A",
+                        gender = s.Gender ? "Nam" : "Nữ",
                         attendanceStatus = _context.Attendances
                             .Where(a => a.StudentId == s.Id && a.Date == today)
                             .Select(a => a.Status)

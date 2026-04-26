@@ -44,6 +44,7 @@
                     <div class="nav-label">Quản trị hệ thống</div>
                     <a href="/Manager/Classes" class="nav-item" data-transition><i class="fa-solid fa-school"></i> Lớp học</a>
                     <a href="/Manager/Students" class="nav-item" data-transition><i class="fa-solid fa-user-graduate"></i> Học sinh</a>
+                    <a href="/Manager/Parents" class="nav-item" data-transition><i class="fa-solid fa-users-viewfinder"></i> Phụ huynh</a>
                     <a href="/Manager/Teachers" class="nav-item" data-transition><i class="fa-solid fa-user-tie"></i> Nhân sự</a>
                     <a href="/Manager/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-star"></i> Hoạt động</a>
 
@@ -150,6 +151,7 @@
     <div id="toastContainer" style="position:fixed; right:20px; top:80px; z-index:9999; display:flex; flex-direction:column; gap:8px;"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script src="~/js/app.js" asp-append-version="true"></script>
     <script src="~/js/layout.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
