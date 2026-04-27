@@ -11,7 +11,7 @@ namespace datn.DTOs
         [EmailAddress(ErrorMessage = "Email không đúng định dạng")]
         public string Email { get; set; } = string.Empty;
 
-        public string Password { get; set; } = "123456"; // Default password
+        public string? Password { get; set; } = "123456"; // Default password
 
         [Required(ErrorMessage = "Tên là bắt buộc")]
         public string FirstName { get; set; } = string.Empty;

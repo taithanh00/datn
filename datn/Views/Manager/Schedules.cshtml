@@ -1,0 +1,125 @@
+@{
+    ViewData["Title"] = "Thời khóa biểu";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="page-header">
+    @Html.AntiForgeryToken()
+    <h1 class="page-title">Quản lý Thời khóa biểu</h1>
+</div>
+
+<div class="card">
+    <div class="d-flex align-center justify-between mb-3">
+        <h3 style="margin-bottom:0;">Thời khóa biểu</h3>
+        <div class="d-flex align-center gap-1">
+            <label class="form-label" for="scheduleClassFilter" style="margin-bottom:0; white-space:nowrap;">Lớp đang xem:</label>
+            <select id="scheduleClassFilter" class="form-select" style="width:auto; min-width:200px;"></select>
+        </div>
+    </div>
+
+    <div id="scheduleAlert" style="display:none; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.85rem;"></div>
+    
+    <div class="timetable-wrapper">
+        <table class="timetable-grid">
+            <thead>
+                <tr>
+                    <th style="width: 100px;">Thứ</th>
+                    <th>Đón trẻ & Ăn sáng<br/><small>07:00 - 08:30</small></th>
+                    <th>Học chính<br/><small>08:30 - 10:00</small></th>
+                    <th>Vận động<br/><small>10:00 - 11:00</small></th>
+                    <th>Ăn & Ngủ trưa<br/><small>11:00 - 14:00</small></th>
+                    <th>Hoạt động chiều<br/><small>14:00 - 15:30</small></th>
+                    <th>Trả trẻ<br/><small>15:30 - 17:00</small></th>
+                </tr>
+            </thead>
+            <tbody id="scheduleGridBody">
+                <!-- Will be populated by JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Schedule Modal -->
+<div id="scheduleModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content card" style="max-width: 600px; width: 90%; margin: 50px auto;">
+        <div class="d-flex justify-between align-center mb-3">
+            <h3 id="modalTitle">Phân công tiết học</h3>
+            <button type="button" class="btn-close" onclick="closeScheduleModal()">&times;</button>
+        </div>
+        
+        <form id="scheduleForm">
+            <input type="hidden" id="scheduleId" />
+            <input type="hidden" id="scheduleClassId" />
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                    <label class="form-label" for="scheduleDayOfWeek">Thứ</label>
+                    <select id="scheduleDayOfWeek" class="form-select" required>
+                        <option value="1">Thứ 2</option>
+                        <option value="2">Thứ 3</option>
+                        <option value="3">Thứ 4</option>
+                        <option value="4">Thứ 5</option>
+                        <option value="5">Thứ 6</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="scheduleIsActive">Trạng thái</label>
+                    <select id="scheduleIsActive" class="form-select">
+                        <option value="true">Đang áp dụng</option>
+                        <option value="false">Tạm ngưng</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                    <label class="form-label" for="scheduleStartTime">Giờ bắt đầu</label>
+                    <input id="scheduleStartTime" type="time" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="scheduleEndTime">Giờ kết thúc</label>
+                    <input id="scheduleEndTime" type="time" class="form-input" required />
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                    <label class="form-label" for="scheduleSubjectId">Môn học</label>
+                    <select id="scheduleSubjectId" class="form-select" required></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="scheduleTeacherId">Giáo viên giảng dạy</label>
+                    <select id="scheduleTeacherId" class="form-select" required></select>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                    <label class="form-label" for="scheduleEffectiveFrom">Hiệu lực từ</label>
+                    <input id="scheduleEffectiveFrom" type="date" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="scheduleEffectiveTo">Đến ngày (không bắt buộc)</label>
+                    <input id="scheduleEffectiveTo" type="date" class="form-input" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="scheduleNote">Ghi chú hoạt động</label>
+                <textarea id="scheduleNote" class="form-input" rows="2" placeholder="Ví dụ: Hoạt động ngoài trời nếu thời tiết tốt"></textarea>
+            </div>
+
+            <div class="d-flex gap-1 mt-3 pt-2" style="border-top: 1px solid var(--border);">
+                <button type="submit" class="btn btn-primary" id="saveScheduleBtn">Lưu phân công</button>
+                <button type="button" class="btn btn-outline" onclick="closeScheduleModal()">Hủy bỏ</button>
+                <button type="button" class="btn btn-table-delete" id="deleteScheduleBtn" style="margin-left: auto; display: none;">
+                    <i class="fa-solid fa-trash"></i> Xóa tiết này
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/classes.js" asp-append-version="true"></script>
+}

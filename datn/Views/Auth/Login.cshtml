@@ -1,99 +1,119 @@
+@using Microsoft.AspNetCore.Http
 @{
     ViewData["Title"] = "Đăng nhập";
     Layout = null;
     var reason = Context.Request.Query["reason"].ToString();
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/pages/login.css" asp-append-version="true" />
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SenHồng</title>
+    
+    @* Google Fonts - Plus Jakarta Sans *@
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    @* CSS links *@
+    <link rel="stylesheet" href="@Url.Content("~/css/pages/login.css")" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-}
-<div class="container">
-    <div class="login-card">    
-        <div class="left-panel">
-            <div class="swiper">
-                <div class="swiper-wrapper">
-                    <div class="swiper-slide">
-                        <img src="~/images/lion_yellow.png" alt="Lion Yellow" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+    <div class="container">
+        <div class="login-card">    
+            <div class="left-panel">
+                <div class="swiper">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide">
+                            <img src="@Url.Content("~/images/lion_yellow.png")" alt="Lion Yellow" />
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="@Url.Content("~/images/lion_orange.png")" alt="Lion Orange" />
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="@Url.Content("~/images/lion_blue.png")" alt="Lion Blue" />
+                        </div>
                     </div>
-                    <div class="swiper-slide">
-                        <img src="~/images/lion_orange.png" alt="Lion Orange" />
-                    </div>
-                    <div class="swiper-slide">
-                        <img src="~/images/lion_blue.png" alt="Lion Blue" />
-                    </div>
+                    <div class="swiper-pagination"></div>
                 </div>
-                <div class="swiper-pagination"></div>
+            </div>
+
+            <!-- RIGHT: Form -->
+            <div class="right-panel">
+                <h2 class="form-title">Đăng nhập tài khoản</h2>
+                
+                @if (reason == "security")
+                {
+                    <div class="alert alert-danger">
+                        <strong>Cảnh báo bảo mật!</strong> Phiên đăng nhập bị chấm dứt
+                        do phát hiện hoạt động bất thường. Vui lòng đăng nhập lại.
+                    </div>
+                }
+                else if (reason == "expired")
+                {
+                    <div class="alert alert-warning">
+                        Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.
+                    </div>
+                }
+                else if (reason == "deactivated")
+                {
+                    <div class="alert alert-danger">
+                        Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản lý.
+                    </div>
+                }
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger">@ViewBag.Error</div>
+                }
+                
+                <form method="post" action="/Auth/Login">
+                    @Html.AntiForgeryToken()
+
+                    <div class="field-group">
+                        <label for="username">Email hoặc Tên đăng nhập</label>
+                        <input type="text" id="username" name="username"
+                               placeholder="yourname@mail.com" required />
+                    </div>
+
+                    <div class="field-group">
+                        <label for="passwordField">Mật khẩu</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="passwordField" name="password"
+                                   placeholder="••••••••" required />
+                            <button type="button" class="toggle-password" id="togglePasswordBtn"
+                                   aria-label="Hiện/ẩn mật khẩu">
+                                <svg id="eye-icon" viewBox="0 0 24 24">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="remember-row">
+                        <input type="checkbox" id="rememberMe" name="rememberMe" />
+                        <label for="rememberMe">Ghi nhớ đăng nhập</label>
+                    </div>
+
+                    <button type="submit" class="btn-login">Đăng nhập</button>
+                </form>
+
+                <div class="divider">quên mật khẩu?</div>
+
+                <button type="button" class="btn-forgot-password">
+                    Liên hệ người quản lý
+                </button>
             </div>
         </div>
-
-        <!-- RIGHT: Form -->
-        <div class="right-panel">
-            <h2 class="form-title">Đăng nhập tài khoản</h2>
-            @if (reason == "security")
-            {
-                <div class="alert alert-danger">
-                    <strong>Cảnh báo bảo mật!</strong> Phiên đăng nhập bị chấm dứt
-                    do phát hiện hoạt động bất thường. Vui lòng đăng nhập lại.
-                </div>
-            }
-            else if (reason == "expired")
-            {
-                <div class="alert alert-warning">
-                    Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.
-                </div>
-            }
-
-            @if (ViewBag.Error != null)
-            {
-                <div class="alert alert-danger">@ViewBag.Error</div>
-            }
-            
-            <form method="post" action="/Auth/Login">
-                @Html.AntiForgeryToken()
-
-                <div class="field-group">
-                    <label for="username">Email hoặc Tên đăng nhập</label>
-                    <input type="text" id="username" name="username"
-                           placeholder="yourname@mail.com" required />
-                </div>
-
-                <div class="field-group">
-                    <label for="passwordField">Mật khẩu</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="passwordField" name="password"
-                               placeholder="••••••••" required />
-                        <button type="button" class="toggle-password" id="togglePasswordBtn"
-                                aria-label="Hiện/ẩn mật khẩu">
-                            <svg id="eye-icon" viewBox="0 0 24 24">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                <circle cx="12" cy="12" r="3" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="remember-row">
-                    <input type="checkbox" id="rememberMe" name="rememberMe" />
-                    <label for="rememberMe">Ghi nhớ đăng nhập</label>
-                </div>
-
-                <button type="submit" class="btn-login">Đăng nhập</button>
-            </form>
-
-            <div class="divider">quên mật khẩu?</div>
-
-            <button type="button" class="btn-forgot-password">
-                @* <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" /> *@
-                Liên hệ người quản lý
-            </button>
-        </div>
-
     </div>
-</div>
 
-
-@section Scripts {
+    @* JS scripts *@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="~/js/pages/login.js" asp-append-version="true"></script>
-}
+    <script src="@Url.Content("~/js/pages/login.js")" asp-append-version="true"></script>
+</body>
+</html>

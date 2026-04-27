@@ -1,4 +1,4 @@
-﻿namespace datn.Models
+namespace datn.Models
 {
     public class Class
     {
@@ -7,6 +7,7 @@
         public int? AgeFrom { get; set; }
         public int? AgeTo { get; set; }
         public string? SchoolYear { get; set; }
+        public int MaxCapacity { get; set; } = 25;
 
         public ICollection<Student> Students { get; set; } = new List<Student>();
         public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();

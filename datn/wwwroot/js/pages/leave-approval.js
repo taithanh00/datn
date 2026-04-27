@@ -85,16 +85,29 @@ async function loadLeavePending() {
             body.innerHTML = `<tr><td colspan='5' class='text-center py-5 text-muted'><div class="empty-state"><i class='fa-solid fa-mug-hot'></i><p>Không có đơn nghỉ phép nào đang chờ duyệt.</p></div></td></tr>`;
             return;
         }
-        body.innerHTML = payload.data.map(x => `
+        body.innerHTML = payload.data.map(x => {
+            const typeBadge = x.isPaid 
+                ? '<span class="badge" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary); font-size: 0.7rem; margin-bottom: 4px;">CÓ LƯƠNG</span>'
+                : '<span class="badge" style="background: #f1f5f9; color: #64748b; font-size: 0.7rem; margin-bottom: 4px;">KHÔNG LƯƠNG</span>';
+
+            return `
             <tr>
                 <td><strong>${x.employeeName}</strong></td>
-                <td>${x.startDate}</td>
-                <td>${x.endDate}</td>
-                <td class="text-muted" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${x.reason || ''}">
-                    ${x.reason || "<em>Không có lý do</em>"}
+                <td>
+                    <div style="font-weight:600;">${x.startDate}</div>
+                    <div class="text-muted" style="font-size:0.8rem;"><i class="fa-solid fa-arrow-right"></i> ${x.endDate}</div>
+                </td>
+                <td>
+                    ${typeBadge}
+                    <div class="text-muted" style="font-size: 0.9rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${x.reason || ''}">
+                        ${x.reason || "<em>Không có lý do</em>"}
+                    </div>
                 </td>
                 <td style="text-align: right;">
                     <div class="d-flex justify-end gap-1">
+                        <button class="btn btn-outline" style="border-color: var(--warning); color: var(--warning); padding: 4px 10px; font-size: 0.8rem;" onclick="openSubModal(${x.id}, '${x.employeeName}', '${x.startDate}', '${x.endDate}')">
+                            <i class="fa-solid fa-people-arrows"></i> Dạy thay
+                        </button>
                         <button class="btn btn-outline" style="border-color: var(--success); color: var(--success); padding: 4px 10px; font-size: 0.8rem;" onclick="leaveDecision(${x.id}, true)">
                             <i class="fa-solid fa-check"></i> Duyệt
                         </button>
@@ -104,7 +117,8 @@ async function loadLeavePending() {
                     </div>
                 </td>
             </tr>
-        `).join("");
+            `;
+        }).join("");
     } catch (e) {
         body.innerHTML = `<tr><td colspan='5' class='text-center py-5 text-danger'><i class='fa-solid fa-triangle-exclamation'></i><p>Đã xảy ra lỗi hệ thống.</p></td></tr>`;
     }
@@ -145,6 +159,105 @@ async function leaveDecision(requestId, approve) {
         await loadAllPending();
     } catch (e) {
         setAlert("Lỗi khi xử lý yêu cầu.", "error");
+    }
+}
+
+// ── Substitution Logic ────────────────────────────────
+
+const modalSub = document.getElementById("modalSubstitution");
+const subTableBody = document.getElementById("subTableBody");
+let currentSubRequestId = null;
+
+async function openSubModal(requestId, empName, start, end) {
+    currentSubRequestId = requestId;
+    document.getElementById("subModalInfo").innerHTML = `Các tiết dạy của <strong>${empName}</strong> từ <strong>${start}</strong> đến <strong>${end}</strong> cần người dạy thay:`;
+    modalSub.style.display = "flex";
+    await loadSubData();
+}
+
+function closeSubModal() {
+    modalSub.style.display = "none";
+}
+
+async function loadSubData() {
+    if (!currentSubRequestId) return;
+    subTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4"><div class="spinner"></div></td></tr>`;
+    try {
+        const res = await fetch(`/LeaveApproval/Api/Leave/${currentSubRequestId}/AffectedSchedules`);
+        const payload = await res.json();
+        if (!payload.success || !payload.data.length) {
+            subTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">Không có tiết dạy nào bị ảnh hưởng hoặc lỗi tải dữ liệu.</td></tr>`;
+            return;
+        }
+
+        subTableBody.innerHTML = payload.data.map(x => `
+            <tr>
+                <td>
+                    <div style="font-weight:600;">${x.date}</div>
+                    <div class="text-muted" style="font-size:0.85rem;">${x.time}</div>
+                </td>
+                <td>
+                    <div style="font-weight:600;">${x.className}</div>
+                    <div class="text-muted" style="font-size:0.85rem;">${x.subjectName}</div>
+                </td>
+                <td id="cell-sub-name-${x.scheduleId}-${x.rawDate}">
+                    ${x.substituteName ? `<span class="badge badge-success">${x.substituteName}</span>` : '<span class="text-muted">Chưa phân công</span>'}
+                </td>
+                <td style="text-align: right;">
+                    <button class="btn btn-outline btn-sm" onclick="openAssignSub(${x.scheduleId}, '${x.rawDate}')">
+                        <i class="fa-solid fa-user-plus"></i> Chọn GV
+                    </button>
+                </td>
+            </tr>
+        `).join("");
+    } catch (e) {
+        subTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">Lỗi tải dữ liệu.</td></tr>`;
+    }
+}
+
+let availableTeachers = [];
+async function loadAvailableTeachers() {
+    if (availableTeachers.length) return;
+    try {
+        const res = await fetch("/LeaveApproval/Api/AvailableTeachers");
+        const payload = await res.json();
+        if (payload.success) {
+            availableTeachers = payload.data;
+            const select = document.getElementById("selectSubstituteTeacher");
+            select.innerHTML = availableTeachers.map(t => `<option value="${t.id}">${t.fullName}</option>`).join("");
+        }
+    } catch (e) { console.error("Lỗi tải DS giáo viên", e); }
+}
+
+async function openAssignSub(scheduleId, date) {
+    document.getElementById("assignScheduleId").value = scheduleId;
+    document.getElementById("assignDate").value = date;
+    document.getElementById("modalAssignSub").style.display = "flex";
+    await loadAvailableTeachers();
+}
+
+async function submitAssignSub() {
+    const scheduleId = parseInt(document.getElementById("assignScheduleId").value);
+    const date = document.getElementById("assignDate").value;
+    const substituteEmployeeId = parseInt(document.getElementById("selectSubstituteTeacher").value);
+    const note = document.getElementById("assignNote").value;
+
+    try {
+        const res = await fetch("/LeaveApproval/Api/AssignSubstitute", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ classScheduleId: scheduleId, date, substituteEmployeeId, note })
+        });
+        const payload = await res.json();
+        if (payload.success) {
+            if (window.showToast) window.showToast('Thành công', payload.message, 'success');
+            document.getElementById('modalAssignSub').style.display = 'none';
+            await loadSubData();
+        } else {
+            alert(payload.message || "Lỗi khi phân công.");
+        }
+    } catch (e) {
+        alert("Lỗi hệ thống.");
     }
 }
 

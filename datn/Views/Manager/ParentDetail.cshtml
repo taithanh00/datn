@@ -1,6 +1,11 @@
 @model datn.Models.Parent
 @{
     Layout = "_DashboardLayout";
+    ViewData["Title"] ??= "Chi tiết phụ huynh";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/profile-detail.css" asp-append-version="true" />
 }
 
 <div class="page-header">
@@ -21,24 +26,24 @@
 </div>
 
 <div class="student-profile-grid">
-    <!-- Left Column: Avatar & Basic Stats -->
     <div class="profile-sidebar">
         <div class="card profile-card">
             <div class="avatar-wrapper">
                 <img src="@(Model.AvatarPath ?? "/images/lion_orange.png")" alt="Avatar" />
-                <div class="status-indicator @(Model.Account.IsActive ? "active" : "inactive")"></div>
+                <div class="status-indicator @((Model.Account?.IsActive ?? false) ? "active" : "inactive")"></div>
             </div>
+
             <h3 class="student-name">@Model.LastName @Model.FirstName</h3>
             <span class="student-code">Phụ huynh</span>
-            
+
             <div class="quick-stats">
                 <div class="stat-item">
                     <span class="stat-label">Tài khoản</span>
-                    <span class="stat-value">@Model.Account.Username</span>
+                    <span class="stat-value">@(Model.Account?.Username ?? "N/A")</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Số con</span>
-                    <span class="stat-value">@Model.ParentStudents.Count</span>
+                    <span class="stat-value">@(Model.ParentStudents?.Count ?? 0)</span>
                 </div>
             </div>
         </div>
@@ -57,7 +62,7 @@
                     <i class="fa-solid fa-envelope"></i>
                     <div>
                         <label>Email</label>
-                        <p>@Model.Account.Email</p>
+                        <p>@(Model.Account?.Email ?? "N/A")</p>
                     </div>
                 </div>
                 <div class="info-item">
@@ -71,14 +76,13 @@
         </div>
     </div>
 
-    <!-- Right Column: Detailed Info & Tabs -->
     <div class="profile-main">
         <div class="card main-card">
             <div class="card-header-tabs">
                 <button class="tab-btn active" data-tab="basic">Thông tin tài khoản</button>
                 <button class="tab-btn" data-tab="children">Danh sách con em</button>
             </div>
-            
+
             <div class="tab-content active" id="basic">
                 <div class="detail-grid">
                     <div class="detail-group">
@@ -91,15 +95,15 @@
                     </div>
                     <div class="detail-group">
                         <label>Tên đăng nhập</label>
-                        <p>@Model.Account.Username</p>
+                        <p>@(Model.Account?.Username ?? "N/A")</p>
                     </div>
                     <div class="detail-group">
                         <label>Ngày tham gia</label>
-                        <p>@Model.Account.CreatedAt.ToString("dd/MM/yyyy")</p>
+                        <p>@(Model.Account?.CreatedAt.ToString("dd/MM/yyyy") ?? "N/A")</p>
                     </div>
                     <div class="detail-group">
                         <label>Trạng thái tài khoản</label>
-                        <p>@(Model.Account.IsActive ? "Đang hoạt động" : "Đã khóa")</p>
+                        <p>@((Model.Account?.IsActive ?? false) ? "Đang hoạt động" : "Đã khóa")</p>
                     </div>
                     <div class="detail-group full-width">
                         <label>Ghi chú</label>
@@ -123,7 +127,7 @@
                                     <span class="child-code">@ps.Student.StudentCode</span>
                                     <div class="child-meta">
                                         <span class="badge bg-light text-dark">Lớp: @(ps.Student.Class?.Name ?? "N/A")</span>
-                                        <span class="badge bg-primary-soft text-primary">Quan hệ: @ps.Relationship</span>
+                                        <span class="badge bg-primary-soft text-primary">Quan hệ: @(ps.Relationship ?? "N/A")</span>
                                     </div>
                                 </div>
                             </div>
@@ -142,71 +146,7 @@
     </div>
 </div>
 
-<style>
-    .children-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-    }
+@section Scripts {
+    <script src="~/js/pages/profile-detail.js" asp-append-version="true"></script>
+}
 
-    .child-card {
-        display: flex;
-        gap: 16px;
-        padding: 16px;
-        background: var(--bg-main);
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        transition: transform 0.2s;
-    }
-
-    .child-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-
-    .child-avatar img {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        object-fit: cover;
-    }
-
-    .child-name {
-        display: block;
-        font-weight: 700;
-        color: var(--text-main);
-        text-decoration: none;
-        margin-bottom: 2px;
-    }
-
-    .child-name:hover { color: var(--primary); }
-
-    .child-code {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        display: block;
-        margin-bottom: 8px;
-    }
-
-    .child-meta {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .bg-primary-soft { background: var(--primary-soft); }
-
-    /* Reusing StudentDetail styles through common layout or explicit style tag here */
-</style>
-
-<script>
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            btn.classList.add('active');
-            document.getElementById(btn.dataset.tab).classList.add('active');
-        });
-    });
-</script>

@@ -23,6 +23,17 @@
             <input id="endDate" type="date" class="form-input" required />
         </div>
         <div class="form-group">
+            <label class="form-label" for="leaveType">Loại nghỉ phép</label>
+            <select id="leaveType" class="form-input">
+                <option value="false">Nghỉ không lương</option>
+                <option value="true">Nghỉ có lương (Hạn mức 1 lần/tháng)</option>
+            </select>
+            <p class="text-muted" style="font-size:0.75rem; margin-top:4px; color: var(--primary) !important;">
+                <i class="fa-solid fa-circle-info"></i> Quy định: Chỉ được đăng ký nghỉ CÓ LƯƠNG 1 lần duy nhất trong mỗi tháng.
+            </p>
+        </div>
+
+        <div class="form-group">
             <label class="form-label" for="reason">Lý do</label>
             <textarea id="reason" class="form-input" rows="3" placeholder="Nhập lý do nghỉ phép..." required></textarea>
         </div>
@@ -42,7 +53,7 @@
                 <thead>
                     <tr>
                         <th>Thời gian</th>
-                        <th>Lý do</th>
+                        <th>Loại / Lý do</th>
                         <th>Trạng thái</th>
                         <th>Ghi chú duyệt</th>
                     </tr>
@@ -69,7 +80,7 @@
         leaveAlert.textContent = message;
         leaveAlert.className = `page-alert mt-3 ${isError ? 'error' : 'success'}`;
         leaveAlert.style.display = 'block';
-        setTimeout(() => leaveAlert.style.display = 'none', 4000);
+        setTimeout(() => leaveAlert.style.display = 'none', 6000); // Tăng thời gian hiển thị vì thông báo dài hơn
     }
 
     async function loadMyRequests() {
@@ -92,6 +103,10 @@
                 else if (statusText === 'Rejected') { statusClass = 'badge-danger'; statusText = 'Từ chối'; }
                 else if (statusText === 'Pending') { statusClass = 'badge-warning'; statusText = 'Chờ duyệt'; }
 
+                const typeBadge = x.isPaid 
+                    ? '<span class="badge" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary); font-size: 0.7rem; margin-bottom: 4px;">CÓ LƯƠNG</span>'
+                    : '<span class="badge" style="background: #f1f5f9; color: #64748b; font-size: 0.7rem; margin-bottom: 4px;">KHÔNG LƯƠNG</span>';
+
                 return `
                 <tr>
                     <td>
@@ -99,7 +114,10 @@
                         <div class="text-muted" style="font-size: 0.85rem;"><i class="fa-solid fa-arrow-down" style="font-size: 0.7rem; margin: 2px 0;"></i></div>
                         <div style="font-weight: 600;">${x.endDate}</div>
                     </td>
-                    <td class="text-muted" style="font-size: 0.9rem; max-width: 200px;">${x.reason || "--"}</td>
+                    <td>
+                        ${typeBadge}
+                        <div class="text-muted" style="font-size: 0.9rem; max-width: 200px; word-break: break-word;">${x.reason || "--"}</div>
+                    </td>
                     <td><span class="badge ${statusClass}">${statusText}</span></td>
                     <td class="text-muted" style="font-size: 0.9rem;">${x.reviewNote || "--"}</td>
                 </tr>
@@ -114,6 +132,7 @@
         const startDate = document.getElementById("startDate").value;
         const endDate = document.getElementById("endDate").value;
         const reason = document.getElementById("reason").value;
+        const isPaid = document.getElementById("leaveType").value === "true";
 
         if (!startDate || !endDate) {
             setAlert("Vui lòng chọn ngày bắt đầu và kết thúc.", true);
@@ -127,7 +146,7 @@
             const res = await fetch("/LeaveRequest/Api/Create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ startDate, endDate, reason })
+                body: JSON.stringify({ startDate, endDate, reason, isPaid })
             });
             const payload = await res.json();
             

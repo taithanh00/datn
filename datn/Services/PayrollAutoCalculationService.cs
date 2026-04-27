@@ -96,7 +96,8 @@ namespace datn.Services
 
             var employees = await db.Employees
                 .Include(e => e.Account)
-                .Where(e => e.Account != null && e.Account.IsActive)
+                .Where(e => e.Account != null && e.Account.Role.Name == "Employee")
+                .Where(e => e.Account.IsActive || db.WorkAttendances.Any(w => w.EmployeeId == e.Id && w.Date.Month == month && w.Date.Year == year))
                 .ToListAsync(cancellationToken);
 
             foreach (var employee in employees)
@@ -108,8 +109,12 @@ namespace datn.Services
                                 && w.Date.Year == year)
                     .ToListAsync(cancellationToken);
 
-                var workingDaysCount = approvedRecords.Count;
+                var workingDaysCount = approvedRecords.Sum(w => (decimal?)w.WorkUnit) ?? 0m;
                 var totalPenalty = approvedRecords.Sum(w => w.PenaltyAmount);
+
+                // Nếu không đi làm ngày nào và không có tiền phạt, bỏ qua để không làm rác bảng lương
+                if (workingDaysCount == 0 && totalPenalty == 0) continue;
+
                 var baseSalary = employee.BaseSalary ?? 0m;
                 
                 // Lương mỗi ngày dựa trên số ngày công thực tế của tháng đó

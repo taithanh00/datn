@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - KinderCare</title>
+    <title>@ViewData["Title"] - SenHồng</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,7 +16,7 @@
 
     <script>
         (function(){
-            var t = localStorage.getItem('kindercare-theme');
+            var t = localStorage.getItem('senhong-theme');
             if (t) document.documentElement.setAttribute('data-theme', t);
             else if (window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'dark');
         })();
@@ -29,10 +29,10 @@
 
     <div class="app-container">
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <i class="fa-solid fa-graduation-cap" style="font-size:1.4rem"></i>
-                <span>KinderCare</span>
-            </div>
+            <a href="/" class="sidebar-header" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-spa" style="font-size:1.4rem; color: #e91e63;"></i>
+                <span>SenHồng</span>
+            </a>
 
             <nav class="sidebar-nav">
                 <a href="/" class="nav-item" data-transition>
@@ -42,11 +42,14 @@
                 @if (ViewBag.Role == "Manager")
                 {
                     <div class="nav-label">Quản trị hệ thống</div>
-                    <a href="/Manager/Classes" class="nav-item" data-transition><i class="fa-solid fa-school"></i> Lớp học</a>
+                    <a href="/Manager/Classes" class="nav-item" data-transition><i class="fa-solid fa-school"></i> Quản lý lớp học</a>
+                    <a href="/Manager/Subjects" class="nav-item" data-transition><i class="fa-solid fa-book"></i> Danh mục môn học</a>
+                    <a href="/Manager/Schedules" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Thời khóa biểu</a>
                     <a href="/Manager/Students" class="nav-item" data-transition><i class="fa-solid fa-user-graduate"></i> Học sinh</a>
                     <a href="/Manager/Parents" class="nav-item" data-transition><i class="fa-solid fa-users-viewfinder"></i> Phụ huynh</a>
                     <a href="/Manager/Teachers" class="nav-item" data-transition><i class="fa-solid fa-user-tie"></i> Nhân sự</a>
-                    <a href="/Manager/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-star"></i> Hoạt động</a>
+                    <a href="/HolidayManagement" class="nav-item" data-transition><i class="fa-solid fa-umbrella-beach"></i> Ngày lễ</a>
+                    <a href="/Manager/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động</a>
 
                     <div class="nav-label">Đào tạo</div>
                     <a href="/Manager/Assignments" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Phân công giảng dạy</a>
@@ -135,8 +138,8 @@
                                 @(ViewBag.Role == "Manager" ? "Quản lý" : ViewBag.Role == "Employee" ? "Giáo viên" : "Phụ huynh")
                             </div>
                         </div>
-                        <img src="/images/lion_orange.png"
-                             alt="Avatar" style="width:36px; height:36px; border-radius:50%; border:2px solid white;">
+                        <img src="@ViewBag.UserAvatar"
+                             alt="Avatar" style="width:36px; height:36px; border-radius:50%; border:2px solid white;" onerror="this.src='/images/lion_blue.png'">
                     </div>
                 </div>
             </header>

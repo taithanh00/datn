@@ -4,7 +4,8 @@
 }
 
 <div class="page-header">
-    <h1 class="page-title">Quản lý Lớp học & Thời khóa biểu</h1>
+    @Html.AntiForgeryToken()
+    <h1 class="page-title">Quản lý Lớp học</h1>
     <div class="page-actions">
         <button class="btn btn-primary" id="resetClassFormBtn" type="button">
             <i class="fa-solid fa-plus"></i> Tạo lớp mới
@@ -12,7 +13,6 @@
     </div>
 </div>
 
-<!-- Classes Section -->
 <div class="card">
     <div class="d-flex align-center justify-between mb-2">
         <h3>Danh sách lớp học</h3>
@@ -34,7 +34,6 @@
         </table>
     </div>
 
-    <!-- Class Form (Modal-like inline) -->
     <form id="classForm" class="mt-3" style="border-top:1px solid var(--border); padding-top:24px;">
         <input type="hidden" id="classId" />
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
@@ -47,7 +46,7 @@
                 <input id="schoolYear" type="text" class="form-input" placeholder="2025-2026" />
             </div>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
             <div class="form-group">
                 <label class="form-label" for="ageFrom">Tuổi từ</label>
                 <input id="ageFrom" type="number" min="1" class="form-input" />
@@ -56,152 +55,14 @@
                 <label class="form-label" for="ageTo">Tuổi đến</label>
                 <input id="ageTo" type="number" min="1" class="form-input" />
             </div>
+            <div class="form-group">
+                <label class="form-label" for="maxCapacity">Sĩ số tối đa</label>
+                <input id="maxCapacity" type="number" min="1" class="form-input" placeholder="Mặc định: 25" />
+            </div>
         </div>
         <div class="d-flex gap-1 mt-1">
             <button type="submit" class="btn btn-primary" id="saveClassBtn">Lưu lớp học</button>
             <button type="button" class="btn btn-outline" id="clearClassBtn">Làm mới</button>
-        </div>
-    </form>
-</div>
-
-<!-- Subjects Section -->
-<div class="card">
-    <div class="d-flex align-center justify-between mb-2">
-        <h3>Danh mục môn học</h3>
-        <button class="btn btn-primary" id="resetSubjectFormBtn" type="button">
-            <i class="fa-solid fa-plus"></i> Tạo môn mới
-        </button>
-    </div>
-    <div id="subjectAlert" style="display:none; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.85rem;"></div>
-    <div class="table-container">
-        <table id="subjectsTable">
-            <thead>
-                <tr>
-                    <th>Mã môn</th>
-                    <th>Tên môn</th>
-                    <th>Mô tả</th>
-                    <th>Trạng thái</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
-            <tbody id="subjectsTableBody"></tbody>
-        </table>
-    </div>
-
-    <form id="subjectForm" class="mt-3" style="border-top:1px solid var(--border); padding-top:24px;">
-        <input type="hidden" id="subjectId" />
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-            <div class="form-group">
-                <label class="form-label" for="subjectCode">Mã môn</label>
-                <input id="subjectCode" type="text" class="form-input" required />
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="subjectName">Tên môn</label>
-                <input id="subjectName" type="text" class="form-input" required />
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="subjectDescription">Mô tả</label>
-            <textarea id="subjectDescription" class="form-input" rows="3"></textarea>
-        </div>
-        <div class="form-group" style="display:flex; align-items:center; gap:8px;">
-            <input id="subjectIsActive" type="checkbox" checked />
-            <label for="subjectIsActive" style="font-size:0.9rem;">Đang sử dụng</label>
-        </div>
-        <div class="d-flex gap-1 mt-1">
-            <button type="submit" class="btn btn-primary" id="saveSubjectBtn">Lưu môn học</button>
-            <button type="button" class="btn btn-outline" id="clearSubjectBtn">Làm mới</button>
-        </div>
-    </form>
-</div>
-
-<!-- Schedule Section -->
-<div class="card">
-    <div class="d-flex align-center justify-between mb-2">
-        <h3>Thời khóa biểu</h3>
-        <div class="d-flex align-center gap-1">
-            <label class="form-label" for="scheduleClassFilter" style="margin-bottom:0; white-space:nowrap;">Lớp:</label>
-            <select id="scheduleClassFilter" class="form-select" style="width:auto; min-width:180px;"></select>
-        </div>
-    </div>
-    <div id="scheduleAlert" style="display:none; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.85rem;"></div>
-    <div class="table-container">
-        <table id="scheduleTable">
-            <thead>
-                <tr>
-                    <th>Thứ</th>
-                    <th>Khung giờ</th>
-                    <th>Môn học</th>
-                    <th>Giáo viên</th>
-                    <th>Hiệu lực</th>
-                    <th>Ghi chú</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
-            <tbody id="scheduleTableBody"></tbody>
-        </table>
-    </div>
-
-    <form id="scheduleForm" class="mt-3" style="border-top:1px solid var(--border); padding-top:24px;">
-        <input type="hidden" id="scheduleId" />
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
-            <div class="form-group">
-                <label class="form-label" for="scheduleClassId">Lớp học</label>
-                <select id="scheduleClassId" class="form-select" required></select>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="scheduleSubjectId">Môn học</label>
-                <select id="scheduleSubjectId" class="form-select" required></select>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="scheduleTeacherId">Giáo viên</label>
-                <select id="scheduleTeacherId" class="form-select" required></select>
-            </div>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:16px;">
-            <div class="form-group">
-                <label class="form-label" for="scheduleDayOfWeek">Thứ</label>
-                <select id="scheduleDayOfWeek" class="form-select" required>
-                    <option value="1">Thứ 2</option>
-                    <option value="2">Thứ 3</option>
-                    <option value="3">Thứ 4</option>
-                    <option value="4">Thứ 5</option>
-                    <option value="5">Thứ 6</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="scheduleStartTime">Bắt đầu</label>
-                <input id="scheduleStartTime" type="time" class="form-input" value="07:00" required />
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="scheduleEndTime">Kết thúc</label>
-                <input id="scheduleEndTime" type="time" class="form-input" value="08:00" required />
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="scheduleIsActive">Trạng thái</label>
-                <select id="scheduleIsActive" class="form-select">
-                    <option value="true">Đang áp dụng</option>
-                    <option value="false">Tạm ngưng</option>
-                </select>
-            </div>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-            <div class="form-group">
-                <label class="form-label" for="scheduleEffectiveFrom">Hiệu lực từ</label>
-                <input id="scheduleEffectiveFrom" type="date" class="form-input" required />
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="scheduleEffectiveTo">Hiệu lực đến</label>
-                <input id="scheduleEffectiveTo" type="date" class="form-input" />
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="scheduleNote">Ghi chú</label>
-            <textarea id="scheduleNote" class="form-input" rows="3" placeholder="Ghi chú thêm nếu cần"></textarea>
-        </div>
-        <div class="d-flex gap-1 mt-1">
-            <button type="submit" class="btn btn-primary" id="saveScheduleBtn">Lưu thời khóa biểu</button>
-            <button type="button" class="btn btn-outline" id="clearScheduleBtn">Làm mới</button>
         </div>
     </form>
 </div>

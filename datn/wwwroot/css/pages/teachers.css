@@ -1,0 +1,49 @@
+/* ===== TEACHER MANAGEMENT STYLES ===== */
+
+#teachersTable {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#teachersTable th {
+    padding: 16px 20px;
+    background: var(--bg-main);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+#teachersTable td {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    color: var(--text-main);
+    vertical-align: middle;
+}
+
+#teachersTable tbody tr:hover {
+    background-color: var(--sidebar-active);
+}
+
+.teacher-name-link {
+    font-weight: 600;
+    color: var(--text-main);
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-block;
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.teacher-name-link:hover {
+    color: var(--primary);
+    text-decoration: none;
+}

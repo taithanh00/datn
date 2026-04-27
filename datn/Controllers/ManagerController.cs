@@ -148,6 +148,20 @@ namespace datn.Controllers
             return View();
         }
 
+        [HttpGet("Subjects")]
+        public IActionResult Subjects()
+        {
+            ViewData["Title"] = "Danh mục môn học";
+            return View();
+        }
+
+        [HttpGet("Schedules")]
+        public IActionResult Schedules()
+        {
+            ViewData["Title"] = "Thời khóa biểu";
+            return View();
+        }
+
         // ============ ASSIGNMENT API ============
 
         [HttpGet("Api/Assignments")]
@@ -240,7 +254,12 @@ namespace datn.Controllers
         {
             try
             {
-                var students = await _context.Students.Include(s => s.Class).OrderBy(s => s.Id).ToListAsync();
+                var students = await _context.Students
+                    .Include(s => s.Class)
+                    .Include(s => s.ParentStudents).ThenInclude(ps => ps.Parent)
+                    .OrderBy(s => s.Id)
+                    .ToListAsync();
+
                 var result = students.Select(s => new
                 {
                     id = s.Id,
@@ -248,16 +267,23 @@ namespace datn.Controllers
                     fullName = $"{s.FirstName} {s.LastName}".Trim(),
                     gender = s.Gender ? "Nam" : "Nữ",
                     dateOfBirth = s.DateOfBirth.ToString("dd/MM/yyyy"),
-                    fatherName = s.FatherName ?? "N/A",
-                    motherName = s.MotherName ?? "N/A",
                     address = s.Address ?? "N/A",
                     className = s.Class?.Name ?? "Chưa có lớp",
                     enrollDate = s.EnrollDate?.ToString("dd/MM/yyyy") ?? "N/A",
                     status = (int)s.Status,
                     statusText = s.Status == StudentStatus.Active ? "Đang học" : "Đã nghỉ",
                     createdAt = s.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    avatarPath = s.AvatarPath ?? "/images/lion_orange.png"
+                    avatarPath = s.AvatarPath ?? "/images/lion_orange.png",
+                    fatherName = s.ParentStudents
+                        .Where(ps => ps.Relationship == "Bố")
+                        .Select(ps => ps.Parent.LastName + " " + ps.Parent.FirstName)
+                        .FirstOrDefault(),
+                    motherName = s.ParentStudents
+                        .Where(ps => ps.Relationship == "Mẹ")
+                        .Select(ps => ps.Parent.LastName + " " + ps.Parent.FirstName)
+                        .FirstOrDefault()
                 }).ToList();
+
                 return Json(new { success = true, data = result });
             }
             catch (Exception ex)
@@ -287,6 +313,7 @@ namespace datn.Controllers
                         address = s.Address,
                         classId = s.ClassId,
                         enrollDate = s.EnrollDate?.ToString("yyyy-MM-dd"),
+                        status = (int)s.Status,
                         avatarPath = s.AvatarPath
                     }
                 });
@@ -341,6 +368,13 @@ namespace datn.Controllers
                 }
 
                 // 2. Tạo mới học sinh thông qua Service
+                // Kiểm tra các ràng buộc Lớp học (Tuổi, Sĩ số, Niên khóa)
+                if (model.ClassId > 0)
+                {
+                    var validationError = await ValidateStudentClassAssignmentAsync(model.ClassId.Value, model.DateOfBirth, null);
+                    if (validationError != null) return Json(new { success = false, message = validationError });
+                }
+
                 var student = await _studentService.CreateStudentAsync(model);
                 
                 return Json(new { success = true, message = "Thêm học sinh thành công", studentCode = student.StudentCode });
@@ -374,6 +408,13 @@ namespace datn.Controllers
                     return Json(new { success = false, message = "Thông tin cập nhật trùng với một học sinh khác đã tồn tại." });
                 }
 
+                // Kiểm tra các ràng buộc Lớp học nếu có thay đổi lớp
+                if (model.ClassId > 0 && model.ClassId != student.ClassId)
+                {
+                    var validationError = await ValidateStudentClassAssignmentAsync(model.ClassId.Value, dob.ToString("yyyy-MM-dd"), id);
+                    if (validationError != null) return Json(new { success = false, message = validationError });
+                }
+
                 student.FirstName = model.FirstName;
                 student.LastName = model.LastName;
                 student.Gender = model.Gender == "true";
@@ -393,6 +434,45 @@ namespace datn.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        private async Task<string?> ValidateStudentClassAssignmentAsync(int classId, string dobStr, int? studentId)
+        {
+            var classroom = await _context.Classes.Include(c => c.Students).FirstOrDefaultAsync(c => c.Id == classId);
+            if (classroom == null) return "Không tìm thấy lớp học.";
+
+            // 1. Kiểm tra Sĩ số
+            var currentCount = classroom.Students.Count(s => s.Status == StudentStatus.Active);
+            if (currentCount >= classroom.MaxCapacity && studentId == null) 
+                return $"Lớp {classroom.Name} đã đủ sĩ số ({classroom.MaxCapacity}).";
+
+            // 2. Kiểm tra Độ tuổi
+            if (DateOnly.TryParse(dobStr, out var dob))
+            {
+                var yearNow = DateTime.Now.Year;
+                var age = yearNow - dob.Year;
+                
+                if (classroom.AgeFrom.HasValue && age < classroom.AgeFrom.Value)
+                    return $"Học sinh ({age} tuổi) nhỏ hơn độ tuổi quy định của lớp ({classroom.AgeFrom.Value}-{classroom.AgeTo} tuổi).";
+                
+                if (classroom.AgeTo.HasValue && age > classroom.AgeTo.Value)
+                    return $"Học sinh ({age} tuổi) lớn hơn độ tuổi quy định của lớp ({classroom.AgeFrom}-{classroom.AgeTo.Value} tuổi).";
+            }
+
+            // 3. Kiểm tra Niên khóa (Chỉ cho phép thêm vào niên khóa hiện tại)
+            var currentYear = DateTime.Now.Year;
+            var nextYear = currentYear + 1;
+            var currentSchoolYear = $"{currentYear}-{nextYear}";
+            
+            // Nếu niên khóa lớp không phải năm nay và không phải năm sau (đang tuyển sinh)
+            if (!string.IsNullOrEmpty(classroom.SchoolYear) && !classroom.SchoolYear.Contains(currentYear.ToString()) && !classroom.SchoolYear.Contains(nextYear.ToString()))
+            {
+                // Cho phép sửa nếu là học sinh cũ đang ở trong lớp đó, nhưng không cho thêm mới
+                if (studentId == null)
+                    return $"Không thể thêm học sinh vào niên khóa cũ ({classroom.SchoolYear}).";
+            }
+
+            return null;
         }
 
         // ============ TEACHER API ============
@@ -597,10 +677,36 @@ namespace datn.Controllers
         }
 
         [HttpPost("Api/Parent/LinkStudent")]
-        public async Task<IActionResult> LinkStudent(int parentId, int studentId, string relationship)
+        public async Task<IActionResult> LinkStudent([FromForm] int parentId, [FromForm] int studentId, [FromForm] string? relationship)
         {
-            var success = await _parentService.LinkStudentAsync(parentId, studentId, relationship);
+            if (parentId <= 0 || studentId <= 0)
+            {
+                return Json(new { success = false, message = $"Du lieu khong hop le (parentId={parentId}, studentId={studentId})." });
+            }
+
+            if (!await _context.Parents.AnyAsync(p => p.Id == parentId))
+            {
+                return Json(new { success = false, message = "Khong tim thay phu huynh." });
+            }
+
+            if (!await _context.Students.AnyAsync(s => s.Id == studentId))
+            {
+                return Json(new { success = false, message = "Khong tim thay hoc sinh." });
+            }
+
+            try
+            {
+                var success = await _parentService.LinkStudentAsync(parentId, studentId, relationship ?? "");
             return Json(new { success, message = success ? "Liên kết thành công" : "Lỗi khi liên kết" });
+            }
+            catch (DbUpdateException ex)
+            {
+                return Json(new { success = false, message = $"Loi CSDL khi lien ket: {ex.GetBaseException().Message}" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Loi khi lien ket: {ex.Message}" });
+            }
         }
 
         [HttpDelete("Api/Parent/UnlinkStudent")]
@@ -614,7 +720,8 @@ namespace datn.Controllers
         public async Task<IActionResult> SearchStudents(string q)
         {
             var students = await _context.Students
-                .Where(s => s.FirstName.Contains(q) || s.LastName.Contains(q) || s.StudentCode.Contains(q))
+                .Where(s => s.Status == StudentStatus.Active &&  
+                    (s.FirstName.Contains(q) || s.LastName.Contains(q) || s.StudentCode.Contains(q)))
                 .Take(10)
                 .Select(s => new { id = s.Id, fullName = s.LastName + " " + s.FirstName, code = s.StudentCode })
                 .ToListAsync();
@@ -624,7 +731,10 @@ namespace datn.Controllers
         [HttpGet("Api/Teacher/{id:int}")]
         public async Task<IActionResult> GetTeacher(int id)
         {
-            var teacher = await _context.Employees.Include(e => e.Account).FirstOrDefaultAsync(e => e.Id == id);
+            var teacher = await _context.Employees
+                .Include(e => e.Account)
+                .FirstOrDefaultAsync(e => e.Id == id);
+                
             if (teacher == null)
                 return Json(new { success = false, message = "Không tìm thấy giáo viên." });
 
@@ -639,9 +749,24 @@ namespace datn.Controllers
                     phone = teacher.Phone,
                     position = teacher.Position,
                     baseSalary = teacher.BaseSalary,
-                    avatarPath = teacher.AvatarPath
+                    avatarPath = teacher.AvatarPath,
+                    isActive = teacher.Account?.IsActive ?? true 
                 }
             });
+        }
+
+        [HttpGet("TeacherDetail/{id:int}")]
+        public async Task<IActionResult> TeacherDetail(int id)
+        {
+            var teacher = await _context.Employees
+                .Include(e => e.Account)
+                .Include(e => e.Assignments).ThenInclude(a => a.Class)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (teacher == null) return NotFound();
+
+            ViewData["Title"] = "Chi tiết Giáo viên";
+            return View(teacher);
         }
 
         [HttpPost("Api/Teacher")]
@@ -762,6 +887,27 @@ namespace datn.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+        [HttpPut("Api/Teacher/{id:int}/Reactivate")]
+        public async Task<IActionResult> ReactivateTeacher(int id)
+        {
+            try
+            {
+                var teacher = await _context.Employees
+                    .Include(e => e.Account)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+                    
+                if (teacher == null)
+                    return Json(new { success = false, message = "Không tìm thấy giáo viên." });
+
+                teacher.Account.IsActive = true;
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Đã kích hoạt lại giáo viên thành công." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
 
         // ============ CLASS MANAGEMENT API ============
 
@@ -798,6 +944,7 @@ namespace datn.Controllers
                 ageFrom = c.AgeFrom,
                 ageTo = c.AgeTo,
                 schoolYear = c.SchoolYear,
+                maxCapacity = c.MaxCapacity,
                 studentCount = c.Students.Count,
                 teachers = c.Assignments
                     .Where(a => a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
@@ -867,7 +1014,8 @@ namespace datn.Controllers
                 Name = model.Name.Trim(),
                 AgeFrom = model.AgeFrom,
                 AgeTo = model.AgeTo,
-                SchoolYear = model.SchoolYear?.Trim()
+                SchoolYear = model.SchoolYear?.Trim(),
+                MaxCapacity = model.MaxCapacity > 0 ? model.MaxCapacity : 25
             };
 
             _context.Classes.Add(classroom);
@@ -895,6 +1043,7 @@ namespace datn.Controllers
             classroom.AgeFrom = model.AgeFrom;
             classroom.AgeTo = model.AgeTo;
             classroom.SchoolYear = model.SchoolYear?.Trim();
+            classroom.MaxCapacity = model.MaxCapacity > 0 ? model.MaxCapacity : 25;
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "Cập nhật lớp học thành công." });
@@ -1216,21 +1365,26 @@ namespace datn.Controllers
                     && cs.IsActive)
                 .ToListAsync();
 
-            var classOverlap = sameDaySchedules.Any(cs =>
+            var classOverlapSchedule = sameDaySchedules.FirstOrDefault(cs =>
                 cs.ClassId == model.ClassId
                 && DateRangesOverlap(cs.EffectiveFrom, cs.EffectiveTo, effectiveFrom, effectiveTo)
                 && TimeRangesOverlap(cs.StartTime, cs.EndTime, startTime, endTime));
 
-            if (classOverlap)
-                return "Lớp học đã có tiết khác trùng khung giờ này.";
+            if (classOverlapSchedule != null)
+            {
+                var subject = await _context.Subjects.FindAsync(classOverlapSchedule.SubjectId);
+                return $"Lớp học đã có tiết '{subject?.Name}' trùng khung giờ này ({classOverlapSchedule.StartTime:HH:mm} - {classOverlapSchedule.EndTime:HH:mm}).";
+            }
 
-            var teacherOverlap = sameDaySchedules.Any(cs =>
+            var teacherOverlapSchedule = sameDaySchedules.FirstOrDefault(cs =>
                 cs.EmployeeId == model.EmployeeId
                 && DateRangesOverlap(cs.EffectiveFrom, cs.EffectiveTo, effectiveFrom, effectiveTo)
                 && TimeRangesOverlap(cs.StartTime, cs.EndTime, startTime, endTime));
 
-            if (teacherOverlap)
-                return "Giáo viên đã có lịch dạy khác trùng khung giờ này.";
+            if (teacherOverlapSchedule != null)
+            {
+                return $"Giáo viên đã có lịch dạy khác trùng khung giờ này ({teacherOverlapSchedule.StartTime:HH:mm} - {teacherOverlapSchedule.EndTime:HH:mm}).";
+            }
 
             if (model.LocationId.HasValue)
             {
@@ -1602,6 +1756,7 @@ namespace datn.Controllers
         public int? AgeFrom { get; set; }
         public int? AgeTo { get; set; }
         public string? SchoolYear { get; set; }
+        public int MaxCapacity { get; set; } = 25;
     }
 
     public class SaveSubjectViewModel

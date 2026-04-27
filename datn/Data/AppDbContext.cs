@@ -25,7 +25,9 @@ namespace datn.Data
         public DbSet<Assignment> Assignments { get; set; }
         public DbSet<WorkAttendance> WorkAttendances { get; set; }
         public DbSet<PayrollPeriod> PayrollPeriods { get; set; }
+        public DbSet<Holiday> Holidays { get; set; }
         public DbSet<Salary> Salaries { get; set; }
+        public DbSet<Substitution> Substitutions { get; set; }
         public DbSet<Location> Locations { get; set; }
         public DbSet<Activity> Activities { get; set; }
         public DbSet<ClassActivity> ClassActivities { get; set; }
@@ -316,6 +318,25 @@ namespace datn.Data
                     cs.EndTime,
                     cs.EffectiveFrom
                 });
+
+            // ── Substitution ──────────────────────────────────────
+            modelBuilder.Entity<Substitution>()
+                .HasOne(s => s.ClassSchedule)
+                .WithMany()
+                .HasForeignKey(s => s.ClassScheduleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Substitution>()
+                .HasOne(s => s.OriginalEmployee)
+                .WithMany()
+                .HasForeignKey(s => s.OriginalEmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Substitution>()
+                .HasOne(s => s.SubstituteEmployee)
+                .WithMany()
+                .HasForeignKey(s => s.SubstituteEmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // ── StudentActivity (composite PK) ───────────────────
             modelBuilder.Entity<StudentActivity>()

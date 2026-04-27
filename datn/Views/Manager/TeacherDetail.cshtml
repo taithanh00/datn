@@ -1,0 +1,176 @@
+@model datn.Models.Employee
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Chi tiết Giáo viên";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/profile-detail.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/teacher-detail.css" asp-append-version="true" />
+}
+
+<div class="page-header">
+    <div class="header-left">
+        <div class="header-icon" style="background: rgba(var(--primary-rgb), 0.1); color: var(--primary);">
+            <i class="fa-solid fa-chalkboard-user"></i>
+        </div>
+        <div>
+            <h2 class="page-title">Hồ sơ giáo viên</h2>
+            <p class="page-subtitle">Quản lý thông tin chi tiết và lịch trình giảng dạy</p>
+        </div>
+    </div>
+    <div class="header-actions">
+        <a href="/Manager/Teachers" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+<div class="student-profile-grid">
+    <!-- Sidebar: Avatar & Quick Info -->
+    <div class="profile-sidebar">
+        <div class="card profile-card">
+            <div class="avatar-wrapper">
+                <img src="@(Model.AvatarPath ?? "/images/lion_blue.png")" alt="Avatar" />
+                <div class="status-indicator @((Model.Account?.IsActive ?? false) ? "active" : "inactive")"></div>
+            </div>
+
+            <h3 class="student-name">@Model.FullName</h3>
+            <span class="student-code">@Model.Position</span>
+
+            <div class="quick-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Tài khoản</span>
+                    <span class="stat-value">@(Model.Account?.Username ?? "N/A")</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Số lớp dạy</span>
+                    <span class="stat-value">@(Model.Assignments?.Count ?? 0)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card info-card mt-4">
+            <h4>Thông tin liên hệ</h4>
+            <div class="info-list">
+                <div class="info-item">
+                    <i class="fa-solid fa-phone"></i>
+                    <div>
+                        <label>Số điện thoại</label>
+                        <p>@(Model.Phone ?? "Chưa cập nhật")</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fa-solid fa-envelope"></i>
+                    <div>
+                        <label>Email</label>
+                        <p>@(Model.Account?.Email ?? "N/A")</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fa-solid fa-briefcase"></i>
+                    <div>
+                        <label>Vị trí</label>
+                        <p>@(Model.Position ?? "Giáo viên")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content: Tabs & Details -->
+    <div class="profile-main">
+        <div class="card main-card">
+            <div class="card-header-tabs">
+                <button class="tab-btn active" data-tab="basic">Thông tin cá nhân</button>
+                <button class="tab-btn" data-tab="assignments">Lớp phụ trách</button>
+                <button class="tab-btn" data-tab="history">Lịch sử công tác</button>
+            </div>
+
+            <!-- Tab 1: Basic Info -->
+            <div class="tab-content active" id="basic">
+                <div class="detail-grid">
+                    <div class="detail-group">
+                        <label>Họ và tên</label>
+                        <p>@Model.FullName</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Tên đăng nhập</label>
+                        <p>@(Model.Account?.Username ?? "N/A")</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Email công việc</label>
+                        <p>@(Model.Account?.Email ?? "N/A")</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Số điện thoại</label>
+                        <p>@(Model.Phone ?? "Chưa cập nhật")</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Lương cơ bản</label>
+                        <p>@(Model.BaseSalary?.ToString("N0") ?? "0") VNĐ</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Trạng thái tài khoản</label>
+                        <p>@((Model.Account?.IsActive ?? false) ? "Đang hoạt động" : "Đã khóa")</p>
+                    </div>
+                    <div class="detail-group full-width">
+                        <label>Ghi chú</label>
+                        <p class="text-muted">Không có ghi chú đặc biệt cho nhân sự này.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Assignments -->
+            <div class="tab-content" id="assignments">
+                @if (Model.Assignments != null && Model.Assignments.Any())
+                {
+                    <div class="assignments-list">
+                        @foreach (var ass in Model.Assignments)
+                        {
+                            <div class="assignment-item">
+                                <div class="assignment-icon">
+                                    <i class="fa-solid fa-school"></i>
+                                </div>
+                                <div class="assignment-info">
+                                    <h5 class="class-name">Lớp: @(ass.Class?.Name ?? "N/A")</h5>
+                                    <div class="assignment-meta">
+                                        <span class="badge bg-primary-soft text-primary">Vai trò: @(ass.RoleInClass ?? "Giáo viên")</span>
+                                        <span class="badge bg-light text-dark">Bắt đầu: @(ass.StartDate.ToString("dd/MM/yyyy"))</span>
+                                        @if (ass.EndDate.HasValue)
+                                        {
+                                            <span class="badge bg-light text-dark">Kết thúc: @(ass.EndDate.Value.ToString("dd/MM/yyyy"))</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success-soft text-success">Đang giảng dạy</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fa-solid fa-calendar-xmark"></i>
+                        <p>Chưa có phân công giảng dạy cho giáo viên này.</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Tab 3: History (Placeholder) -->
+            <div class="tab-content" id="history">
+                <div class="empty-state">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <p>Dữ liệu lịch sử công tác đang được cập nhật...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/profile-detail.js" asp-append-version="true"></script>
+}

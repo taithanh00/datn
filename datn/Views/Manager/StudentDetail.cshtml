@@ -9,7 +9,7 @@
             <i class="fa-solid fa-user-graduate"></i>
         </div>
         <div>
-            <h2 class="page-title">Hồ sơ học sinh</h2>
+            <h2 class="page-title">Hồ sơ học sinh</h2>
             <p class="page-subtitle">Quản lý thông tin chi tiết của học sinh</p>
         </div>
     </div>
@@ -44,7 +44,7 @@
         </div>
 
         <div class="card info-card mt-4">
-            <h4>Thông tin liên hệ</h4>
+            <h4>ThÔng tin liên hệ</h4>
             <div class="info-list">
                 <div class="info-item">
                     <i class="fa-solid fa-location-dot"></i>
@@ -91,6 +91,30 @@
                         <label>Giới tính</label>
                         <p>@(Model.Gender ? "Nam" : "Nữ")</p>
                     </div>
+
+                    @{
+                        var father = Model.ParentStudents?
+                            .FirstOrDefault(ps => ps.Relationship == "Bố")?.Parent;
+                        var mother = Model.ParentStudents?
+                            .FirstOrDefault(ps => ps.Relationship == "Mẹ")?.Parent;
+                    }
+
+                    @if (father != null)
+                    {
+                        <div class="detail-group">
+                            <label>Họ tên bố</label>
+                            <p>@($"{father.LastName} {father.FirstName}")</p>
+                        </div>
+                    }
+
+                    @if (mother != null)
+                    {
+                        <div class="detail-group">
+                            <label>Họ tên mẹ</label>
+                            <p>@($"{mother.LastName} {mother.FirstName}")</p>
+                        </div>
+                    }
+
                     <div class="detail-group full-width">
                         <label>Ghi chú</label>
                         <p class="text-muted">Chưa có ghi chú nào cho học sinh này.</p>
@@ -99,19 +123,27 @@
             </div>
 
             <div class="tab-content" id="parents">
-                <div class="detail-grid">
-                    <div class="detail-group">
-                        <label>Họ tên Bố</label>
-                        <p>@(Model.FatherName ?? "Chưa cập nhật")</p>
-                    </div>
-                    <div class="detail-group">
-                        <label>Họ tên Mẹ</label>
-                        <p>@(Model.MotherName ?? "Chưa cập nhật")</p>
-                    </div>
+    @if (Model.ParentStudents == null || !Model.ParentStudents.Any())
+    {
+        <div class="empty-state">
+            <i class="fa-solid fa-users"></i>
+            <p>Chưa có phụ huynh được liên kết</p>
+        </div>
+    }
+    else
+    {
+        <div class="detail-grid">
+            @foreach (var link in Model.ParentStudents)
+            {
+                <div class="detail-group">
+                    <label>@(string.IsNullOrWhiteSpace(link.Relationship) ? "Phụ huynh" : link.Relationship)</label>
+                    <p>@($"{link.Parent.LastName} {link.Parent.FirstName}".Trim())</p>
                 </div>
-            </div>
-
-            <div class="tab-content" id="history">
+            }
+        </div>
+    }
+</div>
+<div class="tab-content" id="history">
                 <div class="empty-state">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <p>Chưa có dữ liệu lịch sử học tập</p>

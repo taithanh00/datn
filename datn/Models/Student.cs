@@ -11,8 +11,6 @@ namespace datn.Models
         public bool Gender { get; set; }
         public DateOnly DateOfBirth { get; set; }
         public string? Address { get; set; }
-        public string? FatherName { get; set; }
-        public string? MotherName { get; set; }
         public int? ClassId { get; set; }
         public DateOnly? EnrollDate { get; set; }
         public string? AvatarPath { get; set; }

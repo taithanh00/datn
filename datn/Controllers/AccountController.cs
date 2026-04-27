@@ -204,15 +204,34 @@ namespace datn.Controllers
                 return await LoadProfileViewWithPasswordError();
             }
 
+            model.OldPassword = model.OldPassword.Trim();
+            model.NewPassword = model.NewPassword.Trim();
+            model.ConfirmPassword = model.ConfirmPassword.Trim();
+
             if (model.NewPassword != model.ConfirmPassword)
             {
                 ViewBag.PasswordError = "Mật khẩu mới không khớp";
                 return await LoadProfileViewWithPasswordError();
             }
 
-            if (model.NewPassword.Length < 6)
+            if (model.NewPassword.Length < 9)
             {
-                ViewBag.PasswordError = "Mật khẩu phải có ít nhất 6 ký tự";
+                ViewBag.PasswordError = "Mật khẩu phải có ít nhất 9 ký tự";
+                return await LoadProfileViewWithPasswordError();
+            }
+
+            // Check for uppercase
+            if (!model.NewPassword.Any(char.IsUpper))
+            {
+                ViewBag.PasswordError = "Mật khẩu phải chứa ít nhất 1 chữ cái viết hoa";
+                return await LoadProfileViewWithPasswordError();
+            }
+
+            // Check for special character
+            var specialChars = "!@#$%^&*()_+=-[]{}|;:'\",.<>?/\\";
+            if (!model.NewPassword.Any(ch => specialChars.Contains(ch)))
+            {
+                ViewBag.PasswordError = "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt (!@#...)";
                 return await LoadProfileViewWithPasswordError();
             }
 
@@ -247,6 +266,7 @@ namespace datn.Controllers
             try
             {
                 account.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+                account.MustChangePassword = false;
                 account.UpdatedAt = DateTime.UtcNow;
 
                 _context.Accounts.Update(account);

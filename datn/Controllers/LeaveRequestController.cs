@@ -46,6 +46,7 @@ namespace datn.Controllers
                     startDate = r.StartDate.ToString("dd/MM/yyyy"),
                     endDate = r.EndDate.ToString("dd/MM/yyyy"),
                     reason = r.Reason,
+                    isPaid = r.IsPaid,
                     status = r.Status,
                     reviewNote = r.ReviewNote
                 })
@@ -73,12 +74,31 @@ namespace datn.Controllers
             if (endDate < startDate)
                 return Json(new { success = false, message = "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu." });
 
+            // Ràng buộc: Mỗi tháng chỉ được nghỉ phép CÓ LƯƠNG tối đa 1 lần (dựa trên ngày bắt đầu)
+            if (model.IsPaid)
+            {
+                var alreadyRequestedPaidThisMonth = await _context.EmployeeLeaveRequests
+                    .AnyAsync(r => r.EmployeeId == employeeId.Value 
+                                   && r.IsPaid
+                                   && r.StartDate.Month == startDate.Month 
+                                   && r.StartDate.Year == startDate.Year);
+
+                if (alreadyRequestedPaidThisMonth)
+                {
+                    return Json(new { 
+                        success = false, 
+                        message = $"Bạn đã sử dụng hết hạn mức đăng ký nghỉ phép CÓ LƯƠNG trong tháng {startDate.Month}/{startDate.Year} (Tối đa 1 lần/tháng)." 
+                    });
+                }
+            }
+
             var request = new EmployeeLeaveRequest
             {
                 EmployeeId = employeeId.Value,
                 StartDate = startDate,
                 EndDate = endDate,
                 Reason = model.Reason?.Trim() ?? string.Empty,
+                IsPaid = model.IsPaid,
                 Status = "Pending",
                 CreatedAtUtc = DateTime.UtcNow
             };
@@ -89,7 +109,7 @@ namespace datn.Controllers
             // Gửi thông báo tới các Manager
             await _notificationService.SendToRoleAsync("Manager", 
                 "Đơn xin nghỉ mới", 
-                $"Giáo viên {emp?.FullName} vừa gửi đơn xin nghỉ từ {startDate:dd/MM} đến {endDate:dd/MM}.",
+                $"Giáo viên {emp?.FullName} vừa gửi đơn xin nghỉ {(model.IsPaid ? "CÓ LƯƠNG" : "KHÔNG LƯƠNG")} từ {startDate:dd/MM} đến {endDate:dd/MM}.",
                 "warning", "/LeaveApproval");
 
             return Json(new { success = true, message = "Tạo đơn nghỉ phép thành công. Đơn đang chờ duyệt." });
@@ -120,6 +140,7 @@ namespace datn.Controllers
             public string? StartDate { get; set; }
             public string? EndDate { get; set; }
             public string? Reason { get; set; }
+            public bool IsPaid { get; set; }
         }
     }
 }

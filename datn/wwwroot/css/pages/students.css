@@ -2,7 +2,8 @@
 
 /* Search Bar Extension */
 .page-actions .search-bar {
-    min-width: 450px; /* Wider search bar */
+    min-width: 450px;
+    /* Wider search bar */
     flex: 1;
 }
 
@@ -15,11 +16,25 @@
     display: inline-block;
 }
 
-.badge-active { background: rgba(52, 211, 153, 0.15); color: #059669; }
-.badge-inactive { background: rgba(148, 163, 184, 0.15); color: #475569; }
+.badge-active {
+    background: rgba(52, 211, 153, 0.15);
+    color: #059669;
+}
 
-:root[data-theme="dark"] .badge-active { background: rgba(52, 211, 153, 0.2); color: #34D399; }
-:root[data-theme="dark"] .badge-inactive { background: rgba(148, 163, 184, 0.2); color: #94A3B8; }
+.badge-inactive {
+    background: rgba(148, 163, 184, 0.15);
+    color: #475569;
+}
+
+:root[data-theme="dark"] .badge-active {
+    background: rgba(52, 211, 153, 0.2);
+    color: #34D399;
+}
+
+:root[data-theme="dark"] .badge-inactive {
+    background: rgba(148, 163, 184, 0.2);
+    color: #94A3B8;
+}
 
 /* Edit Button Styling */
 .btn-edit {
@@ -54,13 +69,13 @@
     cursor: pointer;
     overflow: hidden;
     border: 4px solid var(--bg-card);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .avatar-preview-container:hover {
     transform: scale(1.05);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .avatar-preview-container img {
@@ -148,7 +163,8 @@
     font-size: 0.9rem;
     color: var(--text-main);
     vertical-align: middle;
-    white-space: nowrap; /* Prevent wrapping */
+    white-space: nowrap;
+    /* Prevent wrapping */
 }
 
 #studentsTable tbody tr:hover {
@@ -156,7 +172,10 @@
 }
 
 /* Text Truncation for specific cells */
-.student-name-link, .address-cell, .father-name-cell, .mother-name-cell {
+.student-name-link,
+.address-cell,
+.father-name-cell,
+.mother-name-cell {
     display: inline-block;
     max-width: 200px;
     overflow: hidden;
@@ -165,7 +184,9 @@
     vertical-align: middle;
 }
 
-.address-cell { max-width: 250px; }
+.address-cell {
+    max-width: 250px;
+}
 
 /* Avatar Styling */
 .student-avatar {
@@ -216,7 +237,7 @@
     width: 450px;
     max-width: 90%;
     border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     z-index: 1002;
     padding: 32px;
     display: none;
@@ -277,7 +298,8 @@
 
 #studentsTable {
     width: 100%;
-    min-width: 1600px; /* Force scroll */
+    min-width: 1600px;
+    /* Force scroll */
     border-collapse: separate;
     border-spacing: 0;
 }
@@ -300,13 +322,30 @@ thead th.sticky-col {
 }
 
 :root[data-theme="dark"] .sticky-col {
-    background-color: #1A1D27 !important; /* Force correct dark card color */
+    background-color: #1A1D27 !important;
+    /* Force correct dark card color */
 }
 
-.first-col { left: 0; min-width: 60px; }
-.second-col { left: 60px; min-width: 140px; }
-.third-col { left: 200px; min-width: 80px; }
-.fourth-col { left: 280px; min-width: 220px; border-right: 2px solid var(--border) !important; }
+.first-col {
+    left: 0;
+    min-width: 60px;
+}
+
+.second-col {
+    left: 60px;
+    min-width: 140px;
+}
+
+.third-col {
+    left: 200px;
+    min-width: 80px;
+}
+
+.fourth-col {
+    left: 280px;
+    min-width: 220px;
+    border-right: 2px solid var(--border) !important;
+}
 
 /* Address cell styling */
 .address-cell {
@@ -337,15 +376,25 @@ thead th.sticky-col {
     transition: all 0.2s;
 }
 
-.btn-edit:hover { background: #EEF2FF; color: var(--primary); border-color: var(--primary); }
-.btn-delete:hover { background: #FEF2F2; color: #EF4444; border-color: #EF4444; }
+.btn-edit:hover {
+    background: #EEF2FF;
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-delete:hover {
+    background: #FEF2F2;
+    color: #EF4444;
+    border-color: #EF4444;
+}
 
 .table-container {
     background: var(--bg-card);
     border-radius: 12px;
     box-shadow: var(--shadow-card);
     border: 1px solid var(--border);
-    overflow-x: auto; /* Enable horizontal scroll */
+    overflow-x: auto;
+    /* Enable horizontal scroll */
     position: relative;
 }
 
@@ -377,4 +426,3 @@ thead th.sticky-col {
 .table-container::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
-

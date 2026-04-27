@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - KinderCare</title>
+    <title>@ViewData["Title"] - SenHồng</title>
 
     @* Font Awesome *@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -21,7 +21,7 @@
     @* Instant theme apply to avoid flash *@
     <script>
         (function(){
-            var t = localStorage.getItem('kindercare-theme');
+            var t = localStorage.getItem('senhong-theme');
             if (t) document.documentElement.setAttribute('data-theme', t);
             else if (window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'dark');
         })();
@@ -35,10 +35,10 @@
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <i class="fa-solid fa-graduation-cap" style="font-size:1.4rem"></i>
-                <span>KinderCare</span>
-            </div>
+            <a href="/" class="sidebar-header" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-spa" style="font-size:1.4rem; color: #e91e63;"></i>
+                <span>SenHồng</span>
+            </a>
 
             <nav class="sidebar-nav">
                 <a href="/" class="nav-item" data-transition>
@@ -58,7 +58,7 @@
                         <i class="fa-solid fa-user-tie"></i> Quản lý Nhân sự
                     </a>
                     <a href="/Manager/Activities" class="nav-item" data-transition>
-                        <i class="fa-solid fa-calendar-star"></i> Hoạt động
+                        <i class="fa-solid fa-calendar-check"></i> Hoạt động
                     </a>
 
                     <div class="nav-label">Đào tạo &amp; Tài chính</div>

@@ -21,12 +21,6 @@ namespace datn.DTOs
         [StringLength(255)]
         public string? Address { get; set; }
 
-        [StringLength(100)]
-        public string? FatherName { get; set; }
-
-        [StringLength(100)]
-        public string? MotherName { get; set; }
-
         public int? ClassId { get; set; }
 
         public string? EnrollDate { get; set; }

@@ -32,17 +32,13 @@ namespace datn.Services
 
             var firstName = dto.FirstName.Trim().ToLower();
             var lastName = dto.LastName.Trim().ToLower();
-            var motherName = dto.MotherName?.Trim().ToLower();
-            var fatherName = dto.FatherName?.Trim().ToLower();
             var gender = dto.Gender == "true";
 
             return await _context.Students.FirstOrDefaultAsync(s =>
                 s.FirstName.ToLower() == firstName &&
                 s.LastName.ToLower() == lastName &&
                 s.DateOfBirth == dob &&
-                s.Gender == gender &&
-                s.MotherName.ToLower() == motherName &&
-                s.FatherName.ToLower() == fatherName);
+                s.Gender == gender);
         }
 
         public async Task<Student> CreateStudentAsync(CreateStudentDto dto)
@@ -64,8 +60,6 @@ namespace datn.Services
                     Gender = dto.Gender == "true",
                     DateOfBirth = DateOnly.Parse(dto.DateOfBirth),
                     Address = dto.Address,
-                    FatherName = dto.FatherName,
-                    MotherName = dto.MotherName,
                     ClassId = dto.ClassId > 0 ? dto.ClassId : null,
                     EnrollDate = enrollDate,
                     Status = (StudentStatus)dto.Status,
@@ -92,7 +86,11 @@ namespace datn.Services
 
         public async Task<Student?> GetStudentByIdAsync(int id)
         {
-            return await _context.Students.Include(s => s.Class).FirstOrDefaultAsync(s => s.Id == id);
+            return await _context.Students
+                .Include(s => s.Class)
+                .Include(s => s.ParentStudents)
+                    .ThenInclude(ps => ps.Parent)
+                .FirstOrDefaultAsync(s => s.Id == id);
         }
 
         private async Task<string> SaveAvatarAsync(IFormFile file, string prefix)

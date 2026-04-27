@@ -1,10 +1,10 @@
 @{
-    ViewData["Title"] = "Học sinh";
+    ViewData["Title"] = "Học sinh";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
 <div class="page-header">
-    <h1 class="page-title">Quản lý Học sinh</h1>
+    <h1 class="page-title">Quản lý học sinh</h1>
     <div class="page-actions">
         <div class="search-bar">
             <i class="fa-solid fa-search"></i>
@@ -22,19 +22,19 @@
             <thead>
                 <tr>
                     <th class="sticky-col first-col">STT</th>
-                    <th class="sticky-col second-col">Mã HS</th>
+                    <th class="sticky-col second-col">Mã Học Sinh</th>
                     <th class="sticky-col third-col">Ảnh</th>
-                    <th class="sticky-col fourth-col">Họ và tên</th>
-                    <th>Trạng thái</th>
-                    <th>Giới tính</th>
-                    <th>Ngày sinh</th>
-                    <th>Tên Bố</th>
-                    <th>Tên Mẹ</th>
-                    <th>Địa chỉ</th>
+                    <th class="sticky-col fourth-col">Họ và Tên</th>
+                    <th>Trạng Thái</th>
+                    <th>Giới Tính</th>
+                    <th>Ngày Sinh</th>
+                    <th>Địa Chỉ</th>
                     <th>Lớp</th>
+                    <th>Họ tên bố</th>  
+                    <th>Họ tên mẹ</th>
                     <th>Ngày nhập học</th>
                     <th>Ngày tạo</th>
-                    <th class="text-end">Hành động</th>
+                    <th class="text-end">Hành Động</th>
                 </tr>
             </thead>
             <tbody id="studentsTableBody">
@@ -72,11 +72,11 @@
                             <img id="avatarPreview" src="/images/lion_orange.png" alt="Avatar Preview">
                             <div class="avatar-overlay">
                                 <i class="fa-solid fa-camera"></i>
-                                <span>THAY ĐỔI</span>
+                                <span>Thay đổi</span>
                             </div>
                         </div>
                         <input type="file" id="avatarFile" name="Avatar" accept="image/*" hidden onchange="previewAvatar(this)">
-                        <p class="text-muted small mt-2">Nhấp vào ảnh để thay đổi</p>
+                        <p class="text-muted small mt-2">Nhấn vào ảnh để thay đổi</p>
                     </div>
                 </div>
                 <div class="form-group">
@@ -88,7 +88,7 @@
                     <input type="text" id="lastName" name="LastName" class="form-control" placeholder="Nhập họ" required />
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="gender">Giới tính</label>
+                    <label class="form-label" for="gender">Giới Tính</label>
                     <select id="gender" name="Gender" class="form-control">
                         <option value="">-- Chọn --</option>
                         <option value="true">Nam</option>
@@ -102,20 +102,6 @@
                 <div class="form-group">
                     <label class="form-label" for="address">Địa chỉ</label>
                     <textarea id="address" name="Address" class="form-control" rows="2" placeholder="Nhập địa chỉ"></textarea>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label" for="fatherName">Tên bố</label>
-                            <input type="text" id="fatherName" name="FatherName" class="form-control" placeholder="Họ tên bố" />
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label" for="motherName">Tên mẹ</label>
-                            <input type="text" id="motherName" name="MotherName" class="form-control" placeholder="Họ tên mẹ" />
-                        </div>
-                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="status">Trạng thái</label>
@@ -171,7 +157,7 @@
     <div class="confirm-modal-footer">
         <button type="button" class="btn-secondary" id="viewExistingBtn">Xem hồ sơ cũ</button>
         <button type="button" class="btn-primary" id="forceCreateBtn">Vẫn tạo mới</button>
-        <button type="button" class="btn-link" id="cancelDuplicateBtn">Hủy</button>
+        <button type="button" class="btn-link" id="cancelDuplicateBtn">Hủy bỏ</button>
     </div>
 </div>
 

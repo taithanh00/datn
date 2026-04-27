@@ -140,14 +140,21 @@
                         statusText = 'Đang diễn ra';
                     }
 
+                    let subBadge = '';
+                    if (s.isSubstitute) {
+                        subBadge = '<div class="badge" style="background:rgba(139,92,246,0.15); color:#8b5cf6; font-size:0.7rem; margin-top:4px; display:inline-block;">TIẾT DẠY THAY</div>';
+                        statusText = "Dạy thay: " + statusText;
+                    }
+
                     return `
-                        <div class="schedule-item">
+                        <div class="schedule-item" style="${s.isSubstitute ? 'border-left-color: #8b5cf6;' : ''}">
                             <div class="schedule-time">${s.startTime} - ${s.endTime}</div>
                             <div style="flex: 1;">
                                 <div class="schedule-subject">${s.subjectName}</div>
                                 <div class="schedule-class">
                                     <i class="fa-solid fa-school" style="margin-right: 4px;"></i> Lớp: ${s.className}
                                 </div>
+                                ${subBadge}
                             </div>
                             <div class="schedule-badge ${statusClass}">${statusText}</div>
                         </div>

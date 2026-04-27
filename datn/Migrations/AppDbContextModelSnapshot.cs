@@ -40,12 +40,14 @@ namespace datn.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordSalt")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RoleId")
@@ -160,6 +162,9 @@ namespace datn.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("AgeTo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxCapacity")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -327,6 +332,9 @@ namespace datn.Migrations
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -374,6 +382,32 @@ namespace datn.Migrations
                     b.HasKey("StudentId", "Date");
 
                     b.ToTable("HealthRecords");
+                });
+
+            modelBuilder.Entity("datn.Models.Holiday", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Holidays");
                 });
 
             modelBuilder.Entity("datn.Models.Location", b =>
@@ -615,8 +649,8 @@ namespace datn.Migrations
                     b.Property<decimal?>("SalaryAmount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("WorkingDays")
-                        .HasColumnType("int");
+                    b.Property<decimal?>("WorkingDays")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("EmployeeId", "PayrollPeriodId");
 
@@ -651,9 +685,6 @@ namespace datn.Migrations
                     b.Property<DateOnly?>("EnrollDate")
                         .HasColumnType("date");
 
-                    b.Property<string>("FatherName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -663,9 +694,6 @@ namespace datn.Migrations
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MotherName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
@@ -758,6 +786,47 @@ namespace datn.Migrations
                         .IsUnique();
 
                     b.ToTable("Subjects");
+                });
+
+            modelBuilder.Entity("datn.Models.Substitution", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClassScheduleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OriginalEmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SubstituteEmployeeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassScheduleId");
+
+                    b.HasIndex("OriginalEmployeeId");
+
+                    b.HasIndex("SubstituteEmployeeId");
+
+                    b.ToTable("Substitutions");
                 });
 
             modelBuilder.Entity("datn.Models.TeachingPlan", b =>
@@ -1179,6 +1248,33 @@ namespace datn.Migrations
                     b.Navigation("Student");
 
                     b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("datn.Models.Substitution", b =>
+                {
+                    b.HasOne("datn.Models.ClassSchedule", "ClassSchedule")
+                        .WithMany()
+                        .HasForeignKey("ClassScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("datn.Models.Employee", "OriginalEmployee")
+                        .WithMany()
+                        .HasForeignKey("OriginalEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("datn.Models.Employee", "SubstituteEmployee")
+                        .WithMany()
+                        .HasForeignKey("SubstituteEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClassSchedule");
+
+                    b.Navigation("OriginalEmployee");
+
+                    b.Navigation("SubstituteEmployee");
                 });
 
             modelBuilder.Entity("datn.Models.TeachingPlan", b =>

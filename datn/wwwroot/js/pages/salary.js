@@ -72,7 +72,7 @@ async function loadSalarySummary() {
                 <td><div class="text-muted">#${x.employeeId}</div></td>
                 <td><strong>${x.employeeName}</strong></td>
                 <td><span class="badge badge-info">${fmtMoney(x.baseSalary)}</span></td>
-                <td style="text-align: center;"><span class="badge" style="background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main);">${x.workingDays} ngày</span></td>
+                <td style="text-align: center;"><span class="badge" style="background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main);">${x.workingDays} công</span></td>
                 <td style="text-align: right;"><span style="color: var(--success); font-weight: 700; font-size: 1.1rem;">${fmtMoney(x.salaryAmount)}</span></td>
                 <td style="text-align: right;">
                     <a href="/TeacherSalary/SalarySlip/${x.employeeId}/${payload.periodId}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.85rem;">

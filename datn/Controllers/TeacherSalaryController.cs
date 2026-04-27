@@ -164,9 +164,14 @@ namespace datn.Controllers
             if (period.IsLocked)
                 return;
 
+            var workingDaysInMonth = CountWorkingDays(month, year);
+            if (workingDaysInMonth == 0) return;
+
+            // Lấy tất cả giáo viên đang Active HOẶC những người đã nghỉ (Inactive) nhưng có phát sinh chấm công trong tháng này
             var teachers = await _context.Employees
                 .Include(e => e.Account).ThenInclude(a => a.Role)
-                .Where(e => e.Account != null && e.Account.IsActive && e.Account.Role.Name == "Employee")
+                .Where(e => e.Account != null && e.Account.Role.Name == "Employee")
+                .Where(e => e.Account.IsActive || _context.WorkAttendances.Any(w => w.EmployeeId == e.Id && w.Date.Month == month && w.Date.Year == year))
                 .ToListAsync();
 
             foreach (var teacher in teachers)
@@ -178,10 +183,19 @@ namespace datn.Controllers
                                 && w.Date.Year == year)
                     .ToListAsync();
 
-                var workingDays = approvedRecords.Count;
+                var workingDays = approvedRecords.Sum(w => (decimal?)w.WorkUnit) ?? 0m;
                 var totalPenalty = approvedRecords.Sum(w => w.PenaltyAmount);
+
+                // Nếu không đi làm ngày nào và không có tiền phạt, bỏ qua để không làm rác bảng lương
+                if (workingDays == 0 && totalPenalty == 0)
+                {
+                    // Nếu đã có bản ghi lương trước đó (ví dụ từ tháng trước), có thể cân nhắc xóa hoặc để nguyên tùy nghiệp vụ
+                    // Ở đây chọn để nguyên hoặc bỏ qua việc cập nhật
+                    continue;
+                }
+
                 var baseSalary = teacher.BaseSalary ?? 0m;
-                var dailyRate = baseSalary / 22m;
+                var dailyRate = baseSalary / workingDaysInMonth;
                 var netSalary = Math.Max(0, (workingDays * dailyRate) - totalPenalty);
 
                 var salary = await _context.Salaries
@@ -194,17 +208,32 @@ namespace datn.Controllers
                         EmployeeId = teacher.Id,
                         PayrollPeriodId = period.Id,
                         WorkingDays = workingDays,
-                        SalaryAmount = Math.Round(netSalary, 2, MidpointRounding.AwayFromZero)
+                        SalaryAmount = Math.Round(netSalary, 0, MidpointRounding.AwayFromZero)
                     });
                 }
                 else
                 {
                     salary.WorkingDays = workingDays;
-                    salary.SalaryAmount = Math.Round(netSalary, 2, MidpointRounding.AwayFromZero);
+                    salary.SalaryAmount = Math.Round(netSalary, 0, MidpointRounding.AwayFromZero);
                 }
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        private static int CountWorkingDays(int month, int year)
+        {
+            int days = DateTime.DaysInMonth(year, month);
+            int count = 0;
+            for (int day = 1; day <= days; day++)
+            {
+                var date = new DateTime(year, month, day);
+                if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    count++;
+                }
+            }
+            return count;
         }
 
         private async Task<PayrollPeriod> EnsurePayrollPeriodAsync(int month, int year)

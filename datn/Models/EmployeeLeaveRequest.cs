@@ -7,6 +7,7 @@ namespace datn.Models
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
         public string Reason { get; set; } = string.Empty;
+        public bool IsPaid { get; set; } = false;
         public string Status { get; set; } = "Pending";
         public string? ReviewNote { get; set; }
         public int? ReviewedByEmployeeId { get; set; }

@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -62,6 +62,18 @@ namespace datn.Services
             {
                 claims.Add(new Claim("ParentId", account.Parent.Id.ToString()));
             }
+
+            // Thêm Avatar
+            string avatar = "/images/lion_blue.png";
+            if (account.Role.Name == "Employee" || account.Role.Name == "Manager")
+            {
+                avatar = account.Employee?.AvatarPath ?? "/images/lion_blue.png";
+            }
+            else if (account.Role.Name == "Parent")
+            {
+                avatar = account.Parent?.AvatarPath ?? "/images/lion_orange.png";
+            }
+            claims.Add(new Claim("Avatar", avatar));
 
             // Tạo JWT token
             var token = new JwtSecurityToken(

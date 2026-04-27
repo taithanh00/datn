@@ -292,6 +292,22 @@ namespace datn.Controllers
                 return Json(new { success = false, message = "Không tìm thấy thông tin giáo viên." });
 
             var today = GetTodayVnt();
+
+            // Kiểm tra ngày lễ
+            var holiday = await _context.Holidays.FirstOrDefaultAsync(h => h.Date == today);
+            if (holiday != null)
+            {
+                return Json(new 
+                { 
+                    success = true, 
+                    isHoliday = true, 
+                    holidayName = holiday.Name,
+                    date = today.ToString("dd/MM/yyyy"),
+                    data = Array.Empty<object>(),
+                    message = $"Hôm nay là ngày nghỉ lễ: {holiday.Name}. Chúc bạn có một ngày nghỉ tuyệt vời!" 
+                });
+            }
+
             var dayOfWeek = GetSchoolDayOfWeek(today);
 
             if (dayOfWeek is null)
@@ -299,7 +315,8 @@ namespace datn.Controllers
                 return Json(new { success = true, data = Array.Empty<object>(), date = today.ToString("dd/MM/yyyy") });
             }
 
-            var schedules = await _context.ClassSchedules
+            // 1. Tiết dạy bình thường (trừ những tiết đã có người dạy thay)
+            var normalSchedules = await _context.ClassSchedules
                 .Where(cs => cs.EmployeeId == employeeId
                     && cs.IsActive
                     && cs.DayOfWeek == dayOfWeek.Value
@@ -307,14 +324,17 @@ namespace datn.Controllers
                     && (cs.EffectiveTo == null || cs.EffectiveTo >= today))
                 .Include(cs => cs.Class)
                 .Include(cs => cs.Subject)
-                .OrderBy(cs => cs.StartTime)
                 .ToListAsync();
 
-            return Json(new
-            {
-                success = true,
-                date = today.ToString("dd/MM/yyyy"),
-                data = schedules.Select(cs => new
+            // Lọc bỏ những tiết đã được phân công dạy thay (do giáo viên này nghỉ)
+            var substitutedOutIds = await _context.Substitutions
+                .Where(s => s.OriginalEmployeeId == employeeId && s.Date == today && s.Status == "Confirmed")
+                .Select(s => s.ClassScheduleId)
+                .ToListAsync();
+
+            var finalSchedules = normalSchedules
+                .Where(cs => !substitutedOutIds.Contains(cs.Id))
+                .Select(cs => new
                 {
                     id = cs.Id,
                     classId = cs.ClassId,
@@ -322,8 +342,37 @@ namespace datn.Controllers
                     subjectName = cs.Subject.Name,
                     startTime = cs.StartTime.ToString("HH:mm"),
                     endTime = cs.EndTime.ToString("HH:mm"),
-                    note = cs.Note
-                })
+                    note = cs.Note,
+                    isSubstitute = false
+                }).ToList();
+
+            // 2. Tiết dạy thay (giáo viên này đi dạy thay cho người khác)
+            var substitutionSchedules = await _context.Substitutions
+                .Where(s => s.SubstituteEmployeeId == employeeId && s.Date == today && s.Status == "Confirmed")
+                .Include(s => s.ClassSchedule).ThenInclude(cs => cs.Class)
+                .Include(s => s.ClassSchedule).ThenInclude(cs => cs.Subject)
+                .ToListAsync();
+
+            foreach (var sub in substitutionSchedules)
+            {
+                finalSchedules.Add(new
+                {
+                    id = sub.ClassScheduleId,
+                    classId = sub.ClassSchedule.ClassId,
+                    className = sub.ClassSchedule.Class.Name,
+                    subjectName = sub.ClassSchedule.Subject.Name,
+                    startTime = sub.ClassSchedule.StartTime.ToString("HH:mm"),
+                    endTime = sub.ClassSchedule.EndTime.ToString("HH:mm"),
+                    note = $"Dạy thay cho GV nghỉ: {sub.Note}",
+                    isSubstitute = true
+                });
+            }
+
+            return Json(new
+            {
+                success = true,
+                date = today.ToString("dd/MM/yyyy"),
+                data = finalSchedules.OrderBy(s => s.startTime)
             });
         }
 

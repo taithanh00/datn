@@ -31,6 +31,15 @@ namespace datn.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string username, string password, bool rememberMe = false)
         {
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            {
+                ViewBag.Error = "Vui lòng nhập đầy đủ thông tin";
+                return View();
+            }
+
+            username = username.Trim();
+            password = password.Trim();
+
             var account = await _context.Accounts
                 .Include(a => a.Role)
                 .Include(a => a.Employee)

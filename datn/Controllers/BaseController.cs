@@ -20,45 +20,24 @@ namespace datn.Controllers
         {
             if (User.Identity?.IsAuthenticated == true)
             {
-                var username = User.Identity.Name;
-                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                ViewBag.Username = User.Identity.Name;
+                ViewBag.Role = User.FindFirst(ClaimTypes.Role)?.Value;
+                ViewBag.FullName = User.FindFirst(ClaimTypes.Name)?.Value; // Hoặc nếu bạn muốn lấy FullName từ claim khác
 
-                ViewBag.Username = username;
-                ViewBag.Role = role;
-
-                // Lấy thông tin tài khoản kèm Employee/Parent để lấy Avatar
-                var account = _context.Accounts
-                    .Include(a => a.Role)
-                    .Include(a => a.Employee)
-                    .Include(a => a.Parent)
-                    .FirstOrDefault(a => a.Username == username);
-
-                if (account != null)
+                // Lấy Avatar trực tiếp từ Claims (đã được JwtService thêm vào)
+                var avatarClaim = User.FindFirst("Avatar")?.Value;
+                
+                if (!string.IsNullOrEmpty(avatarClaim))
                 {
-                    string defaultAvatar = (role == "Manager" || role == "Parent")
-                        ? "/images/lion_orange.png"
-                        : "/images/lion_blue.png";
-
-                    if (role == "Employee")
-                    {
-                        ViewBag.UserAvatar = account.Employee?.AvatarPath ?? defaultAvatar;
-                    }
-                    else if (role == "Parent")
-                    {
-                        ViewBag.UserAvatar = account.Parent?.AvatarPath ?? defaultAvatar;
-                    }
-                    else if (role == "Manager")
-                    {
-                        ViewBag.UserAvatar = account.Employee?.AvatarPath ?? defaultAvatar;
-                    }
-                    else
-                    {
-                        ViewBag.UserAvatar = defaultAvatar;
-                    }
+                    ViewBag.UserAvatar = avatarClaim;
                 }
                 else
                 {
-                    ViewBag.UserAvatar = "/images/lion_blue.png";
+                    // Fallback nếu không có claim (do token cũ hoặc lỗi)
+                    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                    ViewBag.UserAvatar = (role == "Manager" || role == "Parent")
+                        ? "/images/lion_orange.png"
+                        : "/images/lion_blue.png";
                 }
             }
             else

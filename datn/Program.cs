@@ -106,15 +106,20 @@ builder.Services.AddHostedService<PayrollAutoCalculationService>();     // Tự 
 
 var app = builder.Build();
 
-// Middleware
-app.UseMiddleware<RefreshTokenMiddleware>();
-
-// JS, CSS
+// 1. Phục vụ file tĩnh (CSS, JS, Images) ngay lập tức - Sửa lỗi UI
 app.UseStaticFiles();
 
-// Authentication / Authorization
-app.UseAuthentication();  // Authentication
-app.UseAuthorization();   // Authorization
+// 2. Định tuyến
+app.UseRouting();
+
+// 3. Xác thực người dùng (Lấy thông tin từ Cookie/Token)
+app.UseAuthentication();
+
+// 4. Middleware kiểm tra Token và Bắt đổi mật khẩu
+app.UseMiddleware<RefreshTokenMiddleware>();
+
+// 5. Kiểm tra quyền truy cập
+app.UseAuthorization();
 
 // Map route
 app.MapDefaultControllerRoute();

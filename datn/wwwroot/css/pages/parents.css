@@ -316,9 +316,9 @@ thead th.sticky-col {
     position: sticky;
     bottom: 0;
     background: var(--bg-card);
-    padding: 20px;
+    padding: 20px 24px;
     border-top: 1px solid var(--border);
-    margin: 0 -24px -24px -24px;
+    margin: 0;          /* bỏ margin âm */
     display: flex;
     gap: 12px;
 }
@@ -462,4 +462,13 @@ thead th.sticky-col {
     background: var(--primary-soft);
     color: var(--primary);
     border-color: var(--primary);
+}
+#slidePanel {
+    overflow: hidden;
+}
+
+#slidePanel .slide-panel-body {
+    overflow-y: auto;
+    padding-bottom: 0;
+    height: calc(100vh - 70px); /* 70px = header height */
 }

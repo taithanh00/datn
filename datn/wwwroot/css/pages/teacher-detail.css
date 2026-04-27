@@ -1,0 +1,73 @@
+/* ===== TEACHER DETAIL SPECIFIC STYLES ===== */
+
+.assignments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.assignment-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.assignment-item:hover {
+    transform: translateX(5px);
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.assignment-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 1.25rem;
+}
+
+.assignment-info {
+    flex: 1;
+}
+
+.assignment-info .class-name {
+    margin: 0 0 8px 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.assignment-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.bg-success-soft {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.text-success {
+    color: #10b981;
+}
+
+@media (max-width: 768px) {
+    .assignment-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .assignment-icon {
+        width: 40px;
+        height: 40px;
+    }
+}
