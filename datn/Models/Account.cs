@@ -1,4 +1,4 @@
-﻿namespace datn.Models
+namespace datn.Models
 {
     public class Account
     {
@@ -8,10 +8,12 @@
         public string? PasswordSalt { get; set; }
         public string Email { get; set; }
         public bool IsActive { get; set; } = true;
-        public bool MustChangePassword { get; set; } = false;
         public int RoleId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        
+        public string? PasswordResetToken { get; set; }
+        public DateTime? ResetTokenExpires { get; set; }
 
         public Role Role { get; set; }
         public ICollection<RefreshToken> RefreshTokens { get; set; }

@@ -254,6 +254,43 @@ tr:hover td {
 .badge-warning { background: #FEF9C3; color: #854D0E; }
 .badge-danger { background: #FEE2E2; color: #991B1B; }
 
+/* --- Shared Status Tabs --- */
+.status-tabs {
+    display: flex;
+    gap: 8px;
+    background: var(--sidebar-active);
+    padding: 6px;
+    border-radius: 12px;
+    width: fit-content;
+    border: 1px solid var(--border);
+}
+
+.status-tab {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-tab:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.status-tab.active {
+    background: var(--bg-card);
+    color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+}
+
 .capacity-badge {
     display: inline-flex;
     align-items: center;

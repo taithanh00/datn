@@ -52,7 +52,10 @@ function renderAssignments(data) {
             <td><strong>${item.className}</strong></td>
             <td><span class="badge ${isPrimary?'badge-info':'badge-success'}">${item.roleInClass||'Giáo viên'}</span></td>
             <td>${formatDate(item.startDate)} ${item.endDate ? '- '+formatDate(item.endDate) : '<span class="text-success">Hiện tại</span>'}</td>
-            <td style="text-align:right;"><button class="btn btn-outline" style="padding:6px 10px; color:var(--danger);" onclick="deleteAssignment(${item.employeeId},${item.classId},'${item.startDate}')"><i class="fa-solid fa-trash"></i></button></td>
+            <td style="text-align:right;">
+                <button class="btn-table" onclick="editAssignment(${item.employeeId},${item.classId},'${item.startDate}')">Sửa</button>
+                <button class="btn-table delete" onclick="deleteAssignment(${item.employeeId},${item.classId},'${item.startDate}')">Xóa</button>
+            </td>
         </tr>`;
     }).join('');
     
@@ -94,11 +97,43 @@ async function loadDropdowns() {
 function prepareCreate() { 
     const form = document.getElementById('assignmentForm');
     const startDate = document.getElementById('startDate');
+    const modalTitle = document.getElementById('modalTitle');
+    const isEdit = document.getElementById('isEdit');
+
     if(form) form.reset(); 
     if(startDate) startDate.value = new Date().toISOString().split('T')[0]; 
+    if(modalTitle) modalTitle.textContent = 'Thêm Phân công mới';
+    if(isEdit) isEdit.value = 'false';
+
+    // Mở lại các trường nếu trước đó bị khóa
+    document.getElementById('employeeSelect').disabled = false;
+    document.getElementById('classSelect').disabled = false;
+    document.getElementById('startDate').disabled = false;
+}
+
+function editAssignment(empId, clsId, start) {
+    const assignment = allAssignments.find(a => a.employeeId == empId && a.classId == clsId && a.startDate == start);
+    if(!assignment) return;
+
+    document.getElementById('employeeSelect').value = assignment.employeeId;
+    document.getElementById('classSelect').value = assignment.classId;
+    document.getElementById('startDate').value = assignment.startDate;
+    document.getElementById('endDate').value = assignment.endDate || '';
+    document.getElementById('roleInClass').value = assignment.roleInClass || '';
+
+    // Khóa các trường khóa chính
+    document.getElementById('employeeSelect').disabled = true;
+    document.getElementById('classSelect').disabled = true;
+    document.getElementById('startDate').disabled = true;
+
+    document.getElementById('modalTitle').textContent = 'Chỉnh sửa Phân công';
+    document.getElementById('isEdit').value = 'true';
+
+    if(typeof openModal === 'function') openModal('assignmentModal');
 }
 
 async function saveAssignment() {
+    const isEdit = document.getElementById('isEdit').value === 'true';
     const data = {
         employeeId: parseInt(document.getElementById('employeeSelect')?.value),
         classId: parseInt(document.getElementById('classSelect')?.value),
@@ -107,8 +142,16 @@ async function saveAssignment() {
         roleInClass: document.getElementById('roleInClass')?.value
     };
     if (!data.employeeId || !data.classId || !data.startDate) { alert('Vui lòng điền đầy đủ'); return; }
+    
+    const url = '/Manager/Api/Assignment';
+    const method = isEdit ? 'PUT' : 'POST';
+
     try {
-        const r = await fetch('/Manager/Api/Assignment', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+        const r = await fetch(url, { 
+            method: method, 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(data) 
+        });
         const result = await r.json();
         if (result.success) { 
             if(typeof closeModal === 'function') closeModal('assignmentModal'); 
@@ -137,5 +180,6 @@ function formatDate(d) { if(!d)return''; return new Date(d).toLocaleDateString('
 // Expose functions to global scope for inline onclick handlers
 window.prepareCreate = prepareCreate;
 window.saveAssignment = saveAssignment;
+window.editAssignment = editAssignment;
 window.deleteAssignment = deleteAssignment;
 window.applyFilters = applyFilters;

@@ -94,7 +94,7 @@ namespace datn.Services
             var totalWorkingDaysInMonth = CountWorkingDays(month, year);
             if (totalWorkingDaysInMonth == 0) return;
 
-            var employees = await db.Employees
+                    var employees = await db.Employees
                 .Include(e => e.Account)
                 .Where(e => e.Account != null && e.Account.Role.Name == "Employee")
                 .Where(e => e.Account.IsActive || db.WorkAttendances.Any(w => w.EmployeeId == e.Id && w.Date.Month == month && w.Date.Year == year))

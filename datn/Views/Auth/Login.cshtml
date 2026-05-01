@@ -104,10 +104,17 @@
                 </form>
 
                 <div class="divider">quên mật khẩu?</div>
+                
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success" style="margin-bottom: 15px;">
+                        @TempData["SuccessMessage"]
+                    </div>
+                }
 
-                <button type="button" class="btn-forgot-password">
-                    Liên hệ người quản lý
-                </button>
+                <a href="/Auth/ForgotPassword" class="btn-forgot-password" style="text-align: center; text-decoration: none; display: block;">
+                    Lấy lại mật khẩu qua Email
+                </a>
             </div>
         </div>
     </div>

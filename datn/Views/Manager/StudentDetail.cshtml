@@ -149,9 +149,85 @@
                     <p>Chưa có dữ liệu lịch sử học tập</p>
                 </div>
             </div>
+
+            <div class="tab-content" id="finance">
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h4 style="margin:0;">Cấu hình các khoản thu riêng cho học sinh</h4>
+                    <button class="btn btn-primary btn-sm" onclick="showAddFeeConfigModal()">
+                        <i class="fa-solid fa-plus"></i> Đăng ký khoản thu
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table id="studentFinanceTable">
+                        <thead>
+                            <tr>
+                                <th>Khoản thu</th>
+                                <th>Số tiền (VNĐ)</th>
+                                <th>Giảm trừ</th>
+                                <th>Thành tiền</th>
+                                <th class="text-end">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentFinanceBody">
+                            <tr><td colspan="5" class="text-center">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Modal Đăng ký khoản thu cho học sinh -->
+<div class="modal-overlay" id="financeModalOverlay">
+    <div class="modal-card" style="width: 500px; max-width: 95vw;">
+        <div class="modal-header">
+            <div class="modal-title" id="financeModalTitle">Đăng ký khoản thu</div>
+            <button class="modal-close" onclick="closeFinanceModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div>
+            <form id="studentFeeForm">
+                <input type="hidden" id="studentIdHidden" value="@Model.Id" />
+                <input type="hidden" id="configId" />
+                
+                <div class="form-group" id="feeItemSelectGroup">
+                    <label class="form-label">Chọn khoản thu <span class="text-danger">*</span></label>
+                    <select id="feeItemIdSelect" class="form-select" required onchange="onFeeItemChanged()">
+                        <option value="">-- Chọn khoản thu --</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Số tiền (VNĐ) <span class="text-muted">(Để trống nếu dùng giá mặc định)</span></label>
+                    <input type="number" id="configAmount" class="form-input" placeholder="VD: 500000">
+                </div>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Giảm trừ (Số tiền)</label>
+                        <input type="number" id="configDiscountAmount" class="form-input" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Giảm trừ (%)</label>
+                        <input type="number" id="configDiscountPercentage" class="form-input" value="0" min="0" max="100">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea id="configNote" class="form-input" rows="2"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="d-flex justify-end mt-4 gap-2">
+            <button type="button" class="btn btn-outline" onclick="closeFinanceModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="saveStudentFeeConfig()">Lưu cấu hình</button>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/pages/student-finance.js" asp-append-version="true"></script>
 
 <style>
     .student-profile-grid {

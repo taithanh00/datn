@@ -36,7 +36,18 @@
 
     <!-- Danh sách -->
     <div class="card">
-        <h3 style="margin-bottom: 16px; font-size: 1.1rem;">Danh sách ngày lễ trong năm</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="font-size: 1.1rem; margin: 0;">Danh sách ngày lễ</h3>
+            
+            <div class="status-tabs" style="margin-bottom: 0;">
+                <div class="status-tab active" data-show-inactive="false">
+                    <i class="fa-solid fa-calendar-check"></i> Đang áp dụng
+                </div>
+                <div class="status-tab" data-show-inactive="true">
+                    <i class="fa-solid fa-archive"></i> Kho lưu trữ
+                </div>
+            </div>
+        </div>
         <div class="table-container">
             <table>
                 <thead>

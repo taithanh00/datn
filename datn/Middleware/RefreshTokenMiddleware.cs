@@ -49,32 +49,7 @@ namespace datn.Middleware
                 }
             }
 
-            // CASE 2: Authenticated -> Check for mandatory password change
-            if (context.User.Identity?.IsAuthenticated == true)
-            {
-                var dbContext = context.RequestServices.GetRequiredService<AppDbContext>();
-                
-                // Check both standard NameIdentifier and "sub" claim
-                var accountIdStr = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                                ?? context.User.FindFirst("sub")?.Value;
-
-                if (int.TryParse(accountIdStr, out int accountId))
-                {
-                    var mustChange = await dbContext.Accounts
-                        .Where(a => a.Id == accountId)
-                        .Select(a => a.MustChangePassword)
-                        .FirstOrDefaultAsync();
-
-                    if (mustChange &&
-                        !path.Equals("/Account/ChangePassword", StringComparison.OrdinalIgnoreCase) &&
-                        !path.Equals("/Auth/Logout", StringComparison.OrdinalIgnoreCase))
-                    {
-                        _logger.LogWarning("User {AccountId} must change password. Redirecting to ChangePassword.", accountId);
-                        context.Response.Redirect("/Account/ChangePassword?reason=must_change");
-                        return;
-                    }
-                }
-            }
+            // await _next(context) will be called below
 
             await _next(context);
         }

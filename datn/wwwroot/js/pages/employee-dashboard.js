@@ -27,7 +27,16 @@ function renderTimeline(schedules) {
     const c = document.getElementById('todaySchedule');
     if(!c) return;
     if (!schedules.length) { c.innerHTML = '<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p>Hôm nay không có tiết dạy</p></div>'; return; }
-    c.innerHTML = schedules.map(s => `<div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-time">${s.time}</div><div><div class="timeline-subject">${s.subject}</div><div class="timeline-class">Lớp: ${s.className}</div></div></div>`).join('');
+    c.innerHTML = schedules.map(s => `
+        <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-time">${s.time}</div>
+            <div style="flex-grow:1;">
+                <div class="timeline-subject">${s.subject}</div>
+                <div class="timeline-topic"><i class="fa-solid fa-book-open"></i> ${s.topic}</div>
+                <div class="timeline-class">Lớp: ${s.className}</div>
+            </div>
+        </div>`).join('');
 }
 
 function renderRankingChart(data) {

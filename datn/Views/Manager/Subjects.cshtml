@@ -16,6 +16,14 @@
 <div class="card">
     <div class="d-flex align-center justify-between mb-2">
         <h3>Danh mục môn học</h3>
+        <div class="status-tabs" style="margin-bottom:0;">
+            <div class="status-tab active" data-show-inactive="false" data-scope="subjects">
+                <i class="fa-solid fa-book"></i> Đang sử dụng
+            </div>
+            <div class="status-tab" data-show-inactive="true" data-scope="subjects">
+                <i class="fa-solid fa-box-archive"></i> Đã ngưng
+            </div>
+        </div>
     </div>
     <div id="subjectAlert" style="display:none; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.85rem;"></div>
     <div class="table-container">

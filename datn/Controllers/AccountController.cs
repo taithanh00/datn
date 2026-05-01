@@ -266,7 +266,6 @@ namespace datn.Controllers
             try
             {
                 account.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
-                account.MustChangePassword = false;
                 account.UpdatedAt = DateTime.UtcNow;
 
                 _context.Accounts.Update(account);

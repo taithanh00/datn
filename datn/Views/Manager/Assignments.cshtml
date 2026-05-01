@@ -62,10 +62,11 @@
 <div class="modal-overlay" id="assignmentModal">
     <div class="modal-card">
         <div class="modal-header">
-            <div class="modal-title">Thêm Phân công mới</div>
+            <div class="modal-title" id="modalTitle">Thêm Phân công mới</div>
             <button class="modal-close" onclick="closeModal('assignmentModal')"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <form id="assignmentForm">
+            <input type="hidden" id="isEdit" value="false" />
             <div class="form-group">
                 <label class="form-label">Giáo viên <span class="text-danger">*</span></label>
                 <select class="form-select" id="employeeSelect" required>

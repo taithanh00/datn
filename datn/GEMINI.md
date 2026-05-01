@@ -57,3 +57,13 @@ Hệ thống có cấu trúc DB phức tạp với nhiều quan hệ và Composi
 - Luôn kiểm tra Policy trong Controller trước khi thực hiện các thay đổi logic để đảm bảo đúng phân quyền.
 - Khi làm việc với các thực thể có Composite Key, hãy đảm bảo cung cấp đủ các trường định danh trong điều kiện `Where` hoặc `Find`.
 - Adhere strictly to the existing architectural patterns (MVC + Service Layer).
+
+## 8. Quy chuẩn UI/UX (Quan trọng)
+- **Nút thao tác trong bảng (Table Actions):**
+    - Luôn sử dụng phong cách **Text-only** (Chỉ hiển thị chữ), **KHÔNG** sử dụng Icon (FontAwesome) bên trong các nút thao tác tại bảng (trừ khi có yêu cầu đặc biệt).
+    - **KHÔNG** có viền (border: none), **KHÔNG** có nền mặc định (background: none).
+    - Sử dụng class `.btn-table` cho nút Sửa/Lịch và `.btn-table.delete` cho nút Xóa.
+    - Hiệu ứng hover: Nút Sửa hiện nền xanh nhạt (`--primary-soft`), nút Xóa hiện nền đỏ nhạt.
+    - Font-size: `0.8rem`, Font-weight: `600`.
+    - Khoảng cách (Padding): `4px 10px`.
+- **Đồng bộ hóa:** Tất cả các module (Lớp học, Môn học, Ngày lễ, Phân công, Kế hoạch, Hoạt động...) phải tuân thủ tuyệt đối phong cách này.

@@ -40,15 +40,18 @@ namespace datn.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("MustChangePassword")
-                        .HasColumnType("bit");
-
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PasswordResetToken")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PasswordSalt")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ResetTokenExpires")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
@@ -81,11 +84,17 @@ namespace datn.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateOnly?>("Date")
                         .HasColumnType("date");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<int?>("LocationId")
                         .HasColumnType("int");
@@ -118,6 +127,9 @@ namespace datn.Migrations
 
                     b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("RoleInClass")
                         .HasColumnType("nvarchar(max)");
@@ -163,6 +175,9 @@ namespace datn.Migrations
 
                     b.Property<int?>("AgeTo")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<int>("MaxCapacity")
                         .HasColumnType("int");
@@ -267,6 +282,9 @@ namespace datn.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("SubjectId")
                         .HasColumnType("int");
 
@@ -300,6 +318,9 @@ namespace datn.Migrations
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
@@ -362,6 +383,48 @@ namespace datn.Migrations
                     b.ToTable("EmployeeLeaveRequests");
                 });
 
+            modelBuilder.Entity("datn.Models.FeeItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AgeFrom")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AgeTo")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("DefaultAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("FeeItems");
+                });
+
             modelBuilder.Entity("datn.Models.HealthRecord", b =>
                 {
                     b.Property<int>("StudentId")
@@ -401,6 +464,9 @@ namespace datn.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -417,6 +483,9 @@ namespace datn.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
@@ -490,6 +559,9 @@ namespace datn.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -562,6 +634,18 @@ namespace datn.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Rankings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Đạt"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Cần cố gắng hơn"
+                        });
                 });
 
             modelBuilder.Entity("datn.Models.RefreshToken", b =>
@@ -732,6 +816,44 @@ namespace datn.Migrations
                     b.ToTable("StudentActivities");
                 });
 
+            modelBuilder.Entity("datn.Models.StudentFeeConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("CustomAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("FeeItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FeeItemId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("StudentFeeConfigs");
+                });
+
             modelBuilder.Entity("datn.Models.StudyReport", b =>
                 {
                     b.Property<int>("StudentId")
@@ -772,6 +894,9 @@ namespace datn.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("FeeAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -843,6 +968,9 @@ namespace datn.Migrations
                     b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
@@ -870,18 +998,25 @@ namespace datn.Migrations
                     b.Property<int?>("Month")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentStatus")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("StudentId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TuitionPlanId")
-                        .HasColumnType("int");
+                    b.Property<string>("TransactionId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Year")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("TuitionPlanId");
 
                     b.HasIndex("StudentId", "Month", "Year")
                         .IsUnique()
@@ -890,7 +1025,7 @@ namespace datn.Migrations
                     b.ToTable("Tuitions");
                 });
 
-            modelBuilder.Entity("datn.Models.TuitionPlan", b =>
+            modelBuilder.Entity("datn.Models.TuitionDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -898,24 +1033,37 @@ namespace datn.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AgeFrom")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("AgeTo")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("Amount")
+                    b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateOnly?>("EndDate")
-                        .HasColumnType("date");
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateOnly?>("StartDate")
-                        .HasColumnType("date");
+                    b.Property<int?>("FeeItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SubjectId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TuitionId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("TuitionPlans");
+                    b.HasIndex("FeeItemId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("TuitionId");
+
+                    b.ToTable("TuitionDetails");
                 });
 
             modelBuilder.Entity("datn.Models.WorkAttendance", b =>
@@ -1225,6 +1373,25 @@ namespace datn.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("datn.Models.StudentFeeConfig", b =>
+                {
+                    b.HasOne("datn.Models.FeeItem", "FeeItem")
+                        .WithMany("StudentFeeConfigs")
+                        .HasForeignKey("FeeItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("datn.Models.Student", "Student")
+                        .WithMany("StudentFeeConfigs")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FeeItem");
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("datn.Models.StudyReport", b =>
                 {
                     b.HasOne("datn.Models.Ranking", "Ranking")
@@ -1303,14 +1470,32 @@ namespace datn.Migrations
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("datn.Models.TuitionPlan", "TuitionPlan")
-                        .WithMany("Tuitions")
-                        .HasForeignKey("TuitionPlanId")
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("datn.Models.TuitionDetail", b =>
+                {
+                    b.HasOne("datn.Models.FeeItem", "FeeItem")
+                        .WithMany("TuitionDetails")
+                        .HasForeignKey("FeeItemId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Student");
+                    b.HasOne("datn.Models.Subject", "Subject")
+                        .WithMany("TuitionDetails")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("TuitionPlan");
+                    b.HasOne("datn.Models.Tuition", "Tuition")
+                        .WithMany("TuitionDetails")
+                        .HasForeignKey("TuitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FeeItem");
+
+                    b.Navigation("Subject");
+
+                    b.Navigation("Tuition");
                 });
 
             modelBuilder.Entity("datn.Models.WorkAttendance", b =>
@@ -1377,6 +1562,13 @@ namespace datn.Migrations
                     b.Navigation("WorkAttendances");
                 });
 
+            modelBuilder.Entity("datn.Models.FeeItem", b =>
+                {
+                    b.Navigation("StudentFeeConfigs");
+
+                    b.Navigation("TuitionDetails");
+                });
+
             modelBuilder.Entity("datn.Models.Location", b =>
                 {
                     b.Navigation("Activities");
@@ -1412,6 +1604,8 @@ namespace datn.Migrations
 
                     b.Navigation("StudentActivities");
 
+                    b.Navigation("StudentFeeConfigs");
+
                     b.Navigation("StudyReports");
 
                     b.Navigation("Tuitions");
@@ -1420,11 +1614,13 @@ namespace datn.Migrations
             modelBuilder.Entity("datn.Models.Subject", b =>
                 {
                     b.Navigation("ClassSchedules");
+
+                    b.Navigation("TuitionDetails");
                 });
 
-            modelBuilder.Entity("datn.Models.TuitionPlan", b =>
+            modelBuilder.Entity("datn.Models.Tuition", b =>
                 {
-                    b.Navigation("Tuitions");
+                    b.Navigation("TuitionDetails");
                 });
 #pragma warning restore 612, 618
         }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
 
 namespace datn.Controllers
 {
@@ -47,21 +48,21 @@ namespace datn.Controllers
                 .CountAsync(e => e.Account.Role.Name == "Employee");
             var pendingLeaves = await _context.EmployeeLeaveRequests.CountAsync(r => r.Status == "Pending");
 
-            // Doanh thu tháng hiện tại (TuitionPlan Amount * số học sinh đã nộp)
-            var currentMonthRevenue = await _context.Tuitions
-                .Where(t => t.Month == nowVnt.Month && t.Year == nowVnt.Year && t.IsPaid)
-                .Join(_context.TuitionPlans, t => t.TuitionPlanId, tp => tp.Id, (t, tp) => tp.Amount)
-                .SumAsync();
+            // Doanh thu tháng hiện tại (Tổng từ TuitionDetails của các hóa đơn đã nộp)
+            var currentMonthRevenue = await _context.TuitionDetails
+                .Include(td => td.Tuition)
+                .Where(td => td.Tuition.Month == nowVnt.Month && td.Tuition.Year == nowVnt.Year && td.Tuition.IsPaid)
+                .SumAsync(td => td.TotalAmount);
 
             // 2. Doanh thu 6 tháng gần nhất (Biểu đồ đường)
             var revenueChart = new List<object>();
             for (int i = 5; i >= 0; i--)
             {
                 var d = nowVnt.AddMonths(-i);
-                var rev = await _context.Tuitions
-                    .Where(t => t.Month == d.Month && t.Year == d.Year && t.IsPaid)
-                    .Join(_context.TuitionPlans, t => t.TuitionPlanId, tp => tp.Id, (t, tp) => tp.Amount)
-                    .SumAsync();
+                var rev = await _context.TuitionDetails
+                    .Include(td => td.Tuition)
+                    .Where(td => td.Tuition.Month == d.Month && td.Tuition.Year == d.Year && td.Tuition.IsPaid)
+                    .SumAsync(td => td.TotalAmount);
                 revenueChart.Add(new { label = $"Tháng {d.Month}/{d.Year}", value = rev });
             }
 
@@ -223,23 +224,25 @@ namespace datn.Controllers
             }
         }
 
-        [HttpDelete("Api/Assignment")]
-        public async Task<IActionResult> DeleteAssignment(int employeeId, int classId, string startDate)
+        [HttpPut("Api/Assignment")]
+        public async Task<IActionResult> UpdateAssignment([FromBody] CreateAssignmentViewModel model)
         {
             try
             {
-                if (!DateOnly.TryParse(startDate, out var parsedStartDate))
-                    return Json(new { success = false, message = "Ngày bắt đầu không hợp lệ." });
-
+                if (!ModelState.IsValid) return Json(new { success = false, message = "Dữ liệu không hợp lệ" });
+                var startDate = DateOnly.Parse(model.StartDate);
+                
                 var assignment = await _context.Assignments.FirstOrDefaultAsync(a =>
-                    a.EmployeeId == employeeId && a.ClassId == classId && a.StartDate == parsedStartDate);
+                    a.EmployeeId == model.EmployeeId && a.ClassId == model.ClassId && a.StartDate == startDate);
 
-                if (assignment == null)
-                    return Json(new { success = false, message = "Không tìm thấy phân công." });
+                if (assignment == null) return Json(new { success = false, message = "Không tìm thấy phân công để cập nhật" });
 
-                _context.Assignments.Remove(assignment);
+                assignment.EndDate = string.IsNullOrEmpty(model.EndDate) ? null : DateOnly.Parse(model.EndDate);
+                assignment.RoleInClass = model.RoleInClass;
+
+                _context.Assignments.Update(assignment);
                 await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Đã xóa phân công." });
+                return Json(new { success = true, message = "Cập nhật phân công thành công" });
             }
             catch (Exception ex)
             {
@@ -247,14 +250,48 @@ namespace datn.Controllers
             }
         }
 
+        [HttpDelete("Api/Assignment")]
+        public async Task<IActionResult> DeleteAssignment(int employeeId, int classId, string startDate)
+        {
+            var sDate = DateOnly.Parse(startDate);
+            var assignment = await _context.Assignments
+                .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.ClassId == classId && a.StartDate == sDate);
+
+            if (assignment == null) return Json(new { success = false, message = "Không tìm thấy phân công" });
+
+            assignment.IsActive = false;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã ẩn phân công giảng dạy thành công." });
+        }
+
+        [HttpPost("Api/Assignment/Reactivate")]
+        public async Task<IActionResult> ReactivateAssignment(int employeeId, int classId, string startDate)
+        {
+            var sDate = DateOnly.Parse(startDate);
+            var assignment = await _context.Assignments.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.ClassId == classId && a.StartDate == sDate);
+
+            if (assignment == null) return Json(new { success = false, message = "Không tìm thấy." });
+
+            assignment.IsActive = true;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã khôi phục phân công giảng dạy thành công." });
+        }
+
         // ============ STUDENT API ============
 
         [HttpGet("Api/Students")]
-        public async Task<IActionResult> GetStudents()
+        public async Task<IActionResult> GetStudents(bool showInactive = false)
         {
             try
             {
-                var students = await _context.Students
+                var query = _context.Students.AsQueryable();
+                if (showInactive)
+                {
+                    query = query.IgnoreQueryFilters().Where(s => s.Status == StudentStatus.Inactive);
+                }
+
+                var students = await query
                     .Include(s => s.Class)
                     .Include(s => s.ParentStudents).ThenInclude(ps => ps.Parent)
                     .OrderBy(s => s.Id)
@@ -333,9 +370,26 @@ namespace datn.Controllers
                 if (student == null) return Json(new { success = false, message = "Không tìm thấy" });
 
                 student.Status = StudentStatus.Inactive;
-                _context.Students.Update(student);
                 await _context.SaveChangesAsync();
                 return Json(new { success = true, message = "Đã chuyển trạng thái học sinh sang 'Đã nghỉ'" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("Api/Student/Reactivate/{id:int}")]
+        public async Task<IActionResult> ReactivateStudent(int id)
+        {
+            try
+            {
+                var student = await _context.Students.IgnoreQueryFilters().FirstOrDefaultAsync(s => s.Id == id);
+                if (student == null) return Json(new { success = false, message = "Không tìm thấy" });
+
+                student.Status = StudentStatus.Active;
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Đã khôi phục học sinh thành công" });
             }
             catch (Exception ex)
             {
@@ -368,6 +422,16 @@ namespace datn.Controllers
                 }
 
                 // 2. Tạo mới học sinh thông qua Service
+                // Kiểm tra độ tuổi hợp lệ chung (2-6 tuổi)
+                if (DateOnly.TryParse(model.DateOfBirth, out var dobStudent))
+                {
+                    var ageStudent = DateTime.Now.Year - dobStudent.Year;
+                    if (ageStudent < 2 || ageStudent > 6)
+                    {
+                        return Json(new { success = false, message = $"Độ tuổi học sinh ({ageStudent} tuổi) không phù hợp để nhập học. Hệ thống chỉ nhận học sinh từ 2 đến 6 tuổi." });
+                    }
+                }
+
                 // Kiểm tra các ràng buộc Lớp học (Tuổi, Sĩ số, Niên khóa)
                 if (model.ClassId > 0)
                 {
@@ -395,6 +459,13 @@ namespace datn.Controllers
                 if (student == null) return Json(new { success = false, message = "Không tìm thấy" });
 
                 var dob = string.IsNullOrEmpty(model.DateOfBirth) ? student.DateOfBirth : DateOnly.Parse(model.DateOfBirth);
+
+                // Kiểm tra độ tuổi hợp lệ chung (2-6 tuổi)
+                var ageStudentUpdate = DateTime.Now.Year - dob.Year;
+                if (ageStudentUpdate < 2 || ageStudentUpdate > 6)
+                {
+                    return Json(new { success = false, message = $"Độ tuổi học sinh ({ageStudentUpdate} tuổi) không phù hợp. Hệ thống chỉ nhận học sinh từ 2 đến 6 tuổi." });
+                }
 
                 // Kiểm tra trùng lặp (loại trừ chính bản thân học sinh đang cập nhật)
                 var isDuplicate = await _context.Students.AnyAsync(s => 
@@ -478,11 +549,19 @@ namespace datn.Controllers
         // ============ TEACHER API ============
 
         [HttpGet("Api/Teachers")]
-        public async Task<IActionResult> GetTeachers()
+        public async Task<IActionResult> GetTeachers(bool showInactive = false)
         {
             try
             {
-                var teachers = await _context.Employees
+                var query = _context.Employees.AsQueryable();
+                
+                if (showInactive)
+                {
+                    // Vượt rào để lấy các giáo viên đã nghỉ/khóa
+                    query = query.IgnoreQueryFilters().Where(e => !e.IsActive);
+                }
+
+                var teachers = await query
                     .Include(e => e.Account)
                     .ThenInclude(a => a.Role)
                     .Where(e => e.Account.Role.Name == "Employee")
@@ -497,10 +576,10 @@ namespace datn.Controllers
                     position = t.Position ?? "Giáo viên",
                     baseSalary = t.BaseSalary,
                     avatarPath = t.AvatarPath ?? "/images/lion_blue.png",
-                    isActive = t.Account?.IsActive ?? true
+                    isActive = t.IsActive // Now using Employee.IsActive
                 }).ToList();
                 
-                var total = teachers.Count;
+                var total = result.Count;
                 return Json(new { success = true, data = result, total });
             }
             catch (Exception ex)
@@ -521,13 +600,20 @@ namespace datn.Controllers
         }
 
         [HttpGet("Api/Parents")]
-        public async Task<IActionResult> GetParents(string search = "", int page = 1, int pageSize = 10)
+        public async Task<IActionResult> GetParents(string search = "", int page = 1, int pageSize = 10, bool showInactive = false)
         {
             try
             {
-                var query = _context.Parents
-                    .Include(p => p.ParentStudents).ThenInclude(ps => ps.Student)
-                    .AsQueryable();
+                var query = _context.Parents.AsQueryable();
+                
+                if (showInactive)
+                {
+                    query = query.IgnoreQueryFilters().Where(p => !p.IsActive);
+                }
+
+                query = query
+                    .Include(p => p.Account)
+                    .Include(p => p.ParentStudents).ThenInclude(ps => ps.Student);
 
                 if (!string.IsNullOrEmpty(search))
                 {
@@ -539,24 +625,27 @@ namespace datn.Controllers
                 }
 
                 var total = await query.CountAsync();
-                var result = await query
+                var data = await query
                     .OrderByDescending(p => p.Id)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(p => new {
+                    .ToListAsync();
+
+                var result = data.Select(p => new {
                         id = p.Id,
+                        email = p.Account?.Email ?? "N/A",
                         fullName = p.LastName + " " + p.FirstName,
                         phone = p.Phone ?? "N/A",
                         address = p.Address ?? "N/A",
                         avatarPath = p.AvatarPath ?? "/images/lion_orange.png",
+                        isActive = p.IsActive,
+                        createdAt = p.Account?.CreatedAt ?? DateTime.MinValue,
                         childrenCount = p.ParentStudents.Count,
                         children = p.ParentStudents.Select(ps => new {
                             id = ps.StudentId,
-                            fullName = ps.Student.LastName + " " + ps.Student.FirstName,
-                            relationship = ps.Relationship
-                        }).ToList()
-                    })
-                    .ToListAsync();
+                            fullName = ps.Student.FirstName + " " + ps.Student.LastName
+                        })
+                    });
 
                 return Json(new { success = true, data = result, total });
             }
@@ -601,6 +690,7 @@ namespace datn.Controllers
                     phone = p.Phone,
                     address = p.Address,
                     avatarPath = p.AvatarPath ?? "/images/lion_orange.png",
+                    isActive = p.Account.IsActive,
                     createdAt = p.Account.CreatedAt.ToString("dd/MM/yyyy"),
                     children = p.ParentStudents.Select(ps => new {
                         id = ps.StudentId,
@@ -645,6 +735,10 @@ namespace datn.Controllers
         [HttpPut("Api/Parent/{id:int}")]
         public async Task<IActionResult> UpdateParent(int id, [FromForm] datn.DTOs.CreateParentDto model)
         {
+            // Khi update, chúng ta không cho phép Manager sửa mật khẩu ở đây
+            // nên xóa lỗi validation của Password nếu có
+            ModelState.Remove("Password");
+
             if (!ModelState.IsValid)
             {
                 var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
@@ -673,7 +767,21 @@ namespace datn.Controllers
         public async Task<IActionResult> DeleteParent(int id)
         {
             var success = await _parentService.DeleteParentAsync(id);
-            return Json(new { success, message = success ? "Xóa thành công" : "Lỗi khi xóa" });
+            return Json(new { success, message = success ? "Vô hiệu hóa thành công" : "Lỗi vô hiệu hóa" });
+        }
+
+        [HttpPost("Api/Parent/Reactivate/{id:int}")]
+        public async Task<IActionResult> ReactivateParent(int id)
+        {
+            var parent = await _context.Parents
+                .IgnoreQueryFilters()
+                .Include(p => p.Account)
+                .FirstOrDefaultAsync(p => p.Id == id);
+            if (parent == null) return Json(new { success = false, message = "Không tìm thấy phụ huynh" });
+
+            parent.Account.IsActive = true;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Kích hoạt tài khoản thành công" });
         }
 
         [HttpPost("Api/Parent/LinkStudent")]
@@ -772,6 +880,11 @@ namespace datn.Controllers
         [HttpPost("Api/Teacher")]
         public async Task<IActionResult> CreateTeacher([FromForm] CreateTeacherViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return Json(new { success = false, message = errors });
+            }
             if (await _context.Accounts.AnyAsync(a => a.Username == model.Username))
                 return Json(new { success = false, message = "Tên đăng nhập đã tồn tại." });
 
@@ -787,7 +900,7 @@ namespace datn.Controllers
                 {
                     Username = model.Username,
                     Email = model.Email,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(string.IsNullOrWhiteSpace(model.Password) ? "123456" : model.Password),
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password.Trim()),
                     PasswordSalt = "",
                     RoleId = role.Id
                 };
@@ -820,6 +933,11 @@ namespace datn.Controllers
         [HttpPut("Api/Teacher/{id:int}")]
         public async Task<IActionResult> UpdateTeacher(int id, [FromForm] UpdateTeacherViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return Json(new { success = false, message = errors });
+            }
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -863,20 +981,21 @@ namespace datn.Controllers
                 if (teacher == null)
                     return Json(new { success = false, message = "Không tìm thấy giáo viên." });
 
-                if (teacher.Account == null)
-                    return Json(new { success = false, message = "Không tìm thấy tài khoản liên kết." });
-
-                // 1. Vô hiệu hóa tài khoản
-                teacher.Account.IsActive = false;
-
-                // 2. Thu hồi toàn bộ Refresh Token để đẩy giáo viên ra khỏi hệ thống
-                var activeTokens = await _context.RefreshTokens
-                    .Where(r => r.AccountId == teacher.AccountId && !r.IsRevoked)
-                    .ToListAsync();
-                
-                foreach (var token in activeTokens)
+                // Vô hiệu hóa ở cả 2 cấp độ: Employee và Account
+                teacher.IsActive = false;
+                if (teacher.Account != null)
                 {
-                    token.IsRevoked = true;
+                    teacher.Account.IsActive = false;
+                    
+                    // Thu hồi toàn bộ Refresh Token để đẩy giáo viên ra khỏi hệ thống
+                    var activeTokens = await _context.RefreshTokens
+                        .Where(r => r.AccountId == teacher.AccountId && !r.IsRevoked)
+                        .ToListAsync();
+                    
+                    foreach (var token in activeTokens)
+                    {
+                        token.IsRevoked = true;
+                    }
                 }
 
                 await _context.SaveChangesAsync();
@@ -887,50 +1006,72 @@ namespace datn.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-        [HttpPut("Api/Teacher/{id:int}/Reactivate")]
+
+        [HttpPost("Api/Teacher/Reactivate/{id:int}")]
         public async Task<IActionResult> ReactivateTeacher(int id)
         {
             try
             {
-                var teacher = await _context.Employees
+                // Sử dụng IgnoreQueryFilters để tìm bản ghi đang bị ẩn
+                var teacher = await _context.Employees.IgnoreQueryFilters()
                     .Include(e => e.Account)
                     .FirstOrDefaultAsync(e => e.Id == id);
-                    
+
                 if (teacher == null)
                     return Json(new { success = false, message = "Không tìm thấy giáo viên." });
 
-                teacher.Account.IsActive = true;
+                teacher.IsActive = true;
+                if (teacher.Account != null)
+                {
+                    teacher.Account.IsActive = true;
+                }
+
                 await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Đã kích hoạt lại giáo viên thành công." });
+                return Json(new { success = true, message = "Đã khôi phục giáo viên thành công" });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
         }
-
         // ============ CLASS MANAGEMENT API ============
 
         [HttpGet("Api/Classes")]
-        public async Task<IActionResult> GetClasses()
+        public async Task<IActionResult> GetClasses(bool showInactive = false)
         {
-            var classes = await _context.Classes
+            var query = _context.Classes.AsQueryable();
+            if (showInactive)
+            {
+                query = query.IgnoreQueryFilters().Where(c => !c.IsActive);
+            }
+
+            var classes = await query
                 .OrderBy(c => c.Name)
                 .ToListAsync();
-
-            return Json(new
-            {
-                success = true,
-                data = classes.Select(c => new { id = c.Id, name = c.Name })
-            });
+            return Json(new { success = true, data = classes.Select(c => new { 
+                id = c.Id, 
+                name = c.Name,
+                ageFrom = c.AgeFrom,
+                ageTo = c.AgeTo
+            }) });
         }
 
         [HttpGet("Api/Classes/Overview")]
-        public async Task<IActionResult> GetClassesOverview()
+        public async Task<IActionResult> GetClassesOverview(bool showInactive = false)
         {
             var today = DateOnly.FromDateTime(DateTime.Now);
 
-            var classes = await _context.Classes
+            IQueryable<Class> query;
+            if (showInactive)
+            {
+                query = _context.Classes.IgnoreQueryFilters().Where(c => !c.IsActive);
+            }
+            else
+            {
+                query = _context.Classes;
+            }
+
+            var classes = await query
                 .Include(c => c.Students)
                 .Include(c => c.Assignments)
                     .ThenInclude(a => a.Employee)
@@ -945,6 +1086,7 @@ namespace datn.Controllers
                 ageTo = c.AgeTo,
                 schoolYear = c.SchoolYear,
                 maxCapacity = c.MaxCapacity,
+                isActive = c.IsActive,
                 studentCount = c.Students.Count,
                 teachers = c.Assignments
                     .Where(a => a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
@@ -1005,6 +1147,13 @@ namespace datn.Controllers
             if (string.IsNullOrWhiteSpace(model.Name))
                 return Json(new { success = false, message = "Tên lớp không được để trống." });
 
+            // Validate age range
+            var validAgeRanges = new List<(int?, int?)> { (2, 3), (3, 4), (4, 5), (5, 6) };
+            if (!validAgeRanges.Any(r => r.Item1 == model.AgeFrom && r.Item2 == model.AgeTo))
+            {
+                return Json(new { success = false, message = "Độ tuổi không hợp lệ. Vui lòng chọn trong danh sách cho phép." });
+            }
+
             var duplicate = await _context.Classes.AnyAsync(c => c.Name == model.Name.Trim() && c.SchoolYear == model.SchoolYear);
             if (duplicate)
                 return Json(new { success = false, message = "Đã tồn tại lớp cùng tên trong niên khóa này." });
@@ -1015,7 +1164,8 @@ namespace datn.Controllers
                 AgeFrom = model.AgeFrom,
                 AgeTo = model.AgeTo,
                 SchoolYear = model.SchoolYear?.Trim(),
-                MaxCapacity = model.MaxCapacity > 0 ? model.MaxCapacity : 25
+                MaxCapacity = model.MaxCapacity > 0 ? model.MaxCapacity : 25,
+                IsActive = true
             };
 
             _context.Classes.Add(classroom);
@@ -1034,6 +1184,13 @@ namespace datn.Controllers
             if (string.IsNullOrWhiteSpace(model.Name))
                 return Json(new { success = false, message = "Tên lớp không được để trống." });
 
+            // Validate age range
+            var validAgeRanges = new List<(int?, int?)> { (2, 3), (3, 4), (4, 5), (5, 6) };
+            if (!validAgeRanges.Any(r => r.Item1 == model.AgeFrom && r.Item2 == model.AgeTo))
+            {
+                return Json(new { success = false, message = "Độ tuổi không hợp lệ. Vui lòng chọn trong danh sách cho phép." });
+            }
+
             var duplicate = await _context.Classes.AnyAsync(c =>
                 c.Id != id && c.Name == model.Name.Trim() && c.SchoolYear == model.SchoolYear);
             if (duplicate)
@@ -1050,31 +1207,44 @@ namespace datn.Controllers
         }
 
         [HttpDelete("Api/Class/{id:int}")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteClass(int id)
         {
             var classroom = await _context.Classes.FindAsync(id);
             if (classroom == null)
                 return Json(new { success = false, message = "Không tìm thấy lớp học." });
 
-            var hasStudents = await _context.Students.AnyAsync(s => s.ClassId == id);
-            var hasAssignments = await _context.Assignments.AnyAsync(a => a.ClassId == id);
-            var hasSchedules = await _context.ClassSchedules.AnyAsync(s => s.ClassId == id);
-
-            if (hasStudents || hasAssignments || hasSchedules)
-                return Json(new { success = false, message = "Không thể xóa lớp đang có học sinh, phân công hoặc thời khóa biểu." });
-
-            _context.Classes.Remove(classroom);
+            classroom.IsActive = false;
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Đã xóa lớp học." });
+            return Json(new { success = true, message = "Đã ẩn lớp học thành công." });
+        }
+
+        [HttpPost("Api/Class/Reactivate/{id:int}")]
+        public async Task<IActionResult> ReactivateClass(int id)
+        {
+            var classroom = await _context.Classes.IgnoreQueryFilters().FirstOrDefaultAsync(c => c.Id == id);
+            if (classroom == null) return Json(new { success = false, message = "Không tìm thấy lớp học." });
+
+            classroom.IsActive = true;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã khôi phục lớp học thành công." });
         }
 
         // ============ SUBJECT API ============
 
         [HttpGet("Api/Subjects")]
-        public async Task<IActionResult> GetSubjects()
+        public async Task<IActionResult> GetSubjects(bool showInactive = false)
         {
-            var subjects = await _context.Subjects
+            IQueryable<Subject> query;
+            if (showInactive)
+            {
+                query = _context.Subjects.IgnoreQueryFilters().Where(s => !s.IsActive);
+            }
+            else
+            {
+                query = _context.Subjects;
+            }
+
+            var subjects = await query
                 .OrderBy(s => s.Name)
                 .ToListAsync();
 
@@ -1164,16 +1334,22 @@ namespace datn.Controllers
         public async Task<IActionResult> DeleteSubject(int id)
         {
             var subject = await _context.Subjects.FindAsync(id);
-            if (subject == null)
-                return Json(new { success = false, message = "Không tìm thấy môn học." });
+            if (subject == null) return Json(new { success = false, message = "Không tìm thấy môn học." });
 
-            var hasSchedules = await _context.ClassSchedules.AnyAsync(cs => cs.SubjectId == id);
-            if (hasSchedules)
-                return Json(new { success = false, message = "Không thể xóa môn học đang được dùng trong thời khóa biểu." });
-
-            _context.Subjects.Remove(subject);
+            subject.IsActive = false;
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Đã xóa môn học." });
+            return Json(new { success = true, message = "Đã ẩn môn học thành công." });
+        }
+
+        [HttpPost("Api/Subject/Reactivate/{id:int}")]
+        public async Task<IActionResult> ReactivateSubject(int id)
+        {
+            var subject = await _context.Subjects.IgnoreQueryFilters().FirstOrDefaultAsync(s => s.Id == id);
+            if (subject == null) return Json(new { success = false, message = "Không tìm thấy." });
+
+            subject.IsActive = true;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã khôi phục môn học thành công." });
         }
 
         // ============ CLASS SCHEDULE API ============
@@ -1299,15 +1475,25 @@ namespace datn.Controllers
         }
 
         [HttpDelete("Api/ClassSchedule/{id:int}")]
-        public async Task<IActionResult> DeleteClassSchedule(int id)
+        public async Task<IActionResult> DeleteSchedule(int id)
         {
             var schedule = await _context.ClassSchedules.FindAsync(id);
-            if (schedule == null)
-                return Json(new { success = false, message = "Không tìm thấy thời khóa biểu." });
+            if (schedule == null) return Json(new { success = false, message = "Không tìm thấy lịch học" });
 
-            _context.ClassSchedules.Remove(schedule);
+            schedule.IsActive = false;
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Đã xóa thời khóa biểu." });
+            return Json(new { success = true, message = "Đã ẩn lịch học thành công." });
+        }
+
+        [HttpPost("Api/ClassSchedule/Reactivate/{id:int}")]
+        public async Task<IActionResult> ReactivateSchedule(int id)
+        {
+            var schedule = await _context.ClassSchedules.IgnoreQueryFilters().FirstOrDefaultAsync(cs => cs.Id == id);
+            if (schedule == null) return Json(new { success = false, message = "Không tìm thấy." });
+
+            schedule.IsActive = true;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã khôi phục lịch học thành công." });
         }
 
         private async Task<string?> ValidateScheduleRequestAsync(SaveClassScheduleViewModel model, int? scheduleId)
@@ -1428,9 +1614,12 @@ namespace datn.Controllers
         // ============ LOCATION API ============
 
         [HttpGet("Api/Locations")]
-        public async Task<IActionResult> GetLocations()
+        public async Task<IActionResult> GetLocations(bool showInactive = false)
         {
-            var locations = await _context.Locations.OrderBy(l => l.Name).ToListAsync();
+            var query = _context.Locations.AsQueryable();
+            if (!showInactive) query = query.Where(l => l.IsActive);
+            
+            var locations = await query.OrderBy(l => l.Name).ToListAsync();
             return Json(new { success = true, data = locations });
         }
 
@@ -1438,6 +1627,7 @@ namespace datn.Controllers
         public async Task<IActionResult> CreateLocation([FromBody] Location model)
         {
             if (string.IsNullOrWhiteSpace(model.Name)) return Json(new { success = false, message = "Tên địa điểm không được để trống" });
+            model.IsActive = true;
             _context.Locations.Add(model);
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Đã thêm địa điểm" });
@@ -1447,12 +1637,22 @@ namespace datn.Controllers
         public async Task<IActionResult> DeleteLocation(int id)
         {
             var location = await _context.Locations.FindAsync(id);
-            if (location == null) return Json(new { success = false, message = "Không tìm thấy địa điểm" });
-            if (await _context.Activities.AnyAsync(a => a.LocationId == id))
-                return Json(new { success = false, message = "Địa điểm này đang có hoạt động diễn ra, không thể xóa" });
-            _context.Locations.Remove(location);
+            if (location == null) return Json(new { success = false, message = "Không tìm thấy." });
+
+            location.IsActive = false;
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Đã xóa địa điểm" });
+            return Json(new { success = true, message = "Đã ẩn địa điểm thành công." });
+        }
+
+        [HttpPost("Api/Location/Reactivate/{id:int}")]
+        public async Task<IActionResult> ReactivateLocation(int id)
+        {
+            var location = await _context.Locations.IgnoreQueryFilters().FirstOrDefaultAsync(l => l.Id == id);
+            if (location == null) return Json(new { success = false, message = "Không tìm thấy." });
+
+            location.IsActive = true;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã khôi phục địa điểm thành công." });
         }
 
         // ============ ACTIVITY API ============
@@ -1464,13 +1664,18 @@ namespace datn.Controllers
         }
 
         [HttpGet("Api/Activities")]
-        public async Task<IActionResult> GetActivities()
+        public async Task<IActionResult> GetActivities(bool showInactive = false)
         {
-            var activities = await _context.Activities
+            var query = _context.Activities
                 .Include(a => a.Location)
                 .Include(a => a.Organizer)
                 .Include(a => a.ClassActivities)
                     .ThenInclude(ca => ca.Class)
+                .AsQueryable();
+
+            if (!showInactive) query = query.Where(a => a.IsActive);
+
+            var activities = await query
                 .OrderByDescending(a => a.Date)
                 .ToListAsync();
 
@@ -1482,6 +1687,7 @@ namespace datn.Controllers
                 date = a.Date?.ToString("yyyy-MM-dd"),
                 locationName = a.Location?.Name,
                 organizerName = a.Organizer?.FullName,
+                isActive = a.IsActive,
                 classes = a.ClassActivities.Select(ca => new { id = ca.ClassId, name = ca.Class.Name })
             });
 
@@ -1497,7 +1703,8 @@ namespace datn.Controllers
                 Description = model.Description,
                 Date = DateOnly.Parse(model.Date),
                 LocationId = model.LocationId,
-                OrganizerId = model.OrganizerId
+                OrganizerId = model.OrganizerId,
+                IsActive = true
             };
 
             _context.Activities.Add(activity);
@@ -1550,9 +1757,20 @@ namespace datn.Controllers
             var activity = await _context.Activities.FindAsync(id);
             if (activity == null) return Json(new { success = false, message = "Không tìm thấy hoạt động" });
 
-            _context.Activities.Remove(activity);
+            activity.IsActive = false;
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Đã xóa hoạt động" });
+            return Json(new { success = true, message = "Đã ẩn hoạt động thành công." });
+        }
+
+        [HttpPost("Api/Activity/Reactivate/{id:int}")]
+        public async Task<IActionResult> ReactivateActivity(int id)
+        {
+            var activity = await _context.Activities.IgnoreQueryFilters().FirstOrDefaultAsync(a => a.Id == id);
+            if (activity == null) return Json(new { success = false, message = "Không tìm thấy." });
+
+            activity.IsActive = true;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã khôi phục hoạt động thành công." });
         }
 
         // ============ CURRICULUM API ============
@@ -1564,12 +1782,11 @@ namespace datn.Controllers
         }
 
         [HttpGet("Api/Curriculums")]
-        public async Task<IActionResult> GetCurriculums()
+        public async Task<IActionResult> GetCurriculums(bool showInactive = false)
         {
-            var curriculums = await _context.Curriculums
-                .Include(c => c.Subject)
-                .OrderBy(c => c.Title)
-                .ToListAsync();
+            var query = _context.Curriculums.Include(c => c.Subject).AsQueryable();
+            if (!showInactive) query = query.Where(c => c.IsActive);
+            var curriculums = await query.OrderBy(c => c.Title).ToListAsync();
 
             var data = curriculums.Select(c => new
             {
@@ -1580,7 +1797,8 @@ namespace datn.Controllers
                 subjectId = c.SubjectId,
                 subjectName = c.Subject?.Name,
                 ageFrom = c.AgeFrom,
-                ageTo = c.AgeTo
+                ageTo = c.AgeTo,
+                isActive = c.IsActive
             });
 
             return Json(new { success = true, data });
@@ -1589,6 +1807,7 @@ namespace datn.Controllers
         [HttpPost("Api/Curriculum")]
         public async Task<IActionResult> CreateCurriculum([FromBody] Curriculum model)
         {
+            model.IsActive = true;
             _context.Curriculums.Add(model);
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Đã tạo chương trình học" });
@@ -1615,14 +1834,22 @@ namespace datn.Controllers
         public async Task<IActionResult> DeleteCurriculum(int id)
         {
             var cur = await _context.Curriculums.FindAsync(id);
-            if (cur == null) return Json(new { success = false, message = "Không tìm thấy" });
+            if (cur == null) return Json(new { success = false, message = "Không tìm thấy." });
 
-            if (await _context.TeachingPlans.AnyAsync(tp => tp.CurriculumId == id))
-                return Json(new { success = false, message = "Chương trình này đang được sử dụng trong kế hoạch giảng dạy, không thể xóa" });
-
-            _context.Curriculums.Remove(cur);
+            cur.IsActive = false;
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Đã xóa" });
+            return Json(new { success = true, message = "Đã ẩn chương trình học thành công." });
+        }
+
+        [HttpPost("Api/Curriculum/Reactivate/{id:int}")]
+        public async Task<IActionResult> ReactivateCurriculum(int id)
+        {
+            var cur = await _context.Curriculums.IgnoreQueryFilters().FirstOrDefaultAsync(c => c.Id == id);
+            if (cur == null) return Json(new { success = false, message = "Không tìm thấy." });
+
+            cur.IsActive = true;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã khôi phục chương trình học thành công." });
         }
 
         // ============ TEACHING PLAN API ============
@@ -1634,7 +1861,7 @@ namespace datn.Controllers
         }
 
         [HttpGet("Api/TeachingPlans")]
-        public async Task<IActionResult> GetTeachingPlans(int? classId)
+        public async Task<IActionResult> GetTeachingPlans(int? classId, bool showInactive = false)
         {
             var query = _context.TeachingPlans
                 .Include(tp => tp.Class)
@@ -1642,6 +1869,7 @@ namespace datn.Controllers
                 .AsQueryable();
 
             if (classId.HasValue) query = query.Where(tp => tp.ClassId == classId);
+            if (!showInactive) query = query.Where(tp => tp.IsActive);
 
             var plans = await query.OrderByDescending(tp => tp.StartDate).ToListAsync();
             var data = plans.Select(tp => new
@@ -1652,7 +1880,8 @@ namespace datn.Controllers
                 curriculumTitle = tp.Curriculum.Title,
                 startDate = tp.StartDate.ToString("yyyy-MM-dd"),
                 endDate = tp.EndDate?.ToString("yyyy-MM-dd"),
-                status = tp.Status
+                status = tp.Status,
+                isActive = tp.IsActive
             });
 
             return Json(new { success = true, data });
@@ -1663,10 +1892,29 @@ namespace datn.Controllers
         {
             if (await _context.TeachingPlans.AnyAsync(tp => tp.ClassId == model.ClassId && tp.CurriculumId == model.CurriculumId && tp.StartDate == model.StartDate))
                 return Json(new { success = false, message = "Kế hoạch này đã tồn tại" });
-
+            
+            model.IsActive = true;
             _context.TeachingPlans.Add(model);
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Đã lập kế hoạch giảng dạy" });
+        }
+
+        [HttpPut("Api/TeachingPlan")]
+        public async Task<IActionResult> UpdateTeachingPlan([FromBody] TeachingPlan model)
+        {
+            var plan = await _context.TeachingPlans.FirstOrDefaultAsync(tp => 
+                tp.ClassId == model.ClassId && 
+                tp.CurriculumId == model.CurriculumId && 
+                tp.StartDate == model.StartDate);
+
+            if (plan == null) return Json(new { success = false, message = "Không tìm thấy kế hoạch để cập nhật" });
+
+            plan.EndDate = model.EndDate;
+            plan.Status = model.Status;
+
+            _context.TeachingPlans.Update(plan);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Cập nhật kế hoạch thành công" });
         }
 
         [HttpDelete("Api/TeachingPlan")]
@@ -1676,9 +1924,23 @@ namespace datn.Controllers
             var plan = await _context.TeachingPlans.FirstOrDefaultAsync(tp => tp.ClassId == classId && tp.CurriculumId == curriculumId && tp.StartDate == sDate);
             if (plan == null) return Json(new { success = false, message = "Không tìm thấy" });
 
-            _context.TeachingPlans.Remove(plan);
+            plan.IsActive = false;
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Đã xóa kế hoạch" });
+            return Json(new { success = true, message = "Đã ẩn kế hoạch giảng dạy thành công." });
+        }
+
+        [HttpPost("Api/TeachingPlan/Reactivate")]
+        public async Task<IActionResult> ReactivateTeachingPlan(int classId, int curriculumId, string startDate)
+        {
+            var sDate = DateOnly.Parse(startDate);
+            var plan = await _context.TeachingPlans.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(tp => tp.ClassId == classId && tp.CurriculumId == curriculumId && tp.StartDate == sDate);
+
+            if (plan == null) return Json(new { success = false, message = "Không tìm thấy." });
+
+            plan.IsActive = true;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã khôi phục kế hoạch giảng dạy thành công." });
         }
 
         private async Task<string> SaveAvatar(IFormFile file, string prefix)
@@ -1730,9 +1992,17 @@ namespace datn.Controllers
 
     public class CreateTeacherViewModel
     {
+        [Required(ErrorMessage = "Tên đăng nhập không được để trống")]
         public string Username { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Email không được để trống")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
         public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = "123456";
+        [Required(ErrorMessage = "Mật khẩu không được để trống")]
+        [MinLength(9, ErrorMessage = "Mật khẩu phải có ít nhất 9 ký tự")]
+        [RegularExpression(@"^(?=.*[A-Z])(?=.*[!@#$%^&*()_+=\-\[\]{}|;:'"",.<>?/\\\\]).+$", 
+            ErrorMessage = "Mật khẩu phải chứa ít nhất 1 chữ hoa và 1 ký tự đặc biệt")]
+        public string Password { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Họ và tên không được để trống")]
         public string FullName { get; set; } = string.Empty;
         public string? Phone { get; set; }
         public string? Position { get; set; }
@@ -1742,7 +2012,10 @@ namespace datn.Controllers
 
     public class UpdateTeacherViewModel
     {
+        [Required(ErrorMessage = "Email không được để trống")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
         public string Email { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Họ và tên không được để trống")]
         public string FullName { get; set; } = string.Empty;
         public string? Phone { get; set; }
         public string? Position { get; set; }

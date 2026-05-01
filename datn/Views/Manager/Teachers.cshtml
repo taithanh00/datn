@@ -18,6 +18,15 @@
     </div>
 </div>
 
+<div class="status-tabs">
+    <div class="status-tab active" data-show-inactive="false">
+        <i class="fa-solid fa-user-check"></i> Đang hoạt động
+    </div>
+    <div class="status-tab" data-show-inactive="true">
+        <i class="fa-solid fa-user-slash"></i> Đã ngưng/Khóa
+    </div>
+</div>
+
 <div class="card">
     <div class="table-container">
         <table id="teachersTable">
@@ -68,8 +77,13 @@
                     <input type="email" id="email" name="Email" class="form-control" placeholder="Nhập email" required />
                 </div>
                 <div class="form-group" id="passwordGroup">
-                    <label class="form-label" for="password">Mật khẩu</label>
-                    <input type="password" id="password" name="Password" class="form-control" placeholder="Mặc định: 123456" />
+                    <label class="form-label" for="password">Mật khẩu <span class="text-danger">*</span></label>
+                    <input type="password" id="password" name="Password" class="form-control" placeholder="Mật khẩu tài khoản" />
+                    <div class="requirement-list">
+                        <div id="req-length" class="requirement"><i class="fa-solid fa-circle-dot"></i> Ít nhất 9 ký tự</div>
+                        <div id="req-upper" class="requirement"><i class="fa-solid fa-circle-dot"></i> Ít nhất 1 chữ hoa</div>
+                        <div id="req-special" class="requirement"><i class="fa-solid fa-circle-dot"></i> Ít nhất 1 ký tự đặc biệt</div>
+                    </div>
                 </div>
             </div>
 

@@ -910,3 +910,30 @@ textarea.form-input {
     background: #EF4444;
     color: white;
 }
+
+/* ===== TABLE ACTION BUTTONS (STANDARD) ===== */
+.btn-table {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-table:hover {
+    background: var(--primary-soft);
+}
+
+.btn-table.delete {
+    color: var(--danger);
+}
+
+.btn-table.delete:hover {
+    background: rgba(248, 113, 113, 0.1);
+}

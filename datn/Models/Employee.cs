@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace datn.Models
 {
@@ -11,6 +11,7 @@ namespace datn.Models
         public string? Position { get; set; }
         public decimal? BaseSalary { get; set; }
         public string? AvatarPath { get; set; }
+        public bool IsActive { get; set; } = true;
 
         public Account Account { get; set; }
         public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();

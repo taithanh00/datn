@@ -9,6 +9,7 @@ namespace datn.Models
         public int? SubjectId { get; set; }
         public int? AgeFrom { get; set; }
         public int? AgeTo { get; set; }
+        public bool IsActive { get; set; } = true;
 
         public Subject? Subject { get; set; }
         public ICollection<TeachingPlan> TeachingPlans { get; set; } = new List<TeachingPlan>();

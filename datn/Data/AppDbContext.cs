@@ -16,7 +16,6 @@ namespace datn.Data
         public DbSet<Class> Classes { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<ParentStudent> ParentStudents { get; set; }
-        public DbSet<TuitionPlan> TuitionPlans { get; set; }
         public DbSet<Tuition> Tuitions { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Ranking> Rankings { get; set; }
@@ -38,6 +37,9 @@ namespace datn.Data
         public DbSet<ClassSchedule> ClassSchedules { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<StudentActivity> StudentActivities { get; set; }
+        public DbSet<FeeItem> FeeItems { get; set; }
+        public DbSet<StudentFeeConfig> StudentFeeConfigs { get; set; }
+        public DbSet<TuitionDetail> TuitionDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -118,12 +120,6 @@ namespace datn.Data
                 .HasOne(t => t.Student)
                 .WithMany(s => s.Tuitions)
                 .HasForeignKey(t => t.StudentId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Tuition>()
-                .HasOne(t => t.TuitionPlan)
-                .WithMany(tp => tp.Tuitions)
-                .HasForeignKey(t => t.TuitionPlanId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Tuition>()
@@ -354,12 +350,69 @@ namespace datn.Data
                 .HasForeignKey(sa => sa.ActivityId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // ── FeeItem ──────────────────────────────────────────
+            modelBuilder.Entity<FeeItem>()
+                .HasIndex(fi => fi.Name)
+                .IsUnique();
+
+            // ── StudentFeeConfig ─────────────────────────────────
+            modelBuilder.Entity<StudentFeeConfig>()
+                .HasOne(sfc => sfc.Student)
+                .WithMany(s => s.StudentFeeConfigs)
+                .HasForeignKey(sfc => sfc.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StudentFeeConfig>()
+                .HasOne(sfc => sfc.FeeItem)
+                .WithMany(fi => fi.StudentFeeConfigs)
+                .HasForeignKey(sfc => sfc.FeeItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ── TuitionDetail ────────────────────────────────────
+            modelBuilder.Entity<TuitionDetail>()
+                .HasOne(td => td.Tuition)
+                .WithMany(t => t.TuitionDetails)
+                .HasForeignKey(td => td.TuitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TuitionDetail>()
+                .HasOne(td => td.FeeItem)
+                .WithMany(fi => fi.TuitionDetails)
+                .HasForeignKey(td => td.FeeItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TuitionDetail>()
+                .HasOne(td => td.Subject)
+                .WithMany(s => s.TuitionDetails)
+                .HasForeignKey(td => td.SubjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // ── Seed Roles ────────────────────────────────────────
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, Name = "Manager", Description = "Quản lý" },
                 new Role { Id = 2, Name = "Employee", Description = "Giáo viên" },
                 new Role { Id = 3, Name = "Parent", Description = "Phụ huynh" }
             );
+
+            // ── Seed Rankings ──────────────────────────────────────
+            modelBuilder.Entity<Ranking>().HasData(
+                new Ranking { Id = 1, Name = "Đạt" },
+                new Ranking { Id = 2, Name = "Cần cố gắng hơn" }
+            );
+
+            // ── Global Query Filters ──────────────────────────────
+            modelBuilder.Entity<Account>().HasQueryFilter(a => a.IsActive);
+            modelBuilder.Entity<Employee>().HasQueryFilter(e => e.IsActive);
+            modelBuilder.Entity<Parent>().HasQueryFilter(p => p.IsActive);
+            modelBuilder.Entity<Student>().HasQueryFilter(s => s.Status == StudentStatus.Active);
+            modelBuilder.Entity<Class>().HasQueryFilter(c => c.IsActive);
+            modelBuilder.Entity<Subject>().HasQueryFilter(s => s.IsActive);
+            modelBuilder.Entity<FeeItem>().HasQueryFilter(f => f.IsActive);
+            modelBuilder.Entity<Holiday>().HasQueryFilter(h => h.IsActive);
+            modelBuilder.Entity<Location>().HasQueryFilter(l => l.IsActive);
+            modelBuilder.Entity<Activity>().HasQueryFilter(a => a.IsActive);
+            modelBuilder.Entity<Curriculum>().HasQueryFilter(c => c.IsActive);
+            modelBuilder.Entity<TeachingPlan>().HasQueryFilter(tp => tp.IsActive);
         }
     }
 }

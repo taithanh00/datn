@@ -24,6 +24,7 @@ namespace datn.Models
         public ICollection<StudyReport> StudyReports { get; set; }
         public ICollection<HealthRecord> HealthRecords { get; set; }
         public ICollection<StudentActivity> StudentActivities { get; set; } = new List<StudentActivity>();
+        public ICollection<StudentFeeConfig> StudentFeeConfigs { get; set; } = new List<StudentFeeConfig>();
     }
 
     public enum StudentStatus

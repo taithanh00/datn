@@ -16,6 +16,15 @@
     </div>
 </div>
 
+<div class="status-tabs">
+    <div class="status-tab active" data-show-inactive="false">
+        <i class="fa-solid fa-users"></i> Đang hoạt động
+    </div>
+    <div class="status-tab" data-show-inactive="true">
+        <i class="fa-solid fa-user-slash"></i> Đã ngưng/Khóa
+    </div>
+</div>
+
 <div class="card">
     <div class="table-container">
         <table id="parentsTable">
@@ -29,12 +38,13 @@
                     <th>Địa chỉ</th>
                     <th>Danh sách con</th>
                     <th>Ngày tạo</th>
+                    <th>Trạng thái</th>
                     <th class="text-end">Thao tác</th>
                 </tr>
             </thead>
             <tbody id="parentsTableBody">
                 <tr class="loading-row">
-                    <td colspan="9" style="text-align:center; padding:40px;">
+                    <td colspan="10" style="text-align:center; padding:40px;">
                         <div class="spinner"></div>
                         <p class="text-muted">Đang tải dữ liệu...</p>
                     </td>
@@ -85,8 +95,12 @@
                 </div>
                 <div class="form-group" id="passwordFieldGroup">
                     <label class="form-label" for="password">Mật khẩu</label>
-                    <input type="password" id="password" name="Password" class="form-control" placeholder="Để trống nếu không muốn đổi" />
-                    <small class="text-muted" id="passwordNote">Mặc định: 123456</small>
+                    <input type="password" id="password" name="Password" class="form-control" placeholder="Mật khẩu tài khoản" />
+                    <div class="requirement-list">
+                        <div id="req-length" class="requirement"><i class="fa-solid fa-circle-dot"></i> Ít nhất 9 ký tự</div>
+                        <div id="req-upper" class="requirement"><i class="fa-solid fa-circle-dot"></i> Ít nhất 1 chữ hoa</div>
+                        <div id="req-special" class="requirement"><i class="fa-solid fa-circle-dot"></i> Ít nhất 1 ký tự đặc biệt</div>
+                    </div>
                 </div>
             </div>
 
@@ -135,8 +149,8 @@
                 <button type="button" class="btn-save" onclick="saveParent()" id="saveParentBtn">
                     <i class="fa-solid fa-floppy-disk"></i> Lưu thông tin
                 </button>
-                <button type="button" class="btn-delete" id="deleteParentBtn" style="display:none;" onclick="deleteCurrentParent()">
-                    <i class="fa-solid fa-trash"></i> Xóa phụ huynh
+                <button type="button" class="btn-delete" id="deleteParentBtn" style="display:none;" onclick="toggleCurrentParentStatus()">
+                    <i class="fa-solid fa-lock"></i> Vô hiệu hóa tài khoản
                 </button>
             </div>
         </form>

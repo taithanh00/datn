@@ -363,6 +363,26 @@ thead th.sticky-col {
     color: white;
 }
 
+.btn-activate {
+    background: #DCFCE7;
+    color: #166534;
+    border: 1px solid #BBF7D0;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-activate:hover {
+    background: #166534;
+    color: white;
+}
+
 /* ===== CONFIRM MODAL (sync với students.css) ===== */
 .confirm-modal {
     position: fixed;
@@ -471,4 +491,71 @@ thead th.sticky-col {
     overflow-y: auto;
     padding-bottom: 0;
     height: calc(100vh - 70px); /* 70px = header height */
+}
+
+/* Password Validation Hints */
+.requirement-list {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.requirement {
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+}
+
+.requirement i {
+    font-size: 0.85rem;
+}
+
+.requirement.valid {
+    color: #10b981;
+}
+
+.requirement.valid i {
+    color: #10b981;
+}
+
+/* Status Tabs Styling */
+.status-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: var(--sidebar-active);
+    padding: 6px;
+    border-radius: 12px;
+    width: fit-content;
+    border: 1px solid var(--border);
+}
+
+.status-tab {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-tab:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.status-tab.active {
+    background: var(--bg-card);
+    color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
 }

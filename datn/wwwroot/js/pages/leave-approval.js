@@ -55,12 +55,8 @@ async function loadAttendancePending() {
                 <td style="color: var(--danger); font-weight: 600;">${x.penaltyAmount > 0 ? fmtMoney(x.penaltyAmount) : '--'}</td>
                 <td style="text-align: right;">
                     <div class="d-flex justify-end gap-1">
-                        <button class="btn btn-outline" style="border-color: var(--success); color: var(--success); padding: 4px 10px; font-size: 0.8rem;" onclick="attendanceDecision(${x.employeeId}, '${x.rawDate}', true)">
-                            <i class="fa-solid fa-check"></i> Duyệt
-                        </button>
-                        <button class="btn btn-outline" style="border-color: var(--danger); color: var(--danger); padding: 4px 10px; font-size: 0.8rem;" onclick="attendanceDecision(${x.employeeId}, '${x.rawDate}', false)">
-                            <i class="fa-solid fa-xmark"></i> Từ chối
-                        </button>
+                        <button class="btn-table" onclick="attendanceDecision(${x.employeeId}, '${x.rawDate}', true)">Duyệt</button>
+                        <button class="btn-table delete" onclick="attendanceDecision(${x.employeeId}, '${x.rawDate}', false)">Từ chối</button>
                     </div>
                 </td>
             </tr>
@@ -105,15 +101,9 @@ async function loadLeavePending() {
                 </td>
                 <td style="text-align: right;">
                     <div class="d-flex justify-end gap-1">
-                        <button class="btn btn-outline" style="border-color: var(--warning); color: var(--warning); padding: 4px 10px; font-size: 0.8rem;" onclick="openSubModal(${x.id}, '${x.employeeName}', '${x.startDate}', '${x.endDate}')">
-                            <i class="fa-solid fa-people-arrows"></i> Dạy thay
-                        </button>
-                        <button class="btn btn-outline" style="border-color: var(--success); color: var(--success); padding: 4px 10px; font-size: 0.8rem;" onclick="leaveDecision(${x.id}, true)">
-                            <i class="fa-solid fa-check"></i> Duyệt
-                        </button>
-                        <button class="btn btn-outline" style="border-color: var(--danger); color: var(--danger); padding: 4px 10px; font-size: 0.8rem;" onclick="leaveDecision(${x.id}, false)">
-                            <i class="fa-solid fa-xmark"></i> Từ chối
-                        </button>
+                        <button class="btn-table" onclick="openSubModal(${x.id}, '${x.employeeName}', '${x.startDate}', '${x.endDate}')">Dạy thay</button>
+                        <button class="btn-table" onclick="leaveDecision(${x.id}, true)">Duyệt</button>
+                        <button class="btn-table delete" onclick="leaveDecision(${x.id}, false)">Từ chối</button>
                     </div>
                 </td>
             </tr>
@@ -204,9 +194,7 @@ async function loadSubData() {
                     ${x.substituteName ? `<span class="badge badge-success">${x.substituteName}</span>` : '<span class="text-muted">Chưa phân công</span>'}
                 </td>
                 <td style="text-align: right;">
-                    <button class="btn btn-outline btn-sm" onclick="openAssignSub(${x.scheduleId}, '${x.rawDate}')">
-                        <i class="fa-solid fa-user-plus"></i> Chọn GV
-                    </button>
+                    <button class="btn-table" onclick="openAssignSub(${x.scheduleId}, '${x.rawDate}')">Chọn GV</button>
                 </td>
             </tr>
         `).join("");

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using datn.Services;
 using System.Security.Claims;
 
 namespace datn.Controllers
@@ -12,8 +13,13 @@ namespace datn.Controllers
     [Route("[controller]")]
     public class EmployeeController : BaseController
     {
-        public EmployeeController(AppDbContext context) : base(context)
+        private readonly INotificationService _notificationService;
+        private readonly IEducationService _educationService;
+
+        public EmployeeController(AppDbContext context, INotificationService notificationService, IEducationService educationService) : base(context)
         {
+            _notificationService = notificationService;
+            _educationService = educationService;
         }
 
         private async Task<int?> GetCurrentEmployeeId()
@@ -104,11 +110,20 @@ namespace datn.Controllers
                     .OrderBy(cs => cs.StartTime)
                     .ToListAsync();
 
-                todaySchedule = schedules.Select(cs => new {
-                    time = $"{cs.StartTime:HH:mm} - {cs.EndTime:HH:mm}",
-                    className = cs.Class.Name,
-                    subject = cs.Subject.Name
-                }).Cast<object>().ToList();
+                var todayDate = today;
+                var scheduleList = new List<object>();
+                foreach (var cs in schedules)
+                {
+                    var currentLesson = await _educationService.GetCurrentLessonAsync(cs.ClassId, cs.SubjectId, todayDate);
+                    scheduleList.Add(new
+                    {
+                        time = $"{cs.StartTime:HH:mm} - {cs.EndTime:HH:mm}",
+                        className = cs.Class.Name,
+                        subject = cs.Subject.Name,
+                        topic = currentLesson?.Title ?? "Theo kế hoạch lớp"
+                    });
+                }
+                todaySchedule = scheduleList;
             }
 
             return Json(new {
@@ -245,7 +260,41 @@ namespace datn.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Lưu đánh giá thành công" });
+
+                // Gửi thông báo tới Phụ huynh (trong cùng request scope, tránh disposed services)
+                try
+                {
+                    foreach (var item in model.Records)
+                    {
+                        var student = await _context.Students
+                            .Include(s => s.ParentStudents).ThenInclude(ps => ps.Parent)
+                            .FirstOrDefaultAsync(s => s.Id == item.StudentId);
+
+                        if (student == null) continue;
+
+                        var studentName = $"{student.FirstName} {student.LastName}".Trim();
+                        foreach (var ps in student.ParentStudents)
+                        {
+                            if (ps.Parent != null)
+                            {
+                                await _notificationService.SendToUserAsync(
+                                    ps.Parent.AccountId,
+                                    "Đánh giá học tập mới",
+                                    $"Cô vừa gửi đánh giá tháng {model.Month}/{model.Year} cho bé {studentName}. Nhấn để xem chi tiết.",
+                                    "info",
+                                    $"/Parent/StudyReports?month={model.Month}&year={model.Year}"
+                                );
+                            }
+                        }
+                    }
+                }
+                catch (Exception notifEx)
+                {
+                    // Ghi log lỗi thông báo nhưng không trả lỗi về client
+                    Console.WriteLine($"[Notification Error] {notifEx.Message}");
+                }
+
+                return Json(new { success = true, message = "Lưu đánh giá và đã gửi thông báo tới Phụ huynh thành công!" });
             }
             catch (Exception ex)
             {

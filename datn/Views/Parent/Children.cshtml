@@ -1,58 +1,263 @@
-@model IEnumerable<datn.Models.Student>
+@model IEnumerable<datn.Controllers.ParentChildrenViewModel>
 @{
     Layout = "_DashboardLayout";
+    ViewData["Title"] = "Hồ sơ của bé";
+}
+
+@section Styles {
+    <style>
+        .child-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .child-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .child-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, #4338CA 100%);
+            padding: 40px 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .child-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .child-avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgba(255,255,255,0.3);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            margin-bottom: 16px;
+            background: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .child-name {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .class-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 12px;
+            backdrop-filter: blur(4px);
+        }
+
+        .lesson-box {
+            background: var(--primary-soft);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            border: 1px solid rgba(37, 99, 235, 0.1);
+        }
+
+        .lesson-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lesson-item {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 10px;
+            background: white;
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .lesson-time {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: var(--primary-soft);
+            padding: 4px 8px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--bg-main);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            border: 1px solid var(--border);
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .info-value {
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            border-top: 1px solid var(--border);
+            padding-top: 24px;
+        }
+    </style>
 }
 
 <div class="page-header">
     <div>
         <h1 class="page-title">Hồ sơ của bé</h1>
-        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Thông tin chi tiết các bé nhà bạn</p>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Thông tin chi tiết các bé nhà bạn và hoạt động học tập hôm nay.</p>
     </div>
 </div>
 
-<div class="card-grid" style="grid-template-columns: 1fr 1fr;">
-    @foreach (var student in Model)
+<div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 32px;">
+    @foreach (var item in Model)
     {
-        <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
-            <div style="background: linear-gradient(135deg, var(--primary) 0%, #4338CA 100%); padding: 32px 24px; text-align: center; color: white;">
+        var student = item.Student;
+        <div class="child-card">
+            <!-- Banner Section -->
+            <div class="child-banner">
                 <img src="@(student.AvatarPath ?? "/images/lion_orange.png")" 
-                     style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255,255,255,0.2); box-shadow: 0 8px 16px rgba(0,0,0,0.1); margin-bottom: 16px; background: white;"
+                     class="child-avatar"
+                     alt="Avatar"
                      onerror="this.src='/images/lion_orange.png'">
-                <h2 style="margin: 0 0 8px 0; font-size: 1.5rem; font-weight: 700; color: white;">@student.FirstName @student.LastName</h2>
-                <div class="badge" style="background: rgba(255,255,255,0.2); color: white; border: none; font-size: 0.85rem;"><i class="fa-solid fa-school"></i> Lớp @student.Class?.Name</div>
+                <h2 class="child-name">@student.FirstName @student.LastName</h2>
+                <div class="class-badge">
+                    <i class="fa-solid fa-graduation-cap"></i> 
+                    Lớp @(student.Class?.Name ?? "Chưa gán lớp")
+                </div>
             </div>
             
-            <div style="padding: 24px;">
-                <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 16px; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 8px;">Thông tin cá nhân</h4>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
-                    <div>
-                        <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Giới tính</div>
-                        <div style="font-weight: 600;">@(student.Gender ? "Nam" : "Nữ")</div>
+            <div style="padding: 28px;">
+                <!-- Today's Lesson Section -->
+                <div class="lesson-box">
+                    <div class="lesson-title">
+                        <i class="fa-solid fa-calendar-day"></i> Hôm nay học gì?
                     </div>
-                    <div>
-                        <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Ngày sinh</div>
-                        <div style="font-weight: 600;">@student.DateOfBirth.ToString("dd/MM/yyyy")</div>
+                    @if (item.TodayLessons != null && item.TodayLessons.Any())
+                    {
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            @foreach (var lesson in item.TodayLessons)
+                            {
+                                <div class="lesson-item">
+                                    <div class="lesson-time">@lesson.Time</div>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">@lesson.TopicName</div>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted);">Môn: @lesson.SubjectName</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="text-align: center; padding: 10px 0; color: var(--text-muted); font-size: 0.85rem; font-style: italic;">
+                            <i class="fa-solid fa-moon me-1"></i> Chưa có bài học nào được lên kế hoạch hôm nay.
+                        </div>
+                    }
+                </div>
+
+                <!-- Personal Info Grid -->
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fa-solid fa-venus-mars"></i></div>
+                        <div>
+                            <div class="info-label">Giới tính</div>
+                            <div class="info-value">@(student.Gender ? "Nam" : "Nữ")</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Ngày nhập học</div>
-                        <div style="font-weight: 600;">@(student.EnrollDate?.ToString("dd/MM/yyyy") ?? "N/A")</div>
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fa-solid fa-cake-candles"></i></div>
+                        <div>
+                            <div class="info-label">Ngày sinh</div>
+                            <div class="info-value">@student.DateOfBirth.ToString("dd/MM/yyyy")</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Mã học sinh</div>
-                        <div style="font-weight: 600; color: var(--primary);">#@student.Id</div>
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fa-solid fa-id-card"></i></div>
+                        <div>
+                            <div class="info-label">Mã học sinh</div>
+                            <div class="info-value" style="color: var(--primary);">#@student.Id</div>
+                        </div>
                     </div>
-                    <div style="grid-column: 1 / -1;">
-                        <div class="text-muted" style="font-size: 0.8rem; margin-bottom: 4px;">Địa chỉ</div>
-                        <div style="font-weight: 600;">@student.Address</div>
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+                        <div>
+                            <div class="info-label">Địa chỉ</div>
+                            <div class="info-value" title="@student.Address">@(student.Address.Length > 20 ? student.Address.Substring(0, 17) + "..." : student.Address)</div>
+                        </div>
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-top: 1px solid var(--border); padding-top: 20px;">
-                    <a href="/Parent/StudyReports?studentId=@student.Id" class="btn btn-primary" style="justify-content: center;">
-                        <i class="fa-solid fa-chart-line"></i> Học tập
+                <!-- Actions -->
+                <div class="action-grid">
+                    <a href="/Parent/StudyReports?studentId=@student.Id" class="btn btn-primary" style="justify-content: center; height: 48px; border-radius: 12px;">
+                        <i class="fa-solid fa-chart-line"></i> Báo cáo học tập
                     </a>
-                    <a href="/Parent/AttendanceReport?studentId=@student.Id" class="btn btn-outline" style="justify-content: center;">
+                    <a href="/Parent/AttendanceReport?studentId=@student.Id" class="btn btn-outline" style="justify-content: center; height: 48px; border-radius: 12px; border-color: var(--border-focus);">
                         <i class="fa-solid fa-calendar-check"></i> Chuyên cần
                     </a>
                 </div>

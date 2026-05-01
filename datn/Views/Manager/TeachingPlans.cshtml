@@ -9,7 +9,16 @@
 
 <div class="card">
     <div id="alert" class="page-alert" style="display:none;"></div>
+    
+    <div class="d-flex align-center justify-between mb-2">
+        <h3>Lập kế hoạch mới</h3>
+        <button class="btn btn-outline" id="resetPlanBtn" type="button" style="display:none;">
+            <i class="fa-solid fa-rotate-left"></i> Hủy chế độ sửa
+        </button>
+    </div>
+
     <form id="planForm" class="mb-3">
+        <input type="hidden" id="isEdit" value="false" />
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
             <div class="form-group"><label class="form-label">Lớp học</label><select id="classId" class="form-select" required onchange="loadPlans()"></select></div>
             <div class="form-group"><label class="form-label">Chương trình học</label><select id="curriculumId" class="form-select" required></select></div>
@@ -28,7 +37,24 @@
         <button type="submit" class="btn btn-primary">Lưu kế hoạch</button>
     </form>
 
-    <div class="table-container mt-3" style="border-top:1px solid var(--border); padding-top:24px;">
+    <div class="d-flex align-center justify-between mt-3 mb-2" style="border-top:1px solid var(--border); padding-top:24px;">
+        <h3>Danh sách kế hoạch</h3>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div class="status-tabs" style="margin-bottom:0;">
+                <div class="status-tab active" data-show-inactive="false">
+                    <i class="fa-solid fa-list-check"></i> Đang thực hiện
+                </div>
+                <div class="status-tab" data-show-inactive="true">
+                    <i class="fa-solid fa-box-archive"></i> Lưu trữ
+                </div>
+            </div>
+            <div class="search-bar" style="width: 260px;">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="searchPlan" placeholder="Tìm tên chương trình..." onkeyup="applyFilters()" />
+            </div>
+        </div>
+    </div>
+    <div class="table-container">
         <table id="plansTable">
             <thead><tr><th>Lớp</th><th>Chương trình</th><th>Bắt đầu</th><th>Kết thúc</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
             <tbody id="tableBody"></tbody>

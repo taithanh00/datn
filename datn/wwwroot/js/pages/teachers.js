@@ -1,5 +1,6 @@
 // ====== TEACHER MANAGEMENT PAGE ======
 // Xử lý tất cả tương tác: tải dữ liệu, render table, quản lý form
+let showInactiveTeachers = false;
 
 let currentTeacherId = null;
 let isEditMode = false;
@@ -47,6 +48,49 @@ function setupEventListeners() {
   document
     .getElementById("deleteTeacherBtn")
     .addEventListener("click", handleDelete);
+
+  // Status Tabs
+  document.querySelectorAll(".status-tab").forEach((tab) => {
+    tab.addEventListener("click", function () {
+      document
+        .querySelectorAll(".status-tab")
+        .forEach((t) => t.classList.remove("active"));
+      this.classList.add("active");
+      showInactiveTeachers = this.getAttribute("data-show-inactive") === "true";
+      loadTeachers();
+    });
+  });
+
+  // Password real-time validation
+  const passwordInput = document.getElementById("password");
+  passwordInput.addEventListener("input", function() {
+    validatePasswordUI(this.value);
+  });
+}
+
+function validatePasswordUI(val) {
+  const isLength = val.length >= 9;
+  const isUpper = /[A-Z]/.test(val);
+  const isSpecial = /[!@#$%^&*()_+=\-\[\]{}|;:'",.<>?/\\ ]/.test(val);
+
+  updateRequirementUI("req-length", isLength);
+  updateRequirementUI("req-upper", isUpper);
+  updateRequirementUI("req-special", isSpecial);
+
+  return isLength && isUpper && isSpecial;
+}
+
+function updateRequirementUI(id, isValid) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const icon = el.querySelector("i");
+  if (isValid) {
+    el.classList.add("valid");
+    icon.className = "fa-solid fa-circle-check";
+  } else {
+    el.classList.remove("valid");
+    icon.className = "fa-solid fa-circle-dot";
+  }
 }
 
 // Preview Avatar
@@ -63,7 +107,7 @@ function previewAvatar(input) {
 // ====== DATA LOADING ======
 async function loadTeachers() {
   try {
-    const response = await fetch("/Manager/Api/Teachers");
+    const response = await fetch(`/Manager/Api/Teachers?showInactive=${showInactiveTeachers}`);
     const result = await response.json();
 
     if (!result.success) {
@@ -91,17 +135,11 @@ function renderTeachersTable(teachers) {
 
   teachers.forEach((teacher, index) => {
     const statusBadge = teacher.isActive
-      ? '<span class="badge bg-success" style="font-size: 11px; padding: 4px 8px; border-radius: 4px;">Đang hoạt động</span>'
-      : '<span class="badge bg-danger" style="font-size: 11px; padding: 4px 8px; border-radius: 4px;">Đã vô hiệu hóa</span>';
+      ? '<span class="badge badge-success">Hoạt động</span>'
+      : '<span class="badge badge-danger">Đã khóa</span>';
 
     const row = document.createElement("tr");
-    const actionBtn = teacher.isActive
-      ? `<button class="btn-action btn-action-edit" onclick="openEditPanel(${teacher.id})">
-           <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa
-       </button>`
-      : `<button class="btn-action btn-action-danger" onclick="openEditPanel(${teacher.id})">
-           <i class="fa-solid fa-lock-open"></i> Đã vô hiệu hóa
-       </button>`;
+    const actionBtn = `<button class="btn-table" onclick="openEditPanel(${teacher.id})">Sửa</button>`;
     row.innerHTML = `
     <td>${index + 1}</td>
     <td> <img src="${teacher.avatarPath}" class="rounded-circle" style="width:36px; height:36px; object-fit:cover; border-radius:50%;"> </td>
@@ -127,9 +165,12 @@ function openCreatePanel() {
   // Show account fields for creation
   document.getElementById("usernameGroup").style.display = "block";
   document.getElementById("passwordGroup").style.display = "block";
+  document.getElementById("password").required = true;
   document.getElementById("username").required = true;
   document.getElementById("email").required = true;
 
+  document.getElementById("password").value = "";
+  validatePasswordUI("");
   clearAlert();
   showPanel();
 }
@@ -142,6 +183,7 @@ async function openEditPanel(teacherId) {
 
   document.getElementById("usernameGroup").style.display = "none";
   document.getElementById("passwordGroup").style.display = "none";
+  document.getElementById("password").required = false;
   document.getElementById("username").required = false;
 
   clearAlert();
@@ -212,9 +254,9 @@ async function handleReactivate() {
 
   try {
     const response = await fetch(
-      `/Manager/Api/Teacher/${currentTeacherId}/Reactivate`,
+      `/Manager/Api/Teacher/Reactivate/${currentTeacherId}`,
       {
-        method: "PUT",
+        method: "POST",
       },
     );
     const result = await response.json();
@@ -231,6 +273,7 @@ async function handleReactivate() {
     showAlert("error", "Lỗi kết nối máy chủ");
   }
 }
+
 function showPanel() {
   document.getElementById("slidePanel").classList.add("active");
   document.getElementById("modalOverlay").classList.add("active");
@@ -340,8 +383,10 @@ async function handleDelete() {
 // ====== ALERT MANAGEMENT ======
 function showAlert(type, message) {
   const alertDiv = document.getElementById("editFormAlert");
+  const icon = type === "success" ? "fa-circle-check" : "fa-circle-exclamation";
+  
   alertDiv.className = `form-alert ${type}`;
-  alertDiv.textContent = message;
+  alertDiv.innerHTML = `<i class="fa-solid ${icon}" style="margin-right: 8px;"></i>${message}`;
   alertDiv.style.display = "block";
 }
 

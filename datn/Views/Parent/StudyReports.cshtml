@@ -5,29 +5,202 @@
     var selectedStudentId = ViewBag.SelectedStudentId as int?;
     var selectedYear = ViewBag.SelectedYear as int? ?? DateTime.Now.Year;
     var selectedStudent = children.FirstOrDefault(c => c.Id == selectedStudentId);
+    ViewData["Title"] = "Kết quả học tập";
+    
+    // Dùng composite key vì StudyReport không có trường Id
+    var sortedReports = Model.OrderByDescending(r => r.Date.Month).ToList();
+    var latestReportKey = sortedReports.FirstOrDefault() is {} lr ? $"{lr.StudentId}_{lr.Date:yyyyMMdd}" : null;
+}
+
+@section Styles {
+    <style>
+        .report-header-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, #4338CA 100%);
+            border-radius: var(--radius-lg);
+            padding: 24px 32px;
+            color: white;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .student-profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .student-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,0.2);
+            background: white;
+        }
+
+        .student-info h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: white;
+        }
+
+        /* Master-Detail Layout */
+        .report-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* Sidebar: List of months */
+        .month-sidebar {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            position: sticky;
+            top: 92px;
+        }
+
+        .month-list-header {
+            padding: 16px 20px;
+            background: var(--bg-main);
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .month-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+
+        .month-item:last-child { border-bottom: none; }
+
+        .month-item:hover {
+            background: var(--primary-soft);
+        }
+
+        .month-item.active {
+            background: var(--primary-soft);
+            border-right: 4px solid var(--primary);
+        }
+
+        .month-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: white;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+
+        .month-item.active .month-badge {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Detail Area */
+        .report-detail-view {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 40px;
+            box-shadow: var(--shadow-card);
+            min-height: 400px;
+            display: none; /* Hidden by default, shown by JS */
+        }
+
+        .report-detail-view.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .comment-quote {
+            font-family: 'Georgia', serif;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: var(--text-main);
+            font-style: italic;
+            padding: 32px;
+            background: var(--bg-main);
+            border-radius: 16px;
+            border-left: 6px solid var(--primary);
+            position: relative;
+            margin-top: 32px;
+        }
+
+        .comment-quote::before {
+            content: '"';
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 4rem;
+            color: var(--primary);
+            opacity: 0.1;
+            font-family: serif;
+        }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @@media (max-width: 992px) {
+            .report-layout { grid-template-columns: 1fr; }
+            .month-sidebar { position: static; }
+        }
+    </style>
 }
 
 <div class="page-header">
     <div>
         <h1 class="page-title">Kết quả học tập</h1>
-        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Xem đánh giá hàng tháng của giáo viên dành cho bé</p>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Đánh giá định kỳ từ giáo viên chủ nhiệm</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-3">
         @if (children.Count > 1)
         {
-            <select class="form-select" style="width: 200px;" onchange="location.href='?year=@selectedYear&studentId=' + this.value">
+            <select class="form-select" style="min-width: 220px;" onchange="location.href='?year=@selectedYear&studentId=' + this.value">
                 @foreach (var child in children)
                 {
-                    var isSelChild = child.Id == selectedStudentId;
-                    <option value="@child.Id" selected="@isSelChild">Bé: @child.FirstName @child.LastName</option>
+                    <option value="@child.Id" selected="@(child.Id == selectedStudentId)">Bé: @child.FirstName @child.LastName</option>
                 }
             </select>
         }
-        <select class="form-select" style="width: 120px;" onchange="location.href='?studentId=@selectedStudentId&year=' + this.value">
+        <select class="form-select" style="width: 130px;" onchange="location.href='?studentId=@selectedStudentId&year=' + this.value">
             @for (int y = 2025; y <= 2027; y++)
             {
-                var isSelYear = y == selectedYear;
-                <option value="@y" selected="@isSelYear">Năm @y</option>
+                <option value="@y" selected="@(y == selectedYear)">Năm @y</option>
             }
         </select>
     </div>
@@ -35,62 +208,122 @@
 
 @if (selectedStudent != null)
 {
-    <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, #4338CA 100%); color: white; margin-bottom: 24px; border: none;">
-        <div class="d-flex align-center gap-3">
-            <img src="@(selectedStudent.AvatarPath ?? "/images/lion_orange.png")" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.3);" onerror="this.src='/images/lion_orange.png'">
-            <div>
-                <h2 style="margin: 0 0 4px 0; color: white;">@selectedStudent.FirstName @selectedStudent.LastName</h2>
-                <div style="opacity: 0.8; font-size: 0.9rem;">
-                    <i class="fa-solid fa-school me-1"></i> Lớp: @(selectedStudent.Class?.Name ?? "N/A") <span style="margin: 0 8px;">|</span> Niên khóa: @selectedYear
-                </div>
+    <div class="report-header-banner">
+        <div class="student-profile">
+            <img src="@(selectedStudent.AvatarPath ?? "/images/lion_orange.png")" 
+                 class="student-avatar" 
+                 onerror="this.src='/images/lion_orange.png'">
+            <div class="student-info">
+                <h2>@selectedStudent.FirstName @selectedStudent.LastName</h2>
+                <p style="margin: 0; font-size: 0.85rem; opacity: 0.8;">Lớp @(selectedStudent.Class?.Name ?? "N/A") • Niên khóa @selectedYear</p>
             </div>
+        </div>
+        <div class="badge" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px;">
+            <i class="fa-solid fa-file-contract me-2"></i> @sortedReports.Count Báo cáo
         </div>
     </div>
 }
 
 @if (!Model.Any())
 {
-    <div class="card" style="padding: 60px 20px; text-align: center;">
-        <div class="empty-state">
-            <i class="fa-solid fa-folder-open"></i>
-            <h3 style="margin-bottom: 8px;">Chưa có đánh giá nào</h3>
-            <p>Giáo viên chưa cập nhật đánh giá cho năm @selectedYear</p>
-        </div>
+    <div class="card" style="padding: 80px; text-align: center; border: 2px dashed var(--border); background: transparent;">
+        <i class="fa-solid fa-clipboard-question" style="font-size: 3rem; color: var(--border); margin-bottom: 16px;"></i>
+        <h3 class="text-muted">Chưa có đánh giá nào cho năm @selectedYear</h3>
     </div>
 }
 else
 {
-    <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
-        @foreach (var report in Model)
-        {
-            var rankingClass = "badge-warning";
-            if (report.Ranking?.Name?.Contains("Xuất sắc") == true || report.Ranking?.Name?.Contains("Tốt") == true) rankingClass = "badge-success";
-            if (report.Ranking?.Name?.Contains("Cần cố gắng") == true || report.Ranking?.Name?.Contains("Yếu") == true) rankingClass = "badge-danger";
-
-            <div class="card d-flex flex-column">
-                <div class="d-flex align-center gap-3 mb-3 pb-3" style="border-bottom: 1px dashed var(--border);">
-                    <div style="width: 56px; height: 56px; border-radius: 12px; background: var(--primary-soft); color: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                        <span style="font-size: 0.6rem; text-transform: uppercase; font-weight: 700;">Tháng</span>
-                        <span style="font-size: 1.25rem; font-weight: 800;">@report.Date.Month</span>
-                    </div>
-                    <div style="flex: 1;">
-                        <div class="d-flex justify-between align-start mb-1">
-                            <h4 style="margin: 0; font-size: 1.1rem;">Đánh giá tháng @report.Date.Month</h4>
-                            @if (report.Ranking != null)
-                            {
-                                <span class="badge @rankingClass" style="font-size: 0.75rem;">@report.Ranking.Name</span>
-                            }
-                        </div>
-                        <div class="text-muted" style="font-size: 0.85rem;"><i class="fa-solid fa-user-edit me-1"></i> GV: @(report.Teacher?.FullName ?? "N/A")</div>
-                    </div>
-                </div>
-                
-                <div style="background: var(--bg-body); padding: 16px; border-radius: 8px; border-left: 3px solid var(--primary); flex: 1;">
-                    <p style="margin: 0; font-style: italic; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">
-                        "@(string.IsNullOrEmpty(report.Comment) ? "Chưa có nhận xét chi tiết." : report.Comment)"
-                    </p>
-                </div>
+    <div class="report-layout">
+        <!-- Sidebar Month List -->
+        <aside class="month-sidebar">
+            <div class="month-list-header">
+                DANH SÁCH THÁNG
+                <i class="fa-solid fa-list-ul"></i>
             </div>
-        }
+            <div class="month-list-scroll">
+                @foreach (var report in sortedReports)
+                {
+                    var reportKey = $"{report.StudentId}_{report.Date:yyyyMMdd}";
+                    var isLatest = reportKey == latestReportKey;
+                    var statusColor = "var(--success)";
+                    var rName = report.Ranking?.Name ?? "";
+                    if (rName.Contains("Cần cố gắng") || rName.Contains("Yếu")) statusColor = "var(--danger)";
+                    else if (rName.Contains("Trung bình")) statusColor = "var(--warning)";
+
+                    <div class="month-item @(isLatest ? "active" : "")" onclick="showReport('@reportKey', this)">
+                        <div class="month-badge">@report.Date.Month</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; font-size: 0.9rem;">Tháng @report.Date.Month</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">@report.Ranking?.Name</div>
+                        </div>
+                        <div class="status-dot" style="background: @statusColor;"></div>
+                    </div>
+                }
+            </div>
+        </aside>
+
+        <!-- Detail View Container -->
+        <div id="reportDetailContainer">
+            @foreach (var report in sortedReports)
+            {
+                var reportKey = $"{report.StudentId}_{report.Date:yyyyMMdd}";
+                var isLatest = reportKey == latestReportKey;
+                var rankingClass = "badge-success";
+                var rName = report.Ranking?.Name ?? "";
+                if (rName.Contains("Cần cố gắng") || rName.Contains("Yếu")) rankingClass = "badge-danger";
+                else if (rName.Contains("Trung bình")) rankingClass = "badge-warning";
+
+                <div id="report-@reportKey" class="report-detail-view @(isLatest ? "active" : "")">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--text-main);">Đánh giá Tháng @report.Date.Month</h3>
+                            <p class="text-muted mt-1"><i class="fa-solid fa-calendar-day me-1"></i> Ngày ghi nhận: @report.Date.ToString("dd/MM/yyyy")</p>
+                        </div>
+                        <span class="badge @rankingClass" style="font-size: 1rem; padding: 10px 20px;">@rName</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
+                        <div style="padding: 20px; background: var(--bg-main); border-radius: 12px; border: 1px solid var(--border);">
+                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px;">Người thực hiện</div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; color: var(--text-main);">@(report.Teacher?.FullName ?? "Hệ thống")</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">Giáo viên chủ nhiệm</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding: 20px; background: var(--bg-main); border-radius: 12px; border: 1px solid var(--border);">
+                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px;">Ghi chú nhanh</div>
+                            <div style="color: var(--text-main); font-weight: 600;">
+                                <i class="fa-solid fa-quote-left me-2" style="opacity: 0.3;"></i>
+                                @(rankingClass == "badge-success" ? "Bé có thành tích tốt" : "Cần hỗ trợ bé thêm")
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 16px;">Nhận xét chi tiết</div>
+                    <div class="comment-quote">
+                        @(string.IsNullOrEmpty(report.Comment) ? "Bé có sự phát triển ổn định trong tháng này. Giáo viên không có ghi chú gì thêm." : report.Comment)
+                    </div>
+                </div>
+            }
+        </div>
     </div>
+}
+
+@section Scripts {
+    <script>
+        function showReport(id, el) {
+            // Update sidebar UI
+            document.querySelectorAll('.month-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+
+            // Update Detail view
+            document.querySelectorAll('.report-detail-view').forEach(view => view.classList.remove('active'));
+            document.getElementById('report-' + id).classList.add('active');
+        }
+    </script>
 }

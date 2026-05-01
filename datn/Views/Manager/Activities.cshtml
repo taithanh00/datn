@@ -14,7 +14,17 @@
 <div style="display:grid; grid-template-columns:2fr 1fr; gap:24px;">
     <!-- Activities -->
     <div class="card">
-        <h3 class="mb-2">Danh sách hoạt động</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h3>Danh sách hoạt động</h3>
+            <div class="status-tabs" style="margin-bottom:0;">
+                <div class="status-tab active" id="activityTabActive" data-show-inactive="false">
+                    <i class="fa-solid fa-calendar-star"></i> Đang hoạt động
+                </div>
+                <div class="status-tab" id="activityTabInactive" data-show-inactive="true">
+                    <i class="fa-solid fa-box-archive"></i> Lưu trữ
+                </div>
+            </div>
+        </div>
         <div id="activityAlert" class="page-alert" style="display:none;"></div>
         <div class="table-container">
             <table id="activitiesTable">
@@ -47,7 +57,17 @@
 
     <!-- Locations -->
     <div class="card">
-        <h3 class="mb-2">Địa điểm</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3>Địa điểm</h3>
+            <div class="status-tabs" style="margin-bottom:0;">
+                <div class="status-tab active" id="locationTabActive" data-show-inactive="false">
+                    <i class="fa-solid fa-location-dot"></i> Đang dùng
+                </div>
+                <div class="status-tab" id="locationTabInactive" data-show-inactive="true">
+                    <i class="fa-solid fa-box-archive"></i> Lưu trữ
+                </div>
+            </div>
+        </div>
         <div id="locationAlert" class="page-alert" style="display:none;"></div>
         <div class="table-container">
             <table><thead><tr><th>Tên</th><th>Sức chứa</th><th></th></tr></thead>
@@ -66,16 +86,15 @@
         .tag-list { display:flex; flex-wrap:wrap; gap:4px; }
         .tag { background:var(--primary-soft); color:var(--primary); padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:600; }
         .class-item { display:flex; align-items:center; gap:6px; font-size:0.85rem; }
-        .btn-table { background:none; border:none; cursor:pointer; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:600; color:var(--primary); transition:all 0.2s; }
-        .btn-table:hover { background:var(--primary-soft); }
-        .btn-table.delete { color:var(--danger); }
-        .btn-table.delete:hover { background:rgba(248,113,113,0.1); }
+        .class-item { display:flex; align-items:center; gap:6px; font-size:0.85rem; }
     </style>
 }
 
 @section Scripts {
     <script>
         let currentActivityId = null;
+        let showInactiveActivities = false;
+        let showInactiveLocations = false;
 
         document.addEventListener('DOMContentLoaded', async () => {
             await Promise.all([loadActivities(), loadLocations(), loadClassesAndTeachers()]);
@@ -83,6 +102,26 @@
             document.getElementById('locationForm').addEventListener('submit', saveLocation);
             document.getElementById('resetActivityBtn').addEventListener('click', resetActivityForm);
             document.getElementById('clearActivityBtn').addEventListener('click', resetActivityForm);
+
+            // Activity status tabs
+            document.querySelectorAll('#activityTabActive, #activityTabInactive').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('#activityTabActive, #activityTabInactive').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    showInactiveActivities = this.getAttribute('data-show-inactive') === 'true';
+                    loadActivities();
+                });
+            });
+
+            // Location status tabs
+            document.querySelectorAll('#locationTabActive, #locationTabInactive').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('#locationTabActive, #locationTabInactive').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    showInactiveLocations = this.getAttribute('data-show-inactive') === 'true';
+                    loadLocations();
+                });
+            });
         });
 
         async function fetchJson(url, options = {}) {
@@ -91,17 +130,24 @@
         }
 
         async function loadActivities() {
-            const result = await fetchJson('/Manager/Api/Activities');
+            const result = await fetchJson(`/Manager/Api/Activities?showInactive=${showInactiveActivities}`);
             const tbody = document.getElementById('activitiesTableBody');
             tbody.innerHTML = '';
             if (result.success) {
+                if (result.data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:24px;">Không có dữ liệu.</td></tr>`;
+                    return;
+                }
                 result.data.forEach(a => {
                     const cls = a.classes.map(c => `<span class="tag">${c.name}</span>`).join('');
+                    const actionBtns = a.isActive
+                        ? `<button class="btn-table" onclick="editActivity(${a.id})">Sửa</button><button class="btn-table delete" onclick="deleteActivity(${a.id})">Ẩn</button>`
+                        : `<button class="btn-table" onclick="reactivateActivity(${a.id})" style="color:var(--primary);">Khôi phục</button>`;
                     tbody.innerHTML += `<tr>
                         <td><strong>${a.name}</strong></td><td>${a.date}</td>
                         <td>${a.locationName||'--'}</td><td>${a.organizerName||'--'}</td>
                         <td><div class="tag-list">${cls}</div></td>
-                        <td><button class="btn-table" onclick="editActivity(${a.id})">Sửa</button><button class="btn-table delete" onclick="deleteActivity(${a.id})">Xóa</button></td>
+                        <td>${actionBtns}</td>
                     </tr>`;
                 });
                 initPagination('activitiesTable', 10);
@@ -109,14 +155,17 @@
         }
 
         async function loadLocations() {
-            const result = await fetchJson('/Manager/Api/Locations');
+            const result = await fetchJson(`/Manager/Api/Locations?showInactive=${showInactiveLocations}`);
             const tbody = document.getElementById('locationsTableBody');
             const select = document.getElementById('locationSelect');
             tbody.innerHTML = ''; select.innerHTML = '<option value="">-- Chọn --</option>';
             if (result.success) {
                 result.data.forEach(l => {
-                    tbody.innerHTML += `<tr><td>${l.name}</td><td>${l.capacity||'--'}</td><td><button class="btn-table delete" onclick="deleteLocation(${l.id})">Xóa</button></td></tr>`;
-                    select.innerHTML += `<option value="${l.id}">${l.name}</option>`;
+                    const actionBtn = l.isActive
+                        ? `<button class="btn-table delete" onclick="deleteLocation(${l.id})">Ẩn</button>`
+                        : `<button class="btn-table" onclick="reactivateLocation(${l.id})" style="color:var(--primary);">Khôi phục</button>`;
+                    tbody.innerHTML += `<tr><td>${l.name}</td><td>${l.capacity||'--'}</td><td>${actionBtn}</td></tr>`;
+                    if (l.isActive) select.innerHTML += `<option value="${l.id}">${l.name}</option>`;
                 });
             }
         }
@@ -155,7 +204,19 @@
             document.getElementById('activityForm').scrollIntoView({behavior:'smooth'});
         }
 
-        async function deleteActivity(id) { if(!confirm('Xóa?'))return; const r=await fetchJson(`/Manager/Api/Activity/${id}`,{method:'DELETE'}); showAlert('activityAlert',r.success,r.message); if(r.success)loadActivities(); }
+        async function deleteActivity(id) {
+            if(!confirm('Ẩn hoạt động này?')) return;
+            const r = await fetchJson(`/Manager/Api/Activity/${id}`, {method:'DELETE'});
+            showAlert('activityAlert', r.success, r.message);
+            if(r.success) loadActivities();
+        }
+
+        async function reactivateActivity(id) {
+            if(!confirm('Khôi phục hoạt động này?')) return;
+            const r = await fetchJson(`/Manager/Api/Activity/Reactivate/${id}`, {method:'POST'});
+            showAlert('activityAlert', r.success, r.message);
+            if(r.success) loadActivities();
+        }
 
         async function saveLocation(e) {
             e.preventDefault();
@@ -165,7 +226,19 @@
             if(r.success){document.getElementById('locationForm').reset(); loadLocations();}
         }
 
-        async function deleteLocation(id) { if(!confirm('Xóa?'))return; const r=await fetchJson(`/Manager/Api/Location/${id}`,{method:'DELETE'}); showAlert('locationAlert',r.success,r.message); if(r.success)loadLocations(); }
+        async function deleteLocation(id) {
+            if(!confirm('Ẩn địa điểm này?')) return;
+            const r = await fetchJson(`/Manager/Api/Location/${id}`, {method:'DELETE'});
+            showAlert('locationAlert', r.success, r.message);
+            if(r.success) loadLocations();
+        }
+
+        async function reactivateLocation(id) {
+            if(!confirm('Khôi phục địa điểm này?')) return;
+            const r = await fetchJson(`/Manager/Api/Location/Reactivate/${id}`, {method:'POST'});
+            showAlert('locationAlert', r.success, r.message);
+            if(r.success) loadLocations();
+        }
 
         function resetActivityForm() { currentActivityId=null; document.getElementById('activityForm').reset(); document.getElementById('saveActivityBtn').textContent='Lưu hoạt động'; document.querySelectorAll('input[name="participatingClasses"]').forEach(cb=>cb.checked=false); }
 

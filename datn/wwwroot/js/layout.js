@@ -133,4 +133,29 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(() => { loadLatestNotifications(); })
             .catch(err => console.error("SignalR err:", err));
     }
+
+    // === Sidebar Scroll Persistence ===
+    const sidebarNav = document.querySelector('.sidebar-nav');
+    const SCROLL_KEY = 'senhong_sidebar_scroll';
+
+    if (sidebarNav) {
+        // Restore scroll position
+        const savedScroll = sessionStorage.getItem(SCROLL_KEY);
+        if (savedScroll) {
+            sidebarNav.scrollTop = parseInt(savedScroll, 10);
+        }
+
+        // Save scroll position when clicking a link
+        sidebarNav.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (link && link.href && !link.href.includes('#')) {
+                sessionStorage.setItem(SCROLL_KEY, sidebarNav.scrollTop);
+            }
+        });
+
+        // Backup: Save scroll position on beforeunload
+        window.addEventListener('beforeunload', () => {
+            sessionStorage.setItem(SCROLL_KEY, sidebarNav.scrollTop);
+        });
+    }
 });

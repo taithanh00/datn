@@ -8,6 +8,7 @@ namespace datn.Models
         public int? AgeTo { get; set; }
         public string? SchoolYear { get; set; }
         public int MaxCapacity { get; set; } = 25;
+        public bool IsActive { get; set; } = true;
 
         public ICollection<Student> Students { get; set; } = new List<Student>();
         public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();

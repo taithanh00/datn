@@ -145,7 +145,7 @@ async function submitReports() {
     try {
         const btnSave = document.getElementById('btnSave');
         btnSave.disabled = true;
-        btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...';
+        btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang gửi...';
         
         const response = await fetch('/Employee/Api/SubmitStudyReport', {
             method: 'POST',
@@ -166,6 +166,6 @@ async function submitReports() {
     } finally {
         const btnSave = document.getElementById('btnSave');
         btnSave.disabled = false;
-        btnSave.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu toàn bộ đánh giá';
+        btnSave.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi đánh giá cho Phụ huynh';
     }
 }

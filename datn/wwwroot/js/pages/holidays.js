@@ -1,13 +1,27 @@
+let showInactiveHolidays = false;
+
 document.addEventListener('DOMContentLoaded', () => {
     loadHolidays();
 
     document.getElementById("btnCreateHoliday").addEventListener("click", createHoliday);
+
+    // Status Tabs
+    document.querySelectorAll(".status-tab").forEach((tab) => {
+        tab.addEventListener("click", function () {
+            document
+                .querySelectorAll(".status-tab")
+                .forEach((t) => t.classList.remove("active"));
+            this.classList.add("active");
+            showInactiveHolidays = this.getAttribute("data-show-inactive") === "true";
+            loadHolidays();
+        });
+    });
 });
 
 async function loadHolidays() {
     const body = document.getElementById("holidayTableBody");
     try {
-        const res = await fetch("/HolidayManagement/Api/List");
+        const res = await fetch(`/HolidayManagement/Api/List?showInactive=${showInactiveHolidays}`);
         const payload = await res.json();
         
         if (!payload.data.length) {
@@ -19,8 +33,12 @@ async function loadHolidays() {
 
         body.innerHTML = payload.data.map(x => {
             const isPast = x.date < today;
-            const statusClass = isPast ? "badge-secondary" : "badge-success";
-            const statusText = isPast ? "Đã qua" : "Sắp tới";
+            const statusClass = x.isActive ? (isPast ? "badge-secondary" : "badge-success") : "badge-danger";
+            const statusText = x.isActive ? (isPast ? "Đã qua" : "Sắp tới") : "Đã ẩn/Xóa";
+
+            const actionBtn = x.isActive 
+                ? `<button class="btn-table delete" onclick="deleteHoliday(${x.id})">Xóa</button>`
+                : `<button class="btn-table" onclick="reactivateHoliday(${x.id})" style="color: var(--primary);">Khôi phục</button>`;
 
             return `
                 <tr>
@@ -31,9 +49,7 @@ async function loadHolidays() {
                     </td>
                     <td><span class="badge ${statusClass}">${statusText}</span></td>
                     <td style="text-align: right;">
-                        <button class="btn btn-outline" style="border-color: var(--danger); color: var(--danger); padding: 4px 10px; font-size: 0.8rem;" onclick="deleteHoliday(${x.id})">
-                            <i class="fa-solid fa-trash"></i> Xóa
-                        </button>
+                        ${actionBtn}
                     </td>
                 </tr>
             `;
@@ -84,13 +100,28 @@ async function createHoliday() {
 }
 
 async function deleteHoliday(id) {
-    if (!confirm("Bạn có chắc muốn xóa ngày lễ này? Hệ thống sẽ thu hồi các bản ghi chấm công tự động của giáo viên vào ngày đó.")) return;
+    if (!confirm("Bạn có chắc muốn ẩn ngày lễ này? Các bản ghi chấm công tự động được tạo cho ngày này cũng sẽ bị thu hồi.")) return;
 
     try {
         const res = await fetch(`/HolidayManagement/Api/Delete/${id}`, { method: "DELETE" });
         const payload = await res.json();
         if (payload.success) {
-            if (window.showToast) window.showToast('Đã xóa', payload.message, 'info');
+            if (window.showToast) window.showToast('Đã ẩn', payload.message, 'info');
+            await loadHolidays();
+        } else {
+            alert(payload.message);
+        }
+    } catch (e) { alert("Lỗi kết nối."); }
+}
+
+async function reactivateHoliday(id) {
+    if (!confirm("Bạn có chắc muốn khôi phục ngày lễ này?")) return;
+
+    try {
+        const res = await fetch(`/HolidayManagement/Api/Reactivate/${id}`, { method: "POST" });
+        const payload = await res.json();
+        if (payload.success) {
+            if (window.showToast) window.showToast('Đã khôi phục', payload.message, 'success');
             await loadHolidays();
         } else {
             alert(payload.message);

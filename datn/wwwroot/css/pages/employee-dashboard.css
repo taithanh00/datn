@@ -2,5 +2,6 @@
 .timeline-item:last-child { border-bottom:none; }
 .timeline-dot { width:10px; height:10px; border-radius:50%; background:var(--primary); margin-top:6px; flex-shrink:0; }
 .timeline-time { font-size:0.8rem; font-weight:700; color:var(--primary); min-width:80px; }
-.timeline-subject { font-weight:600; }
-.timeline-class { font-size:0.8rem; color:var(--text-muted); }
+.timeline-subject { font-weight: 700; color: var(--text-main); font-size: 0.95rem; }
+.timeline-topic { font-size: 0.85rem; color: var(--primary); margin: 4px 0; font-style: italic; }
+.timeline-class { font-size: 0.8rem; color: var(--text-muted); }

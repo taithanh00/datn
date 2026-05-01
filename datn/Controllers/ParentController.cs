@@ -1,5 +1,6 @@
 using datn.Data;
 using datn.Models;
+using datn.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -12,8 +13,11 @@ namespace datn.Controllers
     [Route("[controller]")]
     public class ParentController : BaseController
     {
-        public ParentController(AppDbContext context) : base(context)
+        private readonly IEducationService _educationService;
+
+        public ParentController(AppDbContext context, IEducationService educationService) : base(context)
         {
+            _educationService = educationService;
         }
 
         private async Task<int?> GetCurrentParentId()
@@ -41,7 +45,43 @@ namespace datn.Controllers
                 .Select(ps => ps.Student)
                 .ToListAsync();
 
-            return View(students);
+            var todayDate = DateOnly.FromDateTime(DateTime.Today);
+            var result = new List<ParentChildrenViewModel>();
+
+            foreach (var student in students)
+            {
+                var todayLessons = new List<TodayLessonViewModel>();
+                if (student.ClassId.HasValue)
+                {
+                    // Lấy thời khóa biểu hôm nay của lớp
+                    var dayOfWeek = (int)DateTime.Today.DayOfWeek;
+                    var schedules = await _context.ClassSchedules
+                        .Include(cs => cs.Subject)
+                        .Where(cs => cs.ClassId == student.ClassId && cs.DayOfWeek == dayOfWeek && cs.IsActive)
+                        .OrderBy(cs => cs.StartTime)
+                        .ToListAsync();
+
+                    foreach (var s in schedules)
+                    {
+                        var lesson = await _educationService.GetCurrentLessonAsync(student.ClassId.Value, s.SubjectId, todayDate);
+                        if (lesson != null)
+                        {
+                            todayLessons.Add(new TodayLessonViewModel {
+                                SubjectName = s.Subject?.Name ?? "N/A",
+                                TopicName = lesson.Title ?? "Chưa có tên bài",
+                                Time = $"{s.StartTime:HH:mm}"
+                            });
+                        }
+                    }
+                }
+
+                result.Add(new ParentChildrenViewModel {
+                    Student = student,
+                    TodayLessons = todayLessons
+                });
+            }
+
+            return View(result);
         }
 
         [HttpGet("StudyReports")]

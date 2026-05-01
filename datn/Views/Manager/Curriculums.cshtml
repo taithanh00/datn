@@ -9,7 +9,17 @@
 </div>
 
 <div class="card">
-    <div id="alert" class="page-alert" style="display:none;"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div id="alert" class="page-alert" style="display:none;"></div>
+        <div class="status-tabs" style="margin-bottom:0;">
+            <div class="status-tab active" data-show-inactive="false">
+                <i class="fa-solid fa-book-open"></i> Đang sử dụng
+            </div>
+            <div class="status-tab" data-show-inactive="true">
+                <i class="fa-solid fa-box-archive"></i> Lưu trữ
+            </div>
+        </div>
+    </div>
     <div class="table-container">
         <table id="curriculumsTable">
             <thead><tr><th>Tên chương trình</th><th>Môn học</th><th>Độ tuổi</th><th>Mô tả</th><th>Thao tác</th></tr></thead>

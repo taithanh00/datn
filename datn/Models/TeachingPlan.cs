@@ -1,4 +1,4 @@
-﻿namespace datn.Models
+namespace datn.Models
 {
     public class TeachingPlan
     {
@@ -7,6 +7,7 @@
         public DateOnly StartDate { get; set; }
         public DateOnly? EndDate { get; set; }
         public string? Status { get; set; } // Planned, InProgress, Completed
+        public bool IsActive { get; set; } = true;
 
         public Class Class { get; set; }
         public Curriculum Curriculum { get; set; }

@@ -1,6 +1,8 @@
 let currentClassId = null;
 let currentSubjectId = null;
 let currentScheduleId = null;
+let showInactiveClasses = false;
+let showInactiveSubjects = false;
 
 const ACTIVITY_SLOTS = [
     { start: '07:00', end: '08:30' },
@@ -92,10 +94,34 @@ function bindClassManagementEvents() {
             if (e.target.id === 'scheduleModal') closeScheduleModal();
         });
     }
+
+    // Status Tabs - Classes (no scope or scope=classes)
+    document.querySelectorAll(".status-tab:not([data-scope])").forEach((tab) => {
+        tab.addEventListener("click", function () {
+            document
+                .querySelectorAll(".status-tab:not([data-scope])")
+                .forEach((t) => t.classList.remove("active"));
+            this.classList.add("active");
+            showInactiveClasses = this.getAttribute("data-show-inactive") === "true";
+            loadClassesOverview();
+        });
+    });
+
+    // Status Tabs - Subjects (scope=subjects)
+    document.querySelectorAll('.status-tab[data-scope="subjects"]').forEach((tab) => {
+        tab.addEventListener("click", function () {
+            document
+                .querySelectorAll('.status-tab[data-scope="subjects"]')
+                .forEach((t) => t.classList.remove("active"));
+            this.classList.add("active");
+            showInactiveSubjects = this.getAttribute("data-show-inactive") === "true";
+            loadSubjects();
+        });
+    });
 }
 
 async function loadClassesOverview() {
-    const result = await fetchJson('/Manager/Api/Classes/Overview');
+    const result = await fetchJson(`/Manager/Api/Classes/Overview?showInactive=${showInactiveClasses}`);
     const tbody = document.getElementById('classesTableBody');
 
     if (!result.success) {
@@ -108,7 +134,18 @@ async function loadClassesOverview() {
         return;
     }
 
-    tbody.innerHTML = result.data.map(item => `
+    tbody.innerHTML = result.data.map(item => {
+        const actionBtns = item.isActive 
+            ? `
+                <button type="button" class="btn-table" onclick="editClass(${item.id})">Sửa</button>
+                <button type="button" class="btn-table" onclick="selectScheduleClass(${item.id})">Lịch</button>
+                <button type="button" class="btn-table delete" onclick="deleteClass(${item.id})">Đóng</button>
+            `
+            : `
+                <button type="button" class="btn-table" onclick="reactivateClass(${item.id})" style="color: var(--primary);">Khôi phục</button>
+            `;
+
+        return `
         <tr>
             <td><strong>${escapeHtml(item.name || '')}</strong></td>
             <td>${formatAgeRange(item.ageFrom, item.ageTo)}</td>
@@ -120,22 +157,14 @@ async function loadClassesOverview() {
             </td>
             <td class="teacher-tags">${renderTeacherTags(item.teachers)}</td>
             <td>
-                <button type="button" class="btn-table btn-table-edit" onclick="editClass(${item.id})">
-                    <i class="fa-solid fa-pen-to-square"></i> Sửa
-                </button>
-                <button type="button" class="btn-table btn-table-schedule" onclick="selectScheduleClass(${item.id})">
-                    <i class="fa-solid fa-calendar-days"></i> Lịch
-                </button>
-                <button type="button" class="btn-table btn-table-delete" onclick="deleteClass(${item.id})">
-                    <i class="fa-solid fa-trash"></i> Xóa
-                </button>
+                ${actionBtns}
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
 async function loadSubjects() {
-    const result = await fetchJson('/Manager/Api/Subjects');
+    const result = await fetchJson(`/Manager/Api/Subjects?showInactive=${showInactiveSubjects}`);
     const tbody = document.getElementById('subjectsTableBody');
 
     if (!result.success) {
@@ -144,26 +173,24 @@ async function loadSubjects() {
     }
 
     if (result.data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5">Chưa có môn học nào.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:24px;">Không có dữ liệu.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = result.data.map(item => `
-        <tr>
+    tbody.innerHTML = result.data.map(item => {
+        const actionBtns = item.isActive
+            ? `<button type="button" class="btn-table" onclick="editSubject(${item.id})">Sửa</button>
+               <button type="button" class="btn-table delete" onclick="deleteSubject(${item.id})">Ẩn</button>`
+            : `<button type="button" class="btn-table" onclick="reactivateSubject(${item.id})" style="color:var(--primary);">Khôi phục</button>`;
+
+        return `<tr>
             <td><strong>${escapeHtml(item.code)}</strong></td>
             <td>${escapeHtml(item.name)}</td>
             <td class="note-muted">${escapeHtml(item.description || 'Không có mô tả')}</td>
             <td><span class="status-badge ${item.isActive ? 'active' : 'inactive'}">${item.isActive ? 'Đang dùng' : 'Tạm ngưng'}</span></td>
-            <td>
-                <button type="button" class="btn-table btn-table-edit" onclick="editSubject(${item.id})">
-                    <i class="fa-solid fa-pen-to-square"></i> Sửa
-                </button>
-                <button type="button" class="btn-table btn-table-delete" onclick="deleteSubject(${item.id})">
-                    <i class="fa-solid fa-trash"></i> Xóa
-                </button>
-            </td>
-        </tr>
-    `).join('');
+            <td>${actionBtns}</td>
+        </tr>`;
+    }).join('');
 }
 
 async function refreshDropdowns() {
@@ -255,10 +282,13 @@ async function loadSchedules(classId) {
 async function saveClass(event) {
     event.preventDefault();
 
+    const ageRange = document.getElementById('ageRange').value;
+    const [ageFrom, ageTo] = ageRange ? ageRange.split('-').map(Number) : [null, null];
+
     const payload = {
         name: document.getElementById('className').value.trim(),
-        ageFrom: parseNullableInt(document.getElementById('ageFrom').value),
-        ageTo: parseNullableInt(document.getElementById('ageTo').value),
+        ageFrom: ageFrom,
+        ageTo: ageTo,
         maxCapacity: parseNullableInt(document.getElementById('maxCapacity').value) || 25,
         schoolYear: document.getElementById('schoolYear').value.trim() || null
     };
@@ -340,8 +370,13 @@ async function editClass(classId) {
     document.getElementById('classId').value = classId;
     document.getElementById('className').value = result.data.name || '';
     document.getElementById('schoolYear').value = result.data.schoolYear || '';
-    document.getElementById('ageFrom').value = result.data.ageFrom || '';
-    document.getElementById('ageTo').value = result.data.ageTo || '';
+    
+    if (result.data.ageFrom && result.data.ageTo) {
+        document.getElementById('ageRange').value = `${result.data.ageFrom}-${result.data.ageTo}`;
+    } else {
+        document.getElementById('ageRange').value = '';
+    }
+
     document.getElementById('maxCapacity').value = result.data.maxCapacity || 25;
     document.getElementById('saveClassBtn').textContent = 'Cập nhật lớp học';
     
@@ -435,7 +470,7 @@ function closeScheduleModal() {
 }
 
 async function deleteClass(classId) {
-    if (!confirm('Bạn có chắc muốn xóa lớp học này?')) {
+    if (!confirm('Bạn có chắc muốn đóng lớp học này? Tất cả các phân công giáo viên liên quan cũng sẽ tạm ngưng.')) {
         return;
     }
 
@@ -447,8 +482,20 @@ async function deleteClass(classId) {
     }
 }
 
+async function reactivateClass(classId) {
+    if (!confirm('Bạn có chắc muốn khôi phục lớp học này?')) {
+        return;
+    }
+
+    const result = await fetchJson(`/Manager/Api/Class/Reactivate/${classId}`, { method: 'POST' });
+    showAlert('classAlert', result.success, result.message || 'Không thể khôi phục lớp học.');
+    if (result.success) {
+        await Promise.all([loadClassesOverview(), refreshDropdowns()]);
+    }
+}
+
 async function deleteSubject(subjectId) {
-    if (!confirm('Bạn có chắc muốn xóa môn học này?')) {
+    if (!confirm('Bạn có chắc muốn ẩn môn học này?')) {
         return;
     }
 
@@ -456,6 +503,18 @@ async function deleteSubject(subjectId) {
     showAlert('subjectAlert', result.success, result.message || 'Không thể xóa môn học.');
     if (result.success) {
         resetSubjectForm();
+        await Promise.all([loadSubjects(), refreshDropdowns()]);
+    }
+}
+
+async function reactivateSubject(subjectId) {
+    if (!confirm('Bạn có chắc muốn khôi phục môn học này?')) {
+        return;
+    }
+
+    const result = await fetchJson(`/Manager/Api/Subject/Reactivate/${subjectId}`, { method: 'POST' });
+    showAlert('subjectAlert', result.success, result.message || 'Không thể khôi phục môn học.');
+    if (result.success) {
         await Promise.all([loadSubjects(), refreshDropdowns()]);
     }
 }

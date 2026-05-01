@@ -1,4 +1,4 @@
-﻿namespace datn.Models
+namespace datn.Models
 {
     public class Parent
     {
@@ -9,6 +9,7 @@
         public string? Phone { get; set; }
         public string? Address { get; set; }
         public string? AvatarPath { get; set; }
+        public bool IsActive { get; set; } = true;
 
         public Account Account { get; set; }
         public ICollection<ParentStudent> ParentStudents { get; set; }

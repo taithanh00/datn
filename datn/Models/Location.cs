@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace datn.Models
 {
@@ -6,6 +6,7 @@ namespace datn.Models
     {
         public int Id { get; set; }
         public string? Name { get; set; }
+        public bool IsActive { get; set; } = true;
 
         public ICollection<Activity> Activities { get; set; }
     }

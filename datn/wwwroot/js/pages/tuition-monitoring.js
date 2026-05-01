@@ -43,12 +43,8 @@ async function loadMonitoring() {
                     </td>
                     <td style="text-align: right;">
                         ${!t.isPaid ? `
-                            <button class="btn btn-primary" onclick="confirmPaid(${t.id})" style="padding: 6px 12px; font-size: 0.85rem; background: var(--success); border-color: var(--success);">
-                                <i class="fa-solid fa-check"></i> Xác nhận nộp
-                            </button>` : `
-                            <button class="btn btn-outline" disabled style="padding: 6px 12px; font-size: 0.85rem; color: var(--success); border-color: var(--success);">
-                                <i class="fas fa-check"></i> Đã xác nhận
-                            </button>
+                            <button class="btn-table" onclick="confirmPaid(${t.id})">Xác nhận nộp</button>` : `
+                            <button class="btn-table" disabled style="opacity:0.5; cursor:default; color:var(--success);">Đã xác nhận</button>
                         `}
                     </td>
                 </tr>

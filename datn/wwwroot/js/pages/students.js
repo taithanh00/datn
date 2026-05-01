@@ -3,6 +3,7 @@
 
 let currentStudentId = null;
 let isEditMode = false;
+let showInactiveStudents = false;
 
 // DOMContentLoaded - Khởi tạo trang khi HTML đã load xong
 document.addEventListener("DOMContentLoaded", function () {
@@ -48,10 +49,26 @@ function setupEventListeners() {
     .getElementById("editStudentForm")
     .addEventListener("submit", handleFormSubmit);
 
+  // Real-time Validation
+  document.getElementById("dateOfBirth").addEventListener("change", validateAgeAndClass);
+  document.getElementById("classId").addEventListener("change", validateAgeAndClass);
+
   // Delete Button
   document
     .getElementById("deleteStudentBtn")
     .addEventListener("click", handleDelete);
+
+  // Status Tabs
+  document.querySelectorAll(".status-tab").forEach((tab) => {
+    tab.addEventListener("click", function () {
+      document
+        .querySelectorAll(".status-tab")
+        .forEach((t) => t.classList.remove("active"));
+      this.classList.add("active");
+      showInactiveStudents = this.getAttribute("data-show-inactive") === "true";
+      refreshData();
+    });
+  });
 
   // Duplicate Modal Buttons
   document
@@ -104,7 +121,7 @@ function previewAvatar(input) {
 // ====== DATA LOADING ======
 async function loadStudents() {
   try {
-    const response = await fetch("/Manager/Api/Students");
+    const response = await fetch(`/Manager/Api/Students?showInactive=${showInactiveStudents}`);
     const result = await response.json();
 
     if (!result.success) {
@@ -119,6 +136,8 @@ async function loadStudents() {
   }
 }
 
+let classesData = []; // Lưu trữ thông tin lớp học để validate ở frontend
+
 async function loadClasses() {
   try {
     const response = await fetch("/Manager/Api/Classes");
@@ -126,18 +145,55 @@ async function loadClasses() {
 
     if (!result.success) return;
 
+    classesData = result.data; // Lưu lại danh sách lớp
     const classSelect = document.getElementById("classId");
     classSelect.innerHTML = '<option value="">-- Chọn lớp --</option>';
 
     result.data.forEach((cls) => {
       const option = document.createElement("option");
       option.value = cls.id;
-      option.textContent = cls.name;
+      option.textContent = `${cls.name} (${cls.ageFrom}-${cls.ageTo} tuổi)`;
       classSelect.appendChild(option);
     });
   } catch (error) {
     console.error("Error loading classes:", error);
   }
+}
+
+// Hàm tính tuổi và kiểm tra hợp lệ
+function validateAgeAndClass() {
+    const dobValue = document.getElementById("dateOfBirth").value;
+    const classId = parseInt(document.getElementById("classId").value);
+    
+    if (!dobValue) return true;
+
+    const dob = new Date(dobValue);
+    const yearNow = new Date().getFullYear();
+    const age = yearNow - dob.getFullYear();
+
+    // 1. Kiểm tra tuổi chung (2-6 tuổi)
+    if (age < 2 || age > 6) {
+        showFormAlert(`Tuổi học sinh (${age} tuổi) không hợp lệ. Chỉ nhận trẻ từ 2-6 tuổi.`, "error");
+        return false;
+    }
+
+    // 2. Kiểm tra khớp với lớp đã chọn
+    if (classId > 0 && classesData.length > 0) {
+        const selectedClass = classesData.find(c => c.id === classId);
+        if (selectedClass) {
+            if (selectedClass.ageFrom && age < selectedClass.ageFrom) {
+                showFormAlert(`Học sinh (${age} tuổi) nhỏ hơn tuổi quy định của lớp ${selectedClass.name} (${selectedClass.ageFrom}-${selectedClass.ageTo} tuổi).`, "error");
+                return false;
+            }
+            if (selectedClass.ageTo && age > selectedClass.ageTo) {
+                showFormAlert(`Học sinh (${age} tuổi) lớn hơn tuổi quy định của lớp ${selectedClass.name} (${selectedClass.ageFrom}-${selectedClass.ageTo} tuổi).`, "error");
+                return false;
+            }
+        }
+    }
+
+    hideFormAlert();
+    return true;
 }
 
 // ====== TABLE RENDERING ======
@@ -152,9 +208,12 @@ function renderStudentsTable(students) {
   }
 
   students.forEach((s, index) => {
-    const statusClass = s.status === 0 ? "badge-active" : "badge-inactive";
+    const statusBadge = s.status === 0 
+      ? `<span class="badge badge-success">${s.statusText}</span>`
+      : `<span class="badge badge-danger">${s.statusText}</span>`;
     const noInfo =
       '<span class="text-muted" style="font-size:0.8rem;font-style:italic;">Chưa có</span>';
+    const actionBtn = `<button class="btn-table" onclick="openEditPanel(${s.id})">Sửa</button>`;
 
     const row = document.createElement("tr");
     row.innerHTML = `
@@ -166,7 +225,7 @@ function renderStudentsTable(students) {
     <td class="sticky-col fourth-col">
         <a href="/Manager/StudentDetail/${s.id}" target="_blank" class="student-name-link" title="${s.fullName}">${s.fullName}</a>
     </td>
-    <td><span class="badge ${statusClass}">${s.statusText}</span></td>
+    <td>${statusBadge}</td>
     <td><span class="badge ${s.gender === "Nam" ? "badge-primary" : "badge-secondary"}">${s.gender}</span></td>
     <td>${s.dateOfBirth}</td>
     <td><div class="address-cell" title="${s.address}">${s.address}</div></td>
@@ -176,11 +235,7 @@ function renderStudentsTable(students) {
     <td>${s.enrollDate}</td>
     <td><span class="premium-date">${formatPremiumDate(s.createdAt)}</span></td>
     <td class="text-end">
-      <div class="table-actions">
-          <button class="btn-action btn-action-edit" onclick="openEditPanel(${s.id})">
-              <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa
-          </button>
-      </div>
+        ${actionBtn}
     </td>
 `;
     tbody.appendChild(row);
@@ -245,7 +300,17 @@ async function openEditPanel(studentId) {
     // Update title and show delete button
     document.getElementById("panelTitle").textContent =
       `Sửa thông tin - ${student.firstName} ${student.lastName}`;
-    document.getElementById("deleteStudentBtn").style.display = "block";
+    
+    const deleteBtn = document.getElementById("deleteStudentBtn");
+    deleteBtn.style.display = "block";
+
+    if (student.status === 0) { // Active
+        deleteBtn.innerHTML = '<i class="fa-solid fa-user-slash"></i> Đưa vào danh sách nghỉ học';
+        deleteBtn.onclick = () => handleDelete(student.id);
+    } else { // Inactive
+        deleteBtn.innerHTML = '<i class="fa-solid fa-user-check"></i> Khôi phục học sinh';
+        deleteBtn.onclick = () => handleReactivate(student.id);
+    }
 
     // Hide alert
     hideFormAlert();
@@ -279,6 +344,11 @@ async function handleFormSubmit(e) {
 }
 
 async function submitForm(forceCreate = false) {
+  // Validate age and class first
+  if (!validateAgeAndClass()) {
+    return;
+  }
+
   const firstName = document.getElementById("firstName").value.trim();
   const lastName = document.getElementById("lastName").value.trim();
 
@@ -345,13 +415,7 @@ async function handleDelete(id) {
   const studentId = id || currentStudentId;
   if (!studentId) return;
 
-  if (
-    !confirm(
-      'Bạn có chắc chắn muốn chuyển trạng thái học sinh này sang "Đã thôi học"?',
-    )
-  ) {
-    return;
-  }
+  if (!confirm('Bạn có chắc chắn muốn chuyển trạng thái học sinh này sang "Đã thôi học"?')) return;
 
   try {
     const response = await fetch(`/Manager/Api/Student/${studentId}`, {
@@ -368,6 +432,34 @@ async function handleDelete(id) {
       }, 1500);
     } else {
       showFormAlert(result.message || "Lỗi xóa học sinh", "error");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    showFormAlert("Lỗi kết nối máy chủ", "error");
+  }
+}
+
+async function handleReactivate(id) {
+  const studentId = id || currentStudentId;
+  if (!studentId) return;
+
+  if (!confirm('Bạn có chắc chắn muốn khôi phục học sinh này?')) return;
+
+  try {
+    const response = await fetch(`/Manager/Api/Student/Reactivate/${studentId}`, {
+      method: "POST",
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      showFormAlert(result.message, "success");
+      setTimeout(() => {
+        closePanel();
+        refreshData();
+      }, 1500);
+    } else {
+      showFormAlert(result.message || "Lỗi khôi phục học sinh", "error");
     }
   } catch (error) {
     console.error("Error:", error);

@@ -48,7 +48,7 @@ namespace datn.Services
             var account = await _context.Accounts.Include(a => a.Role).FirstOrDefaultAsync(a => a.Id == accountId);
             if (account != null)
             {
-                await _hubContext.Clients.User(account.Username).SendAsync("ReceiveNotification", new
+                await _hubContext.Clients.User(account.Id.ToString()).SendAsync("ReceiveNotification", new
                 {
                     id = notification.Id,
                     title,

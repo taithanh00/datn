@@ -19,7 +19,14 @@
             const href = item.getAttribute('href');
             if (!href) return;
             const hrefLower = href.toLowerCase();
-            if (path === hrefLower || (hrefLower !== '/' && path.startsWith(hrefLower))) {
+            
+            // Dashboard special case: only active when exactly at the root or dashboard path
+            if (hrefLower === '/' || hrefLower === '/manager' || hrefLower === '/employee' || hrefLower === '/manager/' || hrefLower === '/employee/') {
+                if (path === '/' || path === '/manager' || path === '/employee' || path === '/manager/' || path === '/employee/') {
+                    item.classList.add('active');
+                }
+            } 
+            else if (path === hrefLower || path.startsWith(hrefLower + '/')) {
                 item.classList.add('active');
             }
         });

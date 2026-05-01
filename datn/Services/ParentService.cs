@@ -45,11 +45,10 @@ namespace datn.Services
                 {
                     Username = dto.Username,
                     Email = dto.Email,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password.Trim()),
                     PasswordSalt = "",
                     RoleId = parentRole.Id,
                     IsActive = true,
-                    MustChangePassword = true,
                     CreatedAt = DateTime.Now
                 };
                 _context.Accounts.Add(account);
@@ -113,11 +112,7 @@ namespace datn.Services
             {
                 // Update Account info
                 parent.Account.Email = dto.Email;
-                parent.Account.Username = dto.Username;
-                if (!string.IsNullOrEmpty(dto.Password) && dto.Password != "******")
-                {
-                    parent.Account.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password.Trim());
-                }
+                // Mật khẩu chỉ được phép đổi bởi chính phụ huynh (chức năng quên mật khẩu / đổi mật khẩu cá nhân)
 
                 // Update Parent info
                 parent.FirstName = dto.FirstName.Trim();
@@ -153,13 +148,17 @@ namespace datn.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                parent.Account.IsActive = false;
-                var activeTokens = await _context.RefreshTokens
-                    .Where(r => r.AccountId == parent.AccountId && !r.IsRevoked)
-                    .ToListAsync();
-                foreach (var token in activeTokens)
+                parent.IsActive = false;
+                if (parent.Account != null)
                 {
-                    token.IsRevoked = true;
+                    parent.Account.IsActive = false;
+                    var activeTokens = await _context.RefreshTokens
+                        .Where(r => r.AccountId == parent.AccountId && !r.IsRevoked)
+                        .ToListAsync();
+                    foreach (var token in activeTokens)
+                    {
+                        token.IsRevoked = true;
+                    }
                 }
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();

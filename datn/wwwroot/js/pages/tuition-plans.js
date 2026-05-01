@@ -36,12 +36,12 @@ function showCreatePlanModal() {
     const form = document.getElementById('planForm');
     const overlay = document.getElementById('planModalOverlay');
     if(form) form.reset();
-    if(overlay) overlay.classList.add('active');
+    if(overlay) overlay.classList.add('show');
 }
 
 function closePlanModal() {
     const overlay = document.getElementById('planModalOverlay');
-    if(overlay) overlay.classList.remove('active');
+    if(overlay) overlay.classList.remove('show');
 }
 
 async function savePlan() {
@@ -78,14 +78,20 @@ async function savePlan() {
 }
 
 async function generateTuitions() {
+    const btn = document.getElementById('btnGenerate');
     const monthElem = document.getElementById('genMonth');
     const yearElem = document.getElementById('genYear');
-    if(!monthElem || !yearElem) return;
+    if(!monthElem || !yearElem || !btn) return;
 
     const month = monthElem.value;
     const year = yearElem.value;
     
     if (!confirm(`Xác nhận khởi tạo học phí Tháng ${month}/${year} cho toàn bộ học sinh?`)) return;
+
+    // Frontend Protection: Disable button
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
 
     try {
         const res = await fetch(`/Tuition/Api/GenerateMonthlyTuition?month=${month}&year=${year}`, {
@@ -97,7 +103,13 @@ async function generateTuitions() {
         } else {
             alert(result.message);
         }
-    } catch (e) { alert("Lỗi hệ thống khi khởi tạo."); }
+    } catch (e) { 
+        alert("Lỗi hệ thống khi khởi tạo."); 
+    } finally {
+        // Re-enable button
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
 }
 
 // Expose to global scope

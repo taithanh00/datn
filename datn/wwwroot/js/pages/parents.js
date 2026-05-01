@@ -3,6 +3,7 @@
 let isEditMode = false;
 let currentParentId = null;
 let selectedStudentForLink = null;
+let showInactiveParents = false;
 
 // DOMContentLoaded - Khởi tạo trang khi HTML đã load xong
 document.addEventListener("DOMContentLoaded", function () {
@@ -59,12 +60,56 @@ function setupEventListeners() {
   document
     .getElementById("linkModalOverlay")
     .addEventListener("click", closeLinkStudentModal);
+
+  // Password real-time validation
+  const passwordInput = document.getElementById("password");
+  passwordInput.addEventListener("input", function() {
+    validatePasswordUI(this.value);
+  });
+
+  // Status Tabs
+  document.querySelectorAll(".status-tab").forEach((tab) => {
+    tab.addEventListener("click", function () {
+      document
+        .querySelectorAll(".status-tab")
+        .forEach((t) => t.classList.remove("active"));
+      this.classList.add("active");
+      showInactiveParents = this.getAttribute("data-show-inactive") === "true";
+      refreshData();
+    });
+  });
+}
+
+function validatePasswordUI(val) {
+  const isLength = val.length >= 9;
+  const isUpper = /[A-Z]/.test(val);
+  const isSpecial = /[!@#$%^&*()_+=\-\[\]{}|;:'",.<>?/\\ ]/.test(val);
+
+  updateRequirementUI("req-length", isLength);
+  updateRequirementUI("req-upper", isUpper);
+  updateRequirementUI("req-special", isSpecial);
+
+  // Return overall validity for potential use in saveParent
+  return isLength && isUpper && isSpecial;
+}
+
+function updateRequirementUI(id, isValid) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const icon = el.querySelector("i");
+  if (isValid) {
+    el.classList.add("valid");
+    icon.className = "fa-solid fa-circle-check";
+  } else {
+    el.classList.remove("valid");
+    icon.className = "fa-solid fa-circle-dot";
+  }
 }
 
 // ====== DATA LOADING ======
 async function loadParents() {
   try {
-    const response = await fetch("/Manager/Api/Parents");
+    const response = await fetch(`/Manager/Api/Parents?showInactive=${showInactiveParents}`);
     const result = await response.json();
 
     if (!result.success) {
@@ -86,7 +131,7 @@ function renderParentsTable(parents) {
 
   if (parents.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="9" class="text-center">Không tìm thấy dữ liệu</td></tr>';
+      '<tr><td colspan="10" class="text-center">Không tìm thấy dữ liệu</td></tr>';
     return;
   }
 
@@ -116,12 +161,9 @@ function renderParentsTable(parents) {
                 }
             </td>
             <td><span class="premium-date">${formatPremiumDate(p.createdAt)}</span></td>
+            <td>${p.isActive ? '<span class="badge badge-success">Hoạt động</span>' : '<span class="badge badge-danger">Đã khóa</span>'}</td>
             <td class="text-end">
-              <div class="table-actions">
-                  <button class="btn-action btn-action-edit" onclick="openEditPanel(${p.id})">
-                      <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa
-                  </button>
-              </div>
+                <button class="btn-table" onclick="openEditPanel(${p.id})">Sửa</button>
             </td>
 
         `;
@@ -131,7 +173,7 @@ function renderParentsTable(parents) {
 
 function showTableError(message) {
   const tbody = document.getElementById("parentsTableBody");
-  tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px; color: red;">${message}</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 20px; color: red;">${message}</td></tr>`;
 }
 
 // ====== DATE FORMATTING (sync với students.js) ======
@@ -172,15 +214,23 @@ function openCreatePanel() {
 
   document.getElementById("parentForm").reset();
   document.getElementById("parentId").value = "";
+  document.getElementById("username").readOnly = false;
+  document.getElementById("username").style.backgroundColor = "";
   document.getElementById("avatarPreview").src = "/images/lion_orange.png";
   document.getElementById("panelTitle").textContent = "Thêm phụ huynh mới";
-  document.getElementById("passwordFieldGroup").style.display = "none"; // Hide on create
+  const passwordInput = document.getElementById("password");
+  passwordInput.required = true;
+  passwordInput.value = ""; // Clear password field for new parent
+  validatePasswordUI(""); // Reset validation hints
+  document.getElementById("passwordFieldGroup").style.display = "block"; // Show on create so manager can set initial password
   document.getElementById("linkedStudentsSection").style.display = "none";
   document.getElementById("deleteParentBtn").style.display = "none";
 
   hideFormAlert();
   openPanel();
 }
+
+let currentParentIsActive = true;
 
 async function openEditPanel(id) {
   isEditMode = true;
@@ -199,6 +249,8 @@ async function openEditPanel(id) {
     const p = result.data;
     document.getElementById("parentId").value = p.id;
     document.getElementById("username").value = p.username;
+    document.getElementById("username").readOnly = true;
+    document.getElementById("username").style.backgroundColor = "var(--bg-input-disabled, #f1f3f5)";
     document.getElementById("email").value = p.email;
     document.getElementById("lastName").value = p.lastName;
     document.getElementById("firstName").value = p.firstName;
@@ -207,14 +259,23 @@ async function openEditPanel(id) {
     document.getElementById("avatarPreview").src =
       p.avatarPath || "/images/lion_orange.png";
 
-    document.getElementById("passwordFieldGroup").style.display = "block"; // Show on edit
+    document.getElementById("password").required = false;
+    document.getElementById("passwordFieldGroup").style.display = "none"; // Hide on edit to prevent accidental changes
     document.getElementById("password").value = "******";
-    document.getElementById("passwordNote").textContent =
-      "Để trống nếu không thay đổi mật khẩu";
 
     document.getElementById("panelTitle").textContent =
       `Sửa thông tin - ${p.firstName} ${p.lastName}`;
-    document.getElementById("deleteParentBtn").style.display = "block";
+    
+    currentParentIsActive = p.isActive;
+    const actionBtn = document.getElementById("deleteParentBtn");
+    actionBtn.style.display = "block";
+    if (p.isActive) {
+        actionBtn.className = "btn-delete";
+        actionBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Vô hiệu hóa tài khoản';
+    } else {
+        actionBtn.className = "btn-activate";
+        actionBtn.innerHTML = '<i class="fa-solid fa-unlock"></i> Kích hoạt tài khoản';
+    }
 
     // Show linked children
     document.getElementById("linkedStudentsSection").style.display = "block";
@@ -291,41 +352,42 @@ async function saveParent() {
   }
 }
 
-async function deleteCurrentParent() {
+async function toggleCurrentParentStatus() {
   if (!currentParentId) return;
   const name = document
     .getElementById("panelTitle")
     .textContent.replace("Sửa thông tin - ", "");
-  await deleteParent(currentParentId, name);
-}
-
-async function deleteParent(id, name) {
-  if (
-    !confirm(
-      `Bạn có chắc chắn muốn xóa phụ huynh "${name}"? Thao tác này cũng sẽ xóa tài khoản đăng nhập của họ.`,
-    )
-  ) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`/Manager/Api/Parent/${id}`, {
-      method: "DELETE",
-    });
-    const result = await response.json();
-
-    if (result.success) {
-      showFormAlert(result.message || "Xóa thành công", "success");
-      setTimeout(() => {
-        closePanel();
-        refreshData();
-      }, 1500);
-    } else {
-      showFormAlert(result.message || "Lỗi xóa phụ huynh", "error");
+  
+  if (currentParentIsActive) {
+    if (!confirm(`Bạn có chắc chắn muốn vô hiệu hóa phụ huynh "${name}"? Tài khoản này sẽ không thể đăng nhập vào hệ thống nữa.`)) return;
+    
+    try {
+      const response = await fetch(`/Manager/Api/Parent/${currentParentId}`, { method: "DELETE" });
+      const result = await response.json();
+      if (result.success) {
+        showFormAlert(result.message || "Vô hiệu hóa thành công", "success");
+        setTimeout(() => { closePanel(); refreshData(); }, 1500);
+      } else {
+        showFormAlert(result.message || "Lỗi vô hiệu hóa phụ huynh", "error");
+      }
+    } catch (error) {
+      showFormAlert("Lỗi kết nối máy chủ", "error");
     }
-  } catch (error) {
-    console.error("Error:", error);
-    showFormAlert("Lỗi kết nối máy chủ", "error");
+  } else {
+    if (!confirm(`Bạn có chắc chắn muốn kích hoạt lại tài khoản cho phụ huynh "${name}"?`)) return;
+
+    try {
+      const response = await fetch(`/Manager/Api/Parent/Reactivate/${currentParentId}`, { method: "POST" });
+      const result = await response.json();
+      if (result.success) {
+        showFormAlert(result.message || "Kích hoạt thành công", "success");
+        setTimeout(() => { closePanel(); refreshData(); }, 1500);
+      } else {
+        showFormAlert(result.message || "Lỗi kích hoạt phụ huynh", "error");
+      }
+    } catch (error) {
+      showFormAlert("Lỗi kết nối máy chủ", "error");
+    }
   }
 }
 
@@ -515,10 +577,11 @@ async function unlinkStudent(studentId) {
 // ====== ALERT MANAGEMENT (sync với students.js) ======
 function showFormAlert(message, type) {
   const alertContainer = document.getElementById("formAlert");
-  const className = type === "success" ? "alert-success" : "alert-error";
+  const className = type === "success" ? "success" : "error";
+  const icon = type === "success" ? "fa-circle-check" : "fa-circle-exclamation";
 
   alertContainer.className = `form-alert ${className}`;
-  alertContainer.textContent = message;
+  alertContainer.innerHTML = `<i class="fa-solid ${icon}" style="margin-right: 8px;"></i>${message}`;
   alertContainer.style.display = "block";
 }
 

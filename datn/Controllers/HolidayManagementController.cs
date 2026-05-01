@@ -27,9 +27,15 @@ namespace datn.Controllers
         }
 
         [HttpGet("Api/List")]
-        public async Task<IActionResult> List()
+        public async Task<IActionResult> List(bool showInactive = false)
         {
-            var holidays = await _context.Holidays
+            var query = _context.Holidays.AsQueryable();
+            if (showInactive)
+            {
+                query = query.IgnoreQueryFilters().Where(h => !h.IsActive);
+            }
+
+            var holidays = await query
                 .OrderByDescending(h => h.Date)
                 .ToListAsync();
             return Json(new { success = true, data = holidays });
@@ -41,11 +47,17 @@ namespace datn.Controllers
             if (string.IsNullOrWhiteSpace(model.Name))
                 return Json(new { success = false, message = "Vui lòng nhập tên ngày lễ." });
 
-            var existing = await _context.Holidays.FirstOrDefaultAsync(h => h.Date == model.Date);
+            // Sử dụng IgnoreQueryFilters để kiểm tra trùng ngày kể cả với ngày đã ẩn
+            var existing = await _context.Holidays.IgnoreQueryFilters().FirstOrDefaultAsync(h => h.Date == model.Date);
             if (existing != null)
+            {
+                if (!existing.IsActive)
+                    return Json(new { success = false, message = "Ngày này đã từng là ngày lễ và đang bị ẩn. Vui lòng khôi phục thay vì tạo mới." });
                 return Json(new { success = false, message = "Ngày này đã được thiết lập là ngày lễ." });
+            }
 
             model.CreatedAtUtc = DateTime.UtcNow;
+            model.IsActive = true;
             _context.Holidays.Add(model);
 
             // TỰ ĐỘNG TẠO CHẤM CÔNG CHO TẤT CẢ GIÁO VIÊN
@@ -97,17 +109,29 @@ namespace datn.Controllers
             var holiday = await _context.Holidays.FindAsync(id);
             if (holiday == null) return Json(new { success = false, message = "Không tìm thấy ngày lễ." });
 
-            // Khi xóa ngày lễ, có nên xóa chấm công tự động không?
-            // Để an toàn, ta nên hỏi Manager. Ở đây ta thực hiện xóa chấm công tự động của ngày đó.
+            // Soft Delete: Chuyển IsActive thành false
+            holiday.IsActive = false;
+
+            // Đồng thời thu hồi chấm công tự động của ngày đó
             var attendances = await _context.WorkAttendances
                 .Where(w => w.Date == holiday.Date && w.ReviewNote == "Hệ thống tự động tạo từ lịch nghỉ lễ")
                 .ToListAsync();
 
             _context.WorkAttendances.RemoveRange(attendances);
-            _context.Holidays.Remove(holiday);
 
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Đã xóa ngày lễ và thu hồi các bản ghi chấm công tự động." });
+            return Json(new { success = true, message = "Đã ẩn ngày lễ và thu hồi các bản ghi chấm công tự động." });
+        }
+
+        [HttpPost("Api/Reactivate/{id}")]
+        public async Task<IActionResult> Reactivate(int id)
+        {
+            var holiday = await _context.Holidays.IgnoreQueryFilters().FirstOrDefaultAsync(h => h.Id == id);
+            if (holiday == null) return Json(new { success = false, message = "Không tìm thấy." });
+
+            holiday.IsActive = true;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã khôi phục ngày lễ thành công." });
         }
     }
 }

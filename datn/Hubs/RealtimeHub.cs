@@ -20,6 +20,11 @@ namespace datn.Hubs
                 await Groups.AddToGroupAsync(Context.ConnectionId, "Employees");
             }
 
+            if (role == "Parent")
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, "Parents");
+            }
+
             await base.OnConnectedAsync();
         }
     }

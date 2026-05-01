@@ -11,7 +11,11 @@ namespace datn.DTOs
         [EmailAddress(ErrorMessage = "Email không đúng định dạng")]
         public string Email { get; set; } = string.Empty;
 
-        public string? Password { get; set; } = "123456"; // Default password
+        [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
+        [MinLength(9, ErrorMessage = "Mật khẩu phải có ít nhất 9 ký tự")]
+        [RegularExpression(@"^(?=.*[A-Z])(?=.*[!@#$%^&*()_+=\-\[\]{}|;:'"",.<>?/\\\\]).+$", 
+            ErrorMessage = "Mật khẩu phải chứa ít nhất 1 chữ hoa và 1 ký tự đặc biệt")]
+        public string Password { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Tên là bắt buộc")]
         public string FirstName { get; set; } = string.Empty;
