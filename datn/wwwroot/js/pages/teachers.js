@@ -44,11 +44,6 @@ function setupEventListeners() {
     .getElementById("editTeacherForm")
     .addEventListener("submit", handleFormSubmit);
 
-  // Delete Button
-  document
-    .getElementById("deleteTeacherBtn")
-    .addEventListener("click", handleDelete);
-
   // Status Tabs
   document.querySelectorAll(".status-tab").forEach((tab) => {
     tab.addEventListener("click", function () {
@@ -250,7 +245,7 @@ async function handleDeactivate() {
 }
 
 async function handleReactivate() {
-  if (!confirm("Bạn có chắc chắn muốn kích hoạt lại giáo viên này?")) return;
+  if (!confirm("Bạn có chắc chắn muốn kích hoạt lại giáo viên này? \nGiáo viên sẽ có thể đăng nhập lại vào hệ thống.")) return;
 
   try {
     const response = await fetch(
@@ -347,38 +342,6 @@ async function handleFormSubmit(e) {
   }
 }
 
-// ====== DELETE (DEACTIVATE) HANDLING ======
-async function handleDelete() {
-  if (
-    !confirm(
-      "Bạn có chắc chắn muốn vô hiệu hóa giáo viên này? \nGiáo viên sẽ bị đăng xuất và không thể truy cập hệ thống nữa.",
-    )
-  ) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`/Manager/Api/Teacher/${currentTeacherId}`, {
-      method: "DELETE",
-    });
-
-    const result = await response.json();
-
-    if (!result.success) {
-      showAlert("error", result.message || "Lỗi vô hiệu hóa giáo viên");
-      return;
-    }
-
-    showAlert("success", "Vô hiệu hóa giáo viên thành công");
-    setTimeout(() => {
-      closePanel();
-      loadTeachers();
-    }, 1500);
-  } catch (error) {
-    console.error("Error deactivating teacher:", error);
-    showAlert("error", "Lỗi kết nối máy chủ");
-  }
-}
 
 // ====== ALERT MANAGEMENT ======
 function showAlert(type, message) {

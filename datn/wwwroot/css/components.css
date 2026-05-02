@@ -581,6 +581,7 @@ textarea.form-input {
 
 .slide-panel.active {
     right: 0;
+    padding-bottom: 20px !important;
 }
 
 .slide-panel-header {
@@ -601,7 +602,7 @@ textarea.form-input {
     flex: 1;
     overflow-y: auto;
     padding: 24px;
-    padding-bottom: 0; 
+    padding-bottom: 0;
 }
 
 .close-btn {

@@ -20,32 +20,39 @@ namespace datn.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Payroll Auto Calculation Service is starting.");
-
-            // Chạy kiểm tra ngay khi khởi động
-            await RunCalculationProcess(stoppingToken);
-
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
-                {
-                    var nowVnt = GetVntNow();
-                    var todayVnt = DateOnly.FromDateTime(nowVnt.DateTime);
+                _logger.LogInformation("Payroll Auto Calculation Service is starting.");
 
-                    // Kiểm tra định kỳ hàng ngày vào lúc 01:00 sáng để cập nhật bảng lương (nếu chưa chốt)
-                    if (nowVnt.Hour == 1 && _lastRunDateVnt != todayVnt)
+                // Chạy kiểm tra ngay khi khởi động
+                await RunCalculationProcess(stoppingToken);
+
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    try
                     {
-                        await RunCalculationProcess(stoppingToken);
-                        _lastRunDateVnt = todayVnt;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error occurred while executing payroll calculation process.");
-                }
+                        var nowVnt = GetVntNow();
+                        var todayVnt = DateOnly.FromDateTime(nowVnt.DateTime);
 
-                // Kiểm tra mỗi 30 phút
-                await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken);
+                        // Kiểm tra định kỳ hàng ngày vào lúc 01:00 sáng để cập nhật bảng lương (nếu chưa chốt)
+                        if (nowVnt.Hour == 1 && _lastRunDateVnt != todayVnt)
+                        {
+                            await RunCalculationProcess(stoppingToken);
+                            _lastRunDateVnt = todayVnt;
+                        }
+                    }
+                    catch (Exception ex) when (!(ex is OperationCanceledException))
+                    {
+                        _logger.LogError(ex, "Error occurred while executing payroll calculation process.");
+                    }
+
+                    // Kiểm tra mỗi 30 phút
+                    await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Tắt dịch vụ êm ái
             }
         }
 

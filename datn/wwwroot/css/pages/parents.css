@@ -559,3 +559,99 @@ thead th.sticky-col {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     transform: translateY(-1px);
 }
+
+/* Relationship Cards Styling */
+.relationship-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.rel-card {
+    cursor: pointer;
+}
+
+.rel-card input {
+    display: none;
+}
+
+.rel-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    background: var(--bg-main);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rel-content i {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    transition: color 0.3s;
+}
+
+.rel-content span {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.rel-card input:checked + .rel-content {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.1);
+}
+
+.rel-card input:checked + .rel-content i {
+    color: var(--primary);
+}
+
+/* Student Search Result Improvements */
+.list-group-item-action {
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    text-decoration: none !important;
+}
+
+.list-group-item-action:hover {
+    background-color: var(--primary-soft) !important;
+    border-color: var(--primary) !important;
+}
+
+/* Gender Selection Styling */
+.gender-selection {
+    display: flex;
+    gap: 12px;
+}
+
+.gender-option {
+    flex: 1;
+    cursor: pointer;
+}
+
+.gender-option input {
+    display: none;
+}
+
+.gender-box {
+    padding: 10px;
+    text-align: center;
+    background: var(--bg-main);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.gender-option input:checked + .gender-box {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary);
+}

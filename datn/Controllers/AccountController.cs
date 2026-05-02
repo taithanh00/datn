@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using datn.Services;
 
 namespace datn.Controllers
 {
@@ -14,10 +15,12 @@ namespace datn.Controllers
     public class AccountController : BaseController
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly JwtService _jwtService;
 
-        public AccountController(AppDbContext context, IWebHostEnvironment webHostEnvironment) : base(context)
+        public AccountController(AppDbContext context, IWebHostEnvironment webHostEnvironment, JwtService jwtService) : base(context)
         {
             _webHostEnvironment = webHostEnvironment;
+            _jwtService = jwtService;
         }
 
         public async Task<IActionResult> Profile()
@@ -107,6 +110,9 @@ namespace datn.Controllers
                     {
                         account.Parent.AvatarPath = avatarRelativePath;
                     }
+
+                    // Cập nhật ViewBag ngay lập tức để UI hiển thị đúng
+                    ViewBag.UserAvatar = avatarRelativePath;
                 }
                 catch (Exception ex)
                 {
@@ -146,6 +152,17 @@ namespace datn.Controllers
             {
                 _context.Accounts.Update(account);
                 await _context.SaveChangesAsync();
+
+                // Refresh JWT Token để cập nhật Avatar/Email trong Claims trên toàn hệ thống
+                var newToken = _jwtService.GenerateAccessToken(account);
+                Response.Cookies.Append("access_token", newToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTimeOffset.UtcNow.AddHours(1)
+                });
+
                 ViewBag.SuccessMessage = "Cập nhật thông tin thành công! ✓";
             }
             catch (Exception ex)

@@ -105,4 +105,14 @@ document.addEventListener('DOMContentLoaded', function () {
             submitButton.style.pointerEvents = 'none';
         });
     }
+
+    // Clear password if error exists (prevents browser from re-filling incorrect data)
+    const errorAlert = document.querySelector('.alert-danger');
+    if (errorAlert) {
+        const passwordField = document.getElementById('passwordField');
+        if (passwordField) {
+            passwordField.value = '';
+            passwordField.focus();
+        }
+    }
 });

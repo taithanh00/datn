@@ -1,0 +1,117 @@
+.student-report-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.student-report-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-soft);
+}
+
+.student-avatar-small {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-soft);
+}
+
+.status-indicator {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.status-badge-mini {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-body);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+}
+
+.status-badge-mini.active {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+.temp-badge {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-body);
+    color: var(--text-main);
+}
+
+.temp-badge.fever {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.status-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.status-btn {
+    flex: 1;
+    border: 2px solid var(--border);
+    background: white;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    font-size: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.status-btn:hover {
+    border-color: var(--primary-soft);
+    background: var(--bg-body);
+}
+
+.status-btn.active {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    transform: scale(1.05);
+}
+
+.allergy-alert-ribbon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--danger);
+    color: white;
+    padding: 3px 20px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    transform: rotate(45deg) translate(20px, -15px);
+    width: 100px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.batch-actions-bar {
+    border-left: 5px solid var(--primary);
+}
+
+.section-subtitle {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}

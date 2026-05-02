@@ -224,6 +224,20 @@
         color: #bbb;
     }
 
+/* Override Browser Autofill Styling */
+.field-group input:-webkit-autofill,
+.field-group input:-webkit-autofill:hover,
+.field-group input:-webkit-autofill:focus,
+.field-group input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 50px #f8f8f8 inset !important; /* Matches original background */
+    -webkit-text-fill-color: #333 !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.field-group input:focus:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 50px #fff inset, 0 0 0 3px rgba(26, 26, 26, 0.05) !important;
+}
+
 /* Password wrapper */
 .password-wrapper {
     position: relative;

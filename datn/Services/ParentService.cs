@@ -60,6 +60,7 @@ namespace datn.Services
                     AccountId = account.Id,
                     FirstName = dto.FirstName.Trim(),
                     LastName = dto.LastName.Trim(),
+                    Gender = dto.Gender,
                     Phone = dto.Phone ?? "",
                     Address = dto.Address ?? "",
                     ParentStudents = new List<ParentStudent>()
@@ -104,8 +105,12 @@ namespace datn.Services
 
         public async Task<Parent?> UpdateParentAsync(int id, CreateParentDto dto)
         {
-            var parent = await _context.Parents.Include(p => p.Account).FirstOrDefaultAsync(p => p.Id == id);
+            var parent = await _context.Parents.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(p => p.Id == id);
             if (parent == null) return null;
+            
+            parent.Account = await _context.Accounts.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(a => a.Id == parent.AccountId);
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -117,6 +122,7 @@ namespace datn.Services
                 // Update Parent info
                 parent.FirstName = dto.FirstName.Trim();
                 parent.LastName = dto.LastName.Trim();
+                parent.Gender = dto.Gender;
                 parent.Phone = dto.Phone ?? "";
                 parent.Address = dto.Address ?? "";
 

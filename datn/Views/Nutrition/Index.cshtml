@@ -1,0 +1,467 @@
+@{
+    ViewData["Title"] = "Quản lý Dinh dưỡng & Thực đơn";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    var isManager = ViewBag.Role == "Manager";
+    var isTeacher = ViewBag.Role == "Employee";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Quản lý Dinh dưỡng</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Lập thực đơn và tinh chỉnh chế độ ăn uống cho học sinh</p>
+    </div>
+</div>
+
+<!-- Tabs Navigation -->
+<div class="tabs-container" style="margin-bottom:20px;">
+    <div class="tabs-header" style="display:flex; border-bottom:1px solid var(--border); gap:20px;">
+        <button class="tab-btn active" onclick="switchTab('weekly')" id="tabWeekly">
+            <i class="fa-solid fa-calendar-week"></i> Thực đơn tuần
+        </button>
+        <button class="tab-btn" onclick="switchTab('class')" id="tabClass">
+            <i class="fa-solid fa-users-rectangle"></i> Điều chỉnh theo lớp
+        </button>
+    </div>
+</div>
+
+<!-- SECTION 1: WEEKLY MENU -->
+<div id="sectionWeekly" class="tab-content active">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+        <div id="weekLabel" style="font-size:0.9rem; color:var(--text-muted); font-weight:600;"></div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <button class="btn btn-outline btn-sm" onclick="changeWeek(-1)">&#8592;</button>
+            <input type="date" id="weekPicker" class="form-input" style="width:140px; height:32px; padding:0 8px; font-size:0.8rem;" />
+            <button class="btn btn-outline btn-sm" onclick="changeWeek(1)">&#8594;</button>
+        </div>
+    </div>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+        <div style="overflow-x:auto;">
+            <table id="menuGrid" style="width:100%; border-collapse:collapse; min-width:700px;">
+                <thead>
+                    <tr id="gridHeader">
+                        <th style="width:110px; padding:12px 16px; text-align:left; background:var(--bg-body); border-bottom:2px solid var(--border); font-size:0.8rem; color:var(--text-muted); text-transform:uppercase;">Bữa ăn</th>
+                    </tr>
+                </thead>
+                <tbody id="gridBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Manager Edit Form (Inline below grid) -->
+    <div class="card" id="editCard" style="margin-top:20px; display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+            <h3 id="editCardTitle">Cập nhật thực đơn</h3>
+            <button class="btn btn-outline" onclick="resetForm()" style="font-size:0.8rem; padding:5px 14px;">&#10005; Đóng</button>
+        </div>
+        <form id="menuForm">
+            <input type="hidden" id="menuId" value="0" />
+            <input type="hidden" id="menuDate" />
+            <input type="hidden" id="menuType" />
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Tên món ăn <span style="color:var(--danger);">*</span></label>
+                    <input type="text" id="dishName" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Calo (Ước tính)</label>
+                    <input type="number" id="calories" class="form-input" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Thành phần dễ gây dị ứng</label>
+                <input type="text" id="ingredients" class="form-input" placeholder="Ví dụ: Tôm, Sữa, Lạc" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ghi chú</label>
+                <textarea id="menuNote" class="form-input" rows="2"></textarea>
+            </div>
+
+            @if (isManager)
+            {
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn btn-primary">Lưu thực đơn</button>
+                    <button type="button" class="btn btn-outline" id="deleteBtn" onclick="deleteMenu()" style="display:none; color:var(--danger); border-color:var(--danger);">Xóa món</button>
+                </div>
+            }
+            else
+            {
+                <div class="alert-info-soft"><i class="fa-solid fa-info-circle"></i> Bạn đang xem ở chế độ chỉ đọc.</div>
+            }
+        </form>
+    </div>
+</div>
+
+<!-- SECTION 2: CLASS OVERRIDE -->
+<div id="sectionClass" class="tab-content">
+    <div class="card" style="margin-bottom:20px;">
+        <div style="display:flex; gap:15px; align-items:flex-end; flex-wrap:wrap;">
+            <div class="form-group" style="flex:1; min-width:200px;">
+                <label class="form-label">Lớp học</label>
+                <select id="classSelector" class="form-input" onchange="loadDailyStatus()"></select>
+            </div>
+            <div class="form-group" style="width:160px;">
+                <label class="form-label">Ngày</label>
+                <input type="date" id="dailyDate" class="form-input" onchange="loadDailyStatus()" />
+            </div>
+            <button class="btn btn-primary" style="margin-bottom:15px;" onclick="loadDailyStatus()">
+                <i class="fa-solid fa-rotate"></i> Tải dữ liệu
+            </button>
+        </div>
+    </div>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+        <table class="table-modern" style="width:100%;" id="studentMealTable">
+            <thead>
+                <tr>
+                    <th style="width:180px;">Học sinh</th>
+                    <th>Dị ứng</th>
+                    <th>Sáng</th>
+                    <th>Trưa</th>
+                    <th>Xế</th>
+                </tr>
+            </thead>
+            <tbody id="studentMealBody">
+                <tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">Đang tải dữ liệu...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL: OVERRIDE FORM -->
+<div id="overrideModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-content" style="max-width:450px;">
+        <div class="modal-header">
+            <h3>Điều chỉnh món ăn</h3>
+            <button class="close-btn" onclick="closeOverrideModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="ovStudentName" style="font-weight:700; margin-bottom:4px;"></p>
+            <p id="ovMealType" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:15px;"></p>
+            
+            <div class="form-group">
+                <label class="form-label">Món gốc</label>
+                <input type="text" id="ovOriginalDish" class="form-input" readonly style="background:var(--bg-body);" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Món thay thế <span style="color:var(--danger);">*</span></label>
+                <input type="text" id="ovNewDish" class="form-input" placeholder="Nhập tên món ăn thay thế..." />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Lý do</label>
+                <input type="text" id="ovReason" class="form-input" placeholder="Ví dụ: Dị ứng tôm, Bé không ăn được cay..." />
+            </div>
+        </div>
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px;">
+            <button class="btn btn-outline" onclick="closeOverrideModal()">Hủy</button>
+            <button class="btn btn-primary" onclick="saveOverride()">Lưu thay đổi</button>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+<style>
+    .tab-btn {
+        padding: 12px 20px;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--text-muted);
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .tab-btn.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Menu Grid styles */
+    .meal-row-label { padding: 14px 16px; background: var(--bg-body); border-bottom: 1px solid var(--border); font-weight: 600; font-size: 0.85rem; }
+    .menu-cell { padding: 10px 12px; border-bottom: 1px solid var(--border); border-left: 1px solid var(--border); min-height: 72px; cursor: pointer; transition: background 0.2s; position: relative; }
+    .menu-cell:hover { background: var(--primary-soft); }
+    .menu-cell.selected { background: var(--primary-soft); box-shadow: inset 0 0 0 2px var(--primary); }
+    .menu-cell.empty { color: var(--text-muted); text-align: center; line-height: 52px; font-size: 1.2rem; }
+    .menu-cell.has-data .dish-name { font-weight: 600; font-size: 0.88rem; color: var(--text-main); margin-bottom: 2px; }
+    .menu-cell.has-data .ing-tag { font-size: 0.72rem; color: var(--text-muted); }
+    
+    .day-header-cell { padding: 10px; text-align: center; background: var(--bg-body); border-bottom: 2px solid var(--border); border-left: 1px solid var(--border); }
+    .day-header-cell .date-num { display: block; font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+    .day-header-cell.today { background: var(--primary-soft); }
+
+    .allergy-badge { background: var(--danger-soft); color: var(--danger); font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-top: 4px; display: inline-block; }
+    .override-badge { background: var(--warning-soft); color: var(--warning); font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-top: 4px; display: inline-block; }
+    
+    .meal-clickable { cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s; }
+    .meal-clickable:hover { background: var(--bg-body); }
+    .meal-clickable.conflict { border: 1px dashed var(--danger); background: #fff5f5; }
+    
+    .alert-info-soft { padding: 12px; background: var(--primary-soft); border-radius: 6px; color: var(--primary); font-size: 0.85rem; }
+
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .modal-content { background: #fff; border-radius: 12px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 20px; }
+    .modal-footer { padding: 15px 20px; border-top: 1px solid var(--border); background: #f9fafb; }
+    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+</style>
+}
+
+@section Scripts {
+<script>
+    let currentWeekStart = getMonday(new Date());
+    let weeklyMenuData = [];
+    const DAYS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+    const MEALS = [{type:0, label:'🍳 Sáng'}, {type:1, label:'🍱 Trưa'}, {type:2, label:'🍪 Xế'}];
+    const IS_MANAGER = @(isManager.ToString().ToLower());
+    
+    let currentOverrides = [];
+    let activeOverrideContext = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('weekPicker').value = formatDate(currentWeekStart);
+        document.getElementById('dailyDate').value = formatDate(new Date());
+        
+        loadMyClasses();
+        loadWeeklyMenu();
+    });
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        if (tab === 'weekly') {
+            document.getElementById('tabWeekly').classList.add('active');
+            document.getElementById('sectionWeekly').classList.add('active');
+            loadWeeklyMenu();
+        } else {
+            document.getElementById('tabClass').classList.add('active');
+            document.getElementById('sectionClass').classList.add('active');
+            loadDailyStatus();
+        }
+    }
+
+    // --- WEEKLY GRID LOGIC ---
+    function getMonday(d) {
+        const copy = new Date(d);
+        const day = copy.getDay();
+        const diff = copy.getDate() - day + (day === 0 ? -6 : 1);
+        copy.setDate(diff);
+        copy.setHours(0, 0, 0, 0);
+        return copy;
+    }
+    function formatDate(d) {
+        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+    function changeWeek(dir) {
+        currentWeekStart.setDate(currentWeekStart.getDate() + dir * 7);
+        document.getElementById('weekPicker').value = formatDate(currentWeekStart);
+        loadWeeklyMenu();
+    }
+
+    async function loadWeeklyMenu() {
+        // Rebuild header
+        const header = document.getElementById('gridHeader');
+        while(header.children.length > 1) header.removeChild(header.lastChild);
+        const todayStr = (new Date()).toDateString();
+        for(let i=0; i<6; i++) {
+            const d = new Date(currentWeekStart);
+            d.setDate(d.getDate() + i);
+            const isToday = d.toDateString() === todayStr;
+            const th = document.createElement('th');
+            th.className = 'day-header-cell' + (isToday ? ' today' : '');
+            th.innerHTML = `${DAYS[i]}<span class="date-num">${d.getDate()}/${d.getMonth()+1}</span>`;
+            header.appendChild(th);
+        }
+
+        // Label
+        const end = new Date(currentWeekStart); end.setDate(end.getDate() + 5);
+        document.getElementById('weekLabel').textContent = `${currentWeekStart.getDate()}/${currentWeekStart.getMonth()+1} — ${end.getDate()}/${end.getMonth()+1}/${end.getFullYear()}`;
+
+        try {
+            const resp = await fetch(`/Manager/Nutrition/GetWeeklyMenu?start=${formatDate(currentWeekStart)}T00:00:00`);
+            weeklyMenuData = await resp.json();
+            renderGrid();
+        } catch(e) { window.showToast?.('Lỗi', 'Không thể tải thực đơn tuần', 'error'); }
+    }
+
+    function renderGrid() {
+        const body = document.getElementById('gridBody');
+        body.innerHTML = '';
+        MEALS.forEach(meal => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td class="meal-row-label">${meal.label}</td>`;
+            for(let i=0; i<6; i++) {
+                const d = new Date(currentWeekStart); d.setDate(d.getDate() + i);
+                const dStr = formatDate(d);
+                const item = weeklyMenuData.find(m => m.date.startsWith(dStr) && m.mealType === meal.type);
+                
+                const td = document.createElement('td');
+                td.className = item ? 'menu-cell has-data' : 'menu-cell empty';
+                if (item) {
+                    td.innerHTML = `<div class="dish-name">${item.dishName}</div><div class="ing-tag">${item.ingredients || ''}</div>`;
+                } else {
+                    td.innerHTML = IS_MANAGER ? '+' : '—';
+                }
+                
+                if (IS_MANAGER) {
+                    td.onclick = () => openWeeklyEditor(i, meal.type, item);
+                } else if (item) {
+                    td.onclick = () => openWeeklyEditor(i, meal.type, item); // View mode
+                }
+                tr.appendChild(td);
+            }
+            body.appendChild(tr);
+        });
+    }
+
+    function openWeeklyEditor(dayIdx, type, item) {
+        const d = new Date(currentWeekStart); d.setDate(d.getDate() + dayIdx);
+        document.getElementById('editCard').style.display = 'block';
+        document.getElementById('editCardTitle').textContent = `${MEALS.find(m=>m.type===type).label} — ${DAYS[dayIdx]} ${d.getDate()}/${d.getMonth()+1}`;
+        document.getElementById('menuId').value = item ? item.id : 0;
+        document.getElementById('menuDate').value = formatDate(d);
+        document.getElementById('menuType').value = type;
+        document.getElementById('dishName').value = item ? item.dishName : '';
+        document.getElementById('calories').value = item ? (item.calories || '') : '';
+        document.getElementById('ingredients').value = item ? (item.ingredients || '') : '';
+        document.getElementById('menuNote').value = item ? (item.note || '') : '';
+        document.getElementById('deleteBtn').style.display = (item && IS_MANAGER) ? 'block' : 'none';
+        
+        const inputs = document.querySelectorAll('#menuForm input, #menuForm textarea');
+        inputs.forEach(inp => inp.readOnly = !IS_MANAGER);
+        
+        document.getElementById('editCard').scrollIntoView({ behavior:'smooth' });
+    }
+
+    // --- CLASS OVERRIDE LOGIC ---
+    async function loadMyClasses() {
+        const resp = await fetch('/Manager/Nutrition/GetMyClasses');
+        const classes = await resp.json();
+        const sel = document.getElementById('classSelector');
+        sel.innerHTML = classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        if (classes.length > 0) loadDailyStatus();
+    }
+
+    async function loadDailyStatus() {
+        const classId = document.getElementById('classSelector').value;
+        const date = document.getElementById('dailyDate').value;
+        if (!classId) return;
+
+        const body = document.getElementById('studentMealBody');
+        body.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Đang tải...</td></tr>';
+
+        try {
+            const resp = await fetch(`/Manager/Nutrition/GetDailyStatus?date=${date}T00:00:00&classId=${classId}`);
+            const data = await resp.json();
+            body.innerHTML = '';
+            
+            if (data.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Không có học sinh nào.</td></tr>';
+                return;
+            }
+
+            data.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:600;">${s.studentName}</td>
+                    <td><span style="font-size:0.75rem; color:var(--danger);">${s.allergies || '—'}</span></td>
+                    ${s.meals.map(m => `
+                        <td>
+                            <div class="meal-clickable ${m.hasAllergyConflict ? 'conflict' : ''}" 
+                                 onclick="openOverrideModal(${s.studentId}, '${s.studentName}', ${m.mealType}, '${m.effectiveDish}')">
+                                <div style="font-size:0.85rem; font-weight:500;">${m.effectiveDish}</div>
+                                ${m.hasAllergyConflict ? '<span class="allergy-badge">Dị ứng</span>' : ''}
+                                ${m.isOverridden ? `<span class="override-badge" title="${m.overrideReason}">Đã đổi</span>` : ''}
+                            </div>
+                        </td>
+                    `).join('')}
+                `;
+                body.appendChild(tr);
+            });
+        } catch(e) { body.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--danger);">Lỗi tải dữ liệu.</td></tr>'; }
+    }
+
+    function openOverrideModal(studentId, studentName, mealType, currentDish) {
+        activeOverrideContext = { studentId, mealType };
+        document.getElementById('ovStudentName').textContent = studentName;
+        document.getElementById('ovMealType').textContent = MEALS.find(m => m.type === mealType).label;
+        document.getElementById('ovOriginalDish').value = currentDish;
+        document.getElementById('ovNewDish').value = '';
+        document.getElementById('ovReason').value = '';
+        document.getElementById('overrideModal').style.display = 'flex';
+    }
+
+    function closeOverrideModal() { document.getElementById('overrideModal').style.display = 'none'; }
+
+    async function saveOverride() {
+        const newDish = document.getElementById('ovNewDish').value.trim();
+        if (!newDish) { window.showToast?.('Lỗi', 'Vui lòng nhập món thay thế', 'error'); return; }
+
+        // Find MenuId from weeklyData for this day/type
+        const dateStr = document.getElementById('dailyDate').value;
+        // Optimization: Fetch MenuId from GetDailyStatus response? 
+        // For now, find in weeklyData or we might need a small adjustment to API
+        // Let's assume we use GetWeeklyMenu to find it
+        const item = weeklyMenuData.find(m => m.date.startsWith(dateStr) && m.mealType === activeOverrideContext.mealType);
+        if (!item) { window.showToast?.('Lỗi', 'Không tìm thấy thực đơn gốc của ngày này', 'error'); return; }
+
+        const payload = {
+            menuId: item.id,
+            studentId: activeOverrideContext.studentId,
+            newDishName: newDish,
+            reason: document.getElementById('ovReason').value.trim()
+        };
+
+        try {
+            const resp = await fetch('/Manager/Nutrition/SaveOverride', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const res = await resp.json();
+            if (res.success) {
+                window.showToast?.('Thành công', 'Đã cập nhật món ăn cho học sinh', 'success');
+                closeOverrideModal();
+                loadDailyStatus();
+                loadWeeklyMenu(); // refresh grid to show dots
+            }
+        } catch(e) { window.showToast?.('Lỗi', 'Không thể lưu thay đổi', 'error'); }
+    }
+
+    // --- FORM SUBMIT (Manager only) ---
+    async function saveMenu(e) {
+        e.preventDefault();
+        const payload = {
+            id: parseInt(document.getElementById('menuId').value),
+            date: document.getElementById('menuDate').value,
+            mealType: parseInt(document.getElementById('menuType').value),
+            dishName: document.getElementById('dishName').value,
+            calories: parseInt(document.getElementById('calories').value) || null,
+            ingredients: document.getElementById('ingredients').value,
+            note: document.getElementById('menuNote').value,
+            isActive: true
+        };
+        const resp = await fetch('/Manager/Nutrition/SaveMenu', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if ((await resp.json()).success) {
+            window.showToast?.('Thành công', 'Đã lưu thực đơn', 'success');
+            resetForm(); loadWeeklyMenu();
+        }
+    }
+    document.getElementById('menuForm').addEventListener('submit', saveMenu);
+
+    function resetForm() {
+        document.getElementById('editCard').style.display = 'none';
+        document.getElementById('menuForm').reset();
+    }
+</script>
+}

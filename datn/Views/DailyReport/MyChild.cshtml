@@ -1,0 +1,54 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Nhật ký của bé";
+}
+
+<link rel="stylesheet" href="~/css/pages/parent-daily.css" />
+
+<div class="container page-content fade-in">
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="page-title">Nhật ký của bé</h2>
+            <p class="text-muted mb-0">Hành trình mỗi ngày của con tại trường</p>
+        </div>
+        <div class="header-actions">
+            <input type="date" id="logDate" class="form-control date-picker-premium" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Daily Timeline -->
+        <div class="col-lg-7">
+            <div class="card-premium glass p-4 mb-4">
+                <h5 class="section-title mb-4">Dòng thời gian hôm nay</h5>
+                <div class="timeline" id="dailyTimeline">
+                    <!-- Timeline items will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Health & Stats -->
+        <div class="col-lg-5">
+            <div class="card-premium glass p-4 mb-4">
+                <h5 class="section-title mb-4">Sức khỏe & Phát triển</h5>
+                <div class="health-overview mb-4" id="healthOverview">
+                    <!-- Health summary -->
+                </div>
+                <div id="growthChart" style="height: 250px;"></div>
+            </div>
+
+            <!-- Photos Section -->
+            <div class="card-premium glass p-4">
+                <h5 class="section-title mb-4">Khoảnh khắc trong ngày</h5>
+                <div class="row g-2" id="photoGallery">
+                    <p class="text-muted small">Chưa có ảnh nào được tải lên hôm nay.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="~/js/pages/parent-daily.js"></script>
+}

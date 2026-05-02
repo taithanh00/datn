@@ -2,6 +2,7 @@
 
 let isEditMode = false;
 let currentParentId = null;
+let currentParentGender = true; // Default to Male (Nam)
 let selectedStudentForLink = null;
 let showInactiveParents = false;
 
@@ -131,7 +132,7 @@ function renderParentsTable(parents) {
 
   if (parents.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="10" class="text-center">Không tìm thấy dữ liệu</td></tr>';
+      '<tr><td colspan="11" class="text-center">Không tìm thấy dữ liệu</td></tr>';
     return;
   }
 
@@ -145,6 +146,7 @@ function renderParentsTable(parents) {
             <td class="sticky-col third-col">
                 <a href="/Manager/ParentDetail/${p.id}" target="_blank" class="parent-name-link" title="${p.fullName}">${p.fullName}</a>
             </td>
+            <td>${p.gender ? "Nam" : "Nữ"}</td>
             <td>${p.email || "N/A"}</td>
             <td><i class="fa-solid fa-phone me-2 text-muted" style="font-size:0.75rem;"></i>${p.phone || "N/A"}</td>
             <td><div class="address-cell" title="${p.address}">${p.address || "N/A"}</div></td>
@@ -211,6 +213,7 @@ function formatPremiumDate(dateString) {
 function openCreatePanel() {
   isEditMode = false;
   currentParentId = null;
+  currentParentGender = true;
 
   document.getElementById("parentForm").reset();
   document.getElementById("parentId").value = "";
@@ -256,6 +259,12 @@ async function openEditPanel(id) {
     document.getElementById("firstName").value = p.firstName;
     document.getElementById("phone").value = p.phone || "";
     document.getElementById("address").value = p.address || "";
+    
+    // Gender
+    currentParentGender = p.gender;
+    const genderInput = document.querySelector(`input[name="Gender"][value="${p.gender}"]`);
+    if (genderInput) genderInput.checked = true;
+
     document.getElementById("avatarPreview").src =
       p.avatarPath || "/images/lion_orange.png";
 
@@ -428,7 +437,40 @@ function showLinkStudentModal() {
   document.getElementById("studentSearchInput").value = "";
   document.getElementById("studentSearchResults").innerHTML = "";
   document.getElementById("linkDetailSection").style.display = "none";
-  document.getElementById("confirmLinkBtn").disabled = true;
+  
+  const confirmBtn = document.getElementById("confirmLinkBtn");
+  confirmBtn.disabled = true;
+  confirmBtn.innerHTML = '<i class="fa-solid fa-link"></i> Xác nhận liên kết';
+
+  // Tự động chọn và ràng buộc mối quan hệ dựa trên giới tính
+  const relInputs = document.querySelectorAll('input[name="relationship"]');
+  relInputs.forEach(input => {
+      if (currentParentGender) { // Nam -> Bố
+          if (input.value === "Bố") {
+              input.checked = true;
+              input.disabled = false;
+          } else {
+              input.disabled = true;
+          }
+      } else { // Nữ -> Mẹ
+          if (input.value === "Mẹ") {
+              input.checked = true;
+              input.disabled = false;
+          } else {
+              input.disabled = true;
+          }
+      }
+      
+      // Cập nhật giao diện (mờ đi các option bị disable)
+      const content = input.nextElementSibling;
+      if (input.disabled) {
+          content.style.opacity = "0.4";
+          content.style.cursor = "not-allowed";
+      } else {
+          content.style.opacity = "1";
+          content.style.cursor = "pointer";
+      }
+  });
 
   // Ẩn slide panel nhưng KHÔNG reset currentParentId
   document.getElementById("slidePanel").classList.remove("active");
@@ -466,9 +508,12 @@ async function searchStudentsForLink(q) {
                    data-id="${s.id}"
                    data-name="${s.fullName}"
                    data-code="${s.code}"
-                   style="padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--border);">
-                    <span style="font-weight: 600; font-size: 0.9rem;">${s.fullName}</span>
-                    <span class="child-badge">${s.code}</span>
+                   style="padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">${s.fullName}</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Mã học sinh: ${s.code}</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-muted" style="font-size: 0.8rem;"></i>
                 </a>
             `,
         )
@@ -494,11 +539,22 @@ function selectStudentForLink(id, name, code) {
 }
 
 async function confirmLinkStudent() {
-  console.log("currentParentId:", currentParentId);
-  console.log("selectedStudentForLink:", selectedStudentForLink);
-
-  const relationship = document.getElementById("linkRelationship").value;
   const confirmBtn = document.getElementById("confirmLinkBtn");
+  if (confirmBtn.disabled && confirmBtn.innerHTML.includes("fa-spin")) return; // Chặn click khi đang xử lý
+
+  // Lấy giá trị mối quan hệ (hỗ trợ cả radio cards mới và select cũ để tránh lỗi cache)
+  let relationship = "";
+  const radioChecked = document.querySelector('input[name="relationship"]:checked');
+  const selectEl = document.getElementById("linkRelationship");
+  
+  if (radioChecked) {
+      relationship = radioChecked.value;
+  } else if (selectEl) {
+      relationship = selectEl.value;
+  } else {
+      alert("Không tìm thấy dữ liệu mối quan hệ. Vui lòng nhấn Ctrl + F5 để tải lại trang.");
+      return;
+  }
 
   const parentId = Number.parseInt(currentParentId, 10);
   const studentId = Number.parseInt(selectedStudentForLink, 10);

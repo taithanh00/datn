@@ -54,6 +54,14 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aFxSZXNldFBhc3N3b3JkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/datn/datn/datn/Views/DailyReport/ClassReports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFpbHlSZXBvcnRcQ2xhc3NSZXBvcnRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/datn/datn/datn/Views/DailyReport/MyChild.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFpbHlSZXBvcnRcTXlDaGlsZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/datn/datn/datn/Views/Employee/Activities.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW1wbG95ZWVcQWN0aXZpdGllcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -156,6 +164,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/datn/datn/datn/Views/Manager/TeachingPlans.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFuYWdlclxUZWFjaGluZ1BsYW5zLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/datn/datn/datn/Views/Nutrition/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTnV0cml0aW9uXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/datn/datn/datn/Views/Parent/Activities.cshtml]

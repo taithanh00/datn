@@ -138,7 +138,6 @@ async function loadClassesOverview() {
         const actionBtns = item.isActive 
             ? `
                 <button type="button" class="btn-table" onclick="editClass(${item.id})">Sửa</button>
-                <button type="button" class="btn-table" onclick="selectScheduleClass(${item.id})">Lịch</button>
                 <button type="button" class="btn-table delete" onclick="deleteClass(${item.id})">Đóng</button>
             `
             : `

@@ -50,6 +50,7 @@
                     <a href="/Manager/Teachers" class="nav-item" data-transition><i class="fa-solid fa-user-tie"></i> Nhân sự</a>
                     <a href="/HolidayManagement" class="nav-item" data-transition><i class="fa-solid fa-umbrella-beach"></i> Ngày lễ</a>
                     <a href="/Manager/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động</a>
+                    <a href="/Manager/Nutrition" class="nav-item" data-transition><i class="fa-solid fa-utensils"></i> Quản lý Dinh dưỡng</a>
 
                     <div class="nav-label">Đào tạo</div>
                     <a href="/Manager/Assignments" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Phân công giảng dạy</a>
@@ -71,7 +72,9 @@
                     <a href="/Employee/Attendance" class="nav-item" data-transition><i class="fa-solid fa-clipboard-user"></i> Điểm danh</a>
                     <a href="/Employee/StudyReport" class="nav-item" data-transition><i class="fa-solid fa-file-signature"></i> Nhận xét & Báo cáo</a>
                     <a href="/Employee/TeachingPlan" class="nav-item" data-transition><i class="fa-solid fa-book-open-reader"></i> Kế hoạch giảng dạy</a>
-                    <a href="/Employee/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động</a>
+                    <a href="/Employee/Activities" class="nav-item @(ViewData["Title"]?.ToString() == "Hoạt động" ? "active" : "")" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động</a>
+                    <a href="/DailyReport/ClassReports" class="nav-item @(ViewData["Title"]?.ToString() == "Nhật ký lớp học" ? "active" : "")" data-transition><i class="fa-solid fa-book-open"></i> Nhật ký lớp học</a>
+                    <a href="/Manager/Nutrition" class="nav-item @(ViewData["Title"]?.ToString() == "Quản lý Dinh dưỡng & Thực đơn" ? "active" : "")" data-transition><i class="fa-solid fa-utensils"></i> Dinh dưỡng & Thực đơn</a>
 
                     <div class="nav-label">Cá nhân</div>
                     <a href="/TimeAttendance" class="nav-item" data-transition><i class="fa-solid fa-clock"></i> Chấm công</a>
@@ -88,6 +91,7 @@
                     <a href="/Parent/StudyReports" class="nav-item" data-transition><i class="fa-solid fa-chart-bar"></i> Học tập</a>
                     <a href="/Parent/TeachingPlan" class="nav-item" data-transition><i class="fa-solid fa-book"></i> Kế hoạch lớp</a>
                     <a href="/Parent/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-heart"></i> Hoạt động của bé</a>
+                    <a href="/DailyReport/MyChild" class="nav-item" data-transition><i class="fa-solid fa-notes-medical"></i> Nhật ký & Sức khỏe</a>
                     <a href="/Tuition/MyTuition" class="nav-item" data-transition><i class="fa-solid fa-wallet"></i> Học phí</a>
                 }
 

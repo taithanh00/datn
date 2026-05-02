@@ -107,9 +107,15 @@ builder.Services.AddHostedService<TokenCleanupService>();               // Dịc
 builder.Services.AddHostedService<PayrollAutoCalculationService>();     // Tự động tính lương ngày 5 hàng tháng
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IEducationService, EducationService>();
+builder.Services.AddScoped<INutritionService, NutritionService>();
+builder.Services.AddScoped<IHealthService, HealthService>();
+builder.Services.AddScoped<IDailyReportService, DailyReportService>();
 
 
 var app = builder.Build();
+
+// Tự động Seed tài khoản Manager nếu chưa có
+await datn.Data.DbInitializer.SeedManagerAsync(app.Services);
 
 // 1. Phục vụ file tĩnh (CSS, JS, Images) ngay lập tức - Sửa lỗi UI
 app.UseStaticFiles();

@@ -4,3 +4,8 @@ obj/
 node_modules/
 *.user
 *.suo
+GEMINI.md
+DOCS_DEVELOPER.md
+AGENTS.md
+.continue
+.dotnet_cli

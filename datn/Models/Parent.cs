@@ -8,6 +8,7 @@ namespace datn.Models
         public string LastName { get; set; }
         public string? Phone { get; set; }
         public string? Address { get; set; }
+        public bool Gender { get; set; }
         public string? AvatarPath { get; set; }
         public bool IsActive { get; set; } = true;
 

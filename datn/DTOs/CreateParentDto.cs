@@ -28,6 +28,8 @@ namespace datn.DTOs
 
         public string? Address { get; set; }
         
+        public bool Gender { get; set; }
+        
         public IFormFile? Avatar { get; set; }
 
         // Optional list of students to link immediately

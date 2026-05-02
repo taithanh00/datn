@@ -334,7 +334,7 @@ namespace datn.Controllers
         {
             try
             {
-                var s = await _context.Students.FindAsync(id);
+                var s = await _context.Students.IgnoreQueryFilters().FirstOrDefaultAsync(s => s.Id == id);
                 if (s == null) return Json(new { success = false, message = "Không tìm thấy" });
 
                 return Json(new
@@ -635,6 +635,7 @@ namespace datn.Controllers
                         id = p.Id,
                         email = p.Account?.Email ?? "N/A",
                         fullName = p.LastName + " " + p.FirstName,
+                        gender = p.Gender,
                         phone = p.Phone ?? "N/A",
                         address = p.Address ?? "N/A",
                         avatarPath = p.AvatarPath ?? "/images/lion_orange.png",
@@ -675,9 +676,18 @@ namespace datn.Controllers
             try
             {
                 var p = await _context.Parents
-                    .Include(p => p.Account)
-                    .Include(p => p.ParentStudents).ThenInclude(ps => ps.Student)
+                    .IgnoreQueryFilters()
                     .FirstOrDefaultAsync(p => p.Id == id);
+
+                if (p != null)
+                {
+                    p.Account = await _context.Accounts.IgnoreQueryFilters()
+                        .FirstOrDefaultAsync(a => a.Id == p.AccountId);
+                    p.ParentStudents = await _context.ParentStudents
+                        .Include(ps => ps.Student)
+                        .Where(ps => ps.ParentId == p.Id)
+                        .ToListAsync();
+                }
 
                 if (p == null) return Json(new { success = false, message = "Không tìm thấy" });
 
@@ -687,10 +697,11 @@ namespace datn.Controllers
                     email = p.Account.Email,
                     firstName = p.FirstName,
                     lastName = p.LastName,
+                    gender = p.Gender,
                     phone = p.Phone,
                     address = p.Address,
                     avatarPath = p.AvatarPath ?? "/images/lion_orange.png",
-                    isActive = p.Account.IsActive,
+                    isActive = p.IsActive,
                     createdAt = p.Account.CreatedAt.ToString("dd/MM/yyyy"),
                     children = p.ParentStudents.Select(ps => new {
                         id = ps.StudentId,
@@ -775,11 +786,20 @@ namespace datn.Controllers
         {
             var parent = await _context.Parents
                 .IgnoreQueryFilters()
-                .Include(p => p.Account)
                 .FirstOrDefaultAsync(p => p.Id == id);
+            
+            if (parent != null)
+            {
+                parent.Account = await _context.Accounts.IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(a => a.Id == parent.AccountId);
+            }
             if (parent == null) return Json(new { success = false, message = "Không tìm thấy phụ huynh" });
 
-            parent.Account.IsActive = true;
+            parent.IsActive = true;
+            if (parent.Account != null)
+            {
+                parent.Account.IsActive = true;
+            }
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Kích hoạt tài khoản thành công" });
         }
@@ -840,6 +860,7 @@ namespace datn.Controllers
         public async Task<IActionResult> GetTeacher(int id)
         {
             var teacher = await _context.Employees
+                .IgnoreQueryFilters()
                 .Include(e => e.Account)
                 .FirstOrDefaultAsync(e => e.Id == id);
                 

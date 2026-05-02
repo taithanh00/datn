@@ -33,6 +33,7 @@
                     <th class="sticky-col first-col">STT</th>
                     <th class="sticky-col second-col">Ảnh</th>
                     <th class="sticky-col third-col">Họ và tên</th>
+                    <th>Giới tính</th>
                     <th>Email</th>
                     <th>Số điện thoại</th>
                     <th>Địa chỉ</th>
@@ -121,6 +122,19 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Giới tính</label>
+                    <div class="gender-selection">
+                        <label class="gender-option">
+                            <input type="radio" name="Gender" value="true" checked>
+                            <div class="gender-box">Nam</div>
+                        </label>
+                        <label class="gender-option">
+                            <input type="radio" name="Gender" value="false">
+                            <div class="gender-box">Nữ</div>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label class="form-label" for="phone">Số điện thoại</label>
                     <input type="text" id="phone" name="Phone" class="form-control" placeholder="Số điện thoại liên hệ" />
                 </div>
@@ -175,7 +189,7 @@
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="text" id="studentSearchInput" placeholder="Nhập tên hoặc mã HS...">
             </div>
-            <div id="studentSearchResults" class="list-group" style="max-height: 200px; overflow-y: auto;">
+            <div id="studentSearchResults" class="list-group" style="max-height: 200px; overflow-y: auto; overflow-x: hidden;">
                 <!-- Results here -->
             </div>
         </div>
@@ -186,12 +200,22 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Mối quan hệ</label>
-                <select id="linkRelationship" class="form-control">
-                    <option value="Bố">Bố</option>
-                    <option value="Mẹ">Mẹ</option>
-                    <option value="Người giám hộ">Người giám hộ</option>
-                    <option value="Khác">Khác</option>
-                </select>
+                <div class="relationship-grid">
+                    <label class="rel-card">
+                        <input type="radio" name="relationship" value="Bố" checked>
+                        <div class="rel-content">
+                            <i class="fa-solid fa-user-tie"></i>
+                            <span>Bố</span>
+                        </div>
+                    </label>
+                    <label class="rel-card">
+                        <input type="radio" name="relationship" value="Mẹ">
+                        <div class="rel-content">
+                            <i class="fa-solid fa-user-nurse"></i>
+                            <span>Mẹ</span>
+                        </div>
+                    </label>
+                </div>
             </div>
         </div>
     </div>

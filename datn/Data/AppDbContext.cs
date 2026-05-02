@@ -40,6 +40,9 @@ namespace datn.Data
         public DbSet<FeeItem> FeeItems { get; set; }
         public DbSet<StudentFeeConfig> StudentFeeConfigs { get; set; }
         public DbSet<TuitionDetail> TuitionDetails { get; set; }
+        public DbSet<Menu> Menus { get; set; }
+        public DbSet<MenuOverride> MenuOverrides { get; set; }
+        public DbSet<DailyReport> DailyReports { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -387,6 +390,38 @@ namespace datn.Data
                 .HasForeignKey(td => td.SubjectId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // ── Menu & MenuOverride ──────────────────────────────
+            modelBuilder.Entity<Menu>()
+                .HasIndex(m => new { m.Date, m.MealType });
+
+            modelBuilder.Entity<MenuOverride>()
+                .HasOne(mo => mo.Menu)
+                .WithMany(m => m.MenuOverrides)
+                .HasForeignKey(mo => mo.MenuId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MenuOverride>()
+                .HasOne(mo => mo.Student)
+                .WithMany(s => s.MenuOverrides)
+                .HasForeignKey(mo => mo.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MenuOverride>()
+                .HasOne(mo => mo.Class)
+                .WithMany()
+                .HasForeignKey(mo => mo.ClassId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ── DailyReport ──────────────────────────────────────
+            modelBuilder.Entity<DailyReport>()
+                .HasOne(dr => dr.Student)
+                .WithMany(s => s.DailyReports)
+                .HasForeignKey(dr => dr.StudentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DailyReport>()
+                .HasIndex(dr => new { dr.StudentId, dr.Date });
+
             // ── Seed Roles ────────────────────────────────────────
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, Name = "Manager", Description = "Quản lý" },
@@ -413,6 +448,8 @@ namespace datn.Data
             modelBuilder.Entity<Activity>().HasQueryFilter(a => a.IsActive);
             modelBuilder.Entity<Curriculum>().HasQueryFilter(c => c.IsActive);
             modelBuilder.Entity<TeachingPlan>().HasQueryFilter(tp => tp.IsActive);
+            modelBuilder.Entity<Menu>().HasQueryFilter(m => m.IsActive);
+            modelBuilder.Entity<MenuOverride>().HasQueryFilter(mo => mo.IsActive);
         }
     }
 }

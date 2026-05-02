@@ -298,6 +298,54 @@ namespace datn.Migrations
                     b.ToTable("Curriculums");
                 });
 
+            modelBuilder.Entity("datn.Models.DailyReport", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActivityNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("EatingNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EatingStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HealthNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HygieneNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MoodNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhotoPaths")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SleepingNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SleepingStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentId", "Date");
+
+                    b.ToTable("DailyReports");
+                });
+
             modelBuilder.Entity("datn.Models.Employee", b =>
                 {
                     b.Property<int>("Id")
@@ -439,6 +487,9 @@ namespace datn.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("Temperature")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal?>("Weight")
                         .HasColumnType("decimal(18,2)");
 
@@ -493,6 +544,81 @@ namespace datn.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Locations");
+                });
+
+            modelBuilder.Entity("datn.Models.Menu", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("Calories")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("DishName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Ingredients")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MealType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Date", "MealType");
+
+                    b.ToTable("Menus");
+                });
+
+            modelBuilder.Entity("datn.Models.MenuOverride", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ClassId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MenuId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NewDishName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("StudentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("MenuId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("MenuOverrides");
                 });
 
             modelBuilder.Entity("datn.Models.Notification", b =>
@@ -558,6 +684,9 @@ namespace datn.Migrations
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Gender")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -752,6 +881,9 @@ namespace datn.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Allergies")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AvatarPath")
@@ -1241,6 +1373,17 @@ namespace datn.Migrations
                     b.Navigation("Subject");
                 });
 
+            modelBuilder.Entity("datn.Models.DailyReport", b =>
+                {
+                    b.HasOne("datn.Models.Student", "Student")
+                        .WithMany("DailyReports")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("datn.Models.Employee", b =>
                 {
                     b.HasOne("datn.Models.Account", "Account")
@@ -1270,6 +1413,31 @@ namespace datn.Migrations
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("datn.Models.MenuOverride", b =>
+                {
+                    b.HasOne("datn.Models.Class", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("datn.Models.Menu", "Menu")
+                        .WithMany("MenuOverrides")
+                        .HasForeignKey("MenuId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("datn.Models.Student", "Student")
+                        .WithMany("MenuOverrides")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Menu");
 
                     b.Navigation("Student");
                 });
@@ -1574,6 +1742,11 @@ namespace datn.Migrations
                     b.Navigation("Activities");
                 });
 
+            modelBuilder.Entity("datn.Models.Menu", b =>
+                {
+                    b.Navigation("MenuOverrides");
+                });
+
             modelBuilder.Entity("datn.Models.Parent", b =>
                 {
                     b.Navigation("ParentStudents");
@@ -1598,7 +1771,11 @@ namespace datn.Migrations
                 {
                     b.Navigation("Attendances");
 
+                    b.Navigation("DailyReports");
+
                     b.Navigation("HealthRecords");
+
+                    b.Navigation("MenuOverrides");
 
                     b.Navigation("ParentStudents");
 
