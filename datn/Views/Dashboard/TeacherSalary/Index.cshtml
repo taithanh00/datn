@@ -1,0 +1,74 @@
+@{
+    ViewData["Title"] = "Tính lương Giáo viên";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Quản lý bảng lương</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Tính toán và chốt lương hàng tháng cho giáo viên</p>
+    </div>
+</div>
+
+<!-- Status Bar -->
+<div id="salaryStatusBar" class="page-alert" style="background: var(--bg-card); color: var(--text-muted); border-left: 4px solid var(--border);">
+    <i class="fa-solid fa-circle-info"></i> Vui lòng chọn kỳ lương để xem chi tiết.
+</div>
+
+<!-- Filter & Actions -->
+<div class="card mb-4">
+    <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+        <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
+            <label for="salaryMonth" class="form-label">Tháng</label>
+            <select id="salaryMonth" class="form-select"></select>
+        </div>
+        <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
+            <label for="salaryYear" class="form-label">Năm</label>
+            <select id="salaryYear" class="form-select"></select>
+        </div>
+        
+        <div style="display: flex; gap: 8px; flex: 1; justify-content: flex-end;">
+            <button id="btnLoadSalary" type="button" class="btn btn-primary" style="height: 42px;">
+                <i class="fa-solid fa-eye"></i> Xem bảng lương
+            </button>
+            <button id="btnRecalculateSalary" type="button" class="btn btn-outline" style="border-color: var(--warning); color: var(--warning); height: 42px;">
+                <i class="fa-solid fa-arrows-rotate"></i> Tính lại
+            </button>
+            <button id="btnLockSalary" type="button" class="btn btn-outline" style="background: rgba(220,38,38,0.1); border-color: var(--danger); color: var(--danger); height: 42px;">
+                <i class="fa-solid fa-lock"></i> Chốt lương
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Salary Table -->
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Mã NV</th>
+                    <th>Giáo viên</th>
+                    <th>Lương cơ bản</th>
+                    <th style="text-align: center;">Tổng đơn vị công</th>
+                    <th style="text-align: right;">Tổng thực nhận</th>
+                    <th style="text-align: right;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="salaryTableBody">
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-money-bill-transfer"></i>
+                            <p>Đang chuẩn bị dữ liệu lương...</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/salary.js" asp-append-version="true"></script>
+}

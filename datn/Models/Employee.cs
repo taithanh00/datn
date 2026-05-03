@@ -13,6 +13,14 @@ namespace datn.Models
         public string? AvatarPath { get; set; }
         public bool IsActive { get; set; } = true;
 
+        // Các trường phục vụ Landing Page
+        public string? Bio { get; set; }                 // Giới thiệu ngắn
+        public string? Qualifications { get; set; }      // Bằng cấp/Học vấn
+        public string? Experience { get; set; }          // Kinh nghiệm
+        public string? Philosophy { get; set; }          // Triết lý giáo dục
+        public string? Specialty { get; set; }           // Chuyên môn chính
+        public bool ShowOnLanding { get; set; } = false; // Hiển thị ra trang chủ
+
         public Account Account { get; set; }
         public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
         public ICollection<WorkAttendance> WorkAttendances { get; set; } = new List<WorkAttendance>();

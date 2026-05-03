@@ -1,0 +1,508 @@
+@{
+    ViewData["Title"] = "Nhật ký lớp học";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Nhật ký Lớp học</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Ghi nhận hoạt động và sức khỏe học sinh hàng ngày</p>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <select id="classSelector" class="form-select" style="min-width:180px;">
+            <option value="">-- Chọn lớp --</option>
+        </select>
+        <input type="date" id="reportDate" class="form-input" style="width:160px;" />
+        <button class="btn btn-primary" onclick="loadClassData()">
+            <i class="fa-solid fa-rotate-right"></i> Tải dữ liệu
+        </button>
+    </div>
+</div>
+
+<div id="pageAlert" class="page-alert" style="display:none;"></div>
+
+<!-- Quick Actions + Progress Bar -->
+<div class="card" id="quickActionsBar" style="display:none; padding:12px 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span style="font-size:0.82rem; color:var(--text-muted); font-weight:600;">
+                <i class="fa-solid fa-bolt" style="color:var(--warning);"></i> Thao tác nhanh:
+            </span>
+            <button class="btn btn-outline" style="font-size:0.82rem; padding:5px 14px;" onclick="batchSetEating(0)">😋 Tất cả ăn tốt</button>
+            <button class="btn btn-outline" style="font-size:0.82rem; padding:5px 14px;" onclick="batchSetSleeping(0)">💤 Tất cả ngủ tốt</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span id="progressText" style="font-size:0.82rem; color:var(--text-muted);">Tiến độ: 0/0</span>
+            <div style="width:120px; height:6px; background:var(--border); border-radius:3px; overflow:hidden;">
+                <div id="progressBar" style="height:100%; width:0%; background:var(--primary); transition:width 0.4s;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Table -->
+<div class="card" id="studentTableCard" style="display:none; margin-top:0; padding:0; overflow:hidden;">
+    <div class="table-container">
+        <table id="studentTable">
+            <thead>
+                <tr>
+                    <th style="width:40px;">#</th>
+                    <th>Học sinh</th>
+                    <th style="width:160px;">Dị ứng</th>
+                    <th style="width:90px; text-align:center;">Ăn uống</th>
+                    <th style="width:90px; text-align:center;">Ngủ nghỉ</th>
+                    <th style="width:90px; text-align:center;">Nhiệt độ</th>
+                    <th style="width:120px; text-align:center;">Trạng thái</th>
+                    <th style="width:80px;"></th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Empty state -->
+<div id="emptyState" style="text-align:center; padding:60px 20px; display:none;">
+    <div style="font-size:3rem; margin-bottom:16px;">📋</div>
+    <h3 style="color:var(--text-muted);">Chọn lớp học và ngày để bắt đầu</h3>
+    <p style="color:var(--text-muted); font-size:0.88rem;">Dữ liệu nhật ký sẽ hiển thị tại đây</p>
+</div>
+
+<!-- Inline Edit Form -->
+<div class="card" id="editCard" style="margin-top:16px; display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3 id="editCardTitle" style="margin:0;">Ghi nhật ký</h3>
+        <button class="btn btn-outline" onclick="closeEditForm()" style="font-size:0.8rem; padding:5px 14px;">&#10005; Đóng</button>
+    </div>
+
+    <input type="hidden" id="editStudentId" />
+    <input type="hidden" id="editReportId" value="0" />
+    <input type="hidden" id="editClassId" />
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+        <!-- Left: Activity -->
+        <div>
+            <p style="font-size:0.78rem; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:16px;">
+                Hoạt động trong ngày
+            </p>
+            <div class="form-group">
+                <label class="form-label">Ăn uống</label>
+                <div class="emoji-group" id="eatingGroup">
+                    <button type="button" class="emoji-btn" data-val="0" title="Ăn rất tốt">😋</button>
+                    <button type="button" class="emoji-btn" data-val="1" title="Ăn bình thường">🙂</button>
+                    <button type="button" class="emoji-btn" data-val="2" title="Ăn kém">😟</button>
+                </div>
+                <input type="text" id="eatingNote" class="form-input" placeholder="Ghi chú ăn uống..." style="margin-top:8px;" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ngủ nghỉ</label>
+                <div class="emoji-group" id="sleepingGroup">
+                    <button type="button" class="emoji-btn" data-val="0" title="Ngủ rất tốt">💤</button>
+                    <button type="button" class="emoji-btn" data-val="1" title="Ngủ bình thường">🥱</button>
+                    <button type="button" class="emoji-btn" data-val="2" title="Ngủ kém">😫</button>
+                    <button type="button" class="emoji-btn" data-val="3" title="Không ngủ">❌</button>
+                </div>
+                <input type="text" id="sleepingNote" class="form-input" placeholder="Ghi chú giấc ngủ..." style="margin-top:8px;" />
+            </div>
+        </div>
+
+        <!-- Right: Health -->
+        <div>
+            <p style="font-size:0.78rem; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:16px;">
+                Sức khỏe & Tâm trạng
+            </p>
+            <div class="form-group">
+                <label class="form-label">Nhiệt độ cơ thể (°C)</label>
+                <input type="number" step="0.1" id="temperature" class="form-input" placeholder="36.5" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tâm trạng</label>
+                <input type="text" id="moodNote" class="form-input" placeholder="Ví dụ: Vui vẻ, hay quấy khóc..." />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ghi chú khác</label>
+                <textarea id="activityNote" class="form-input" rows="2" placeholder="Hoạt động nổi bật trong ngày..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:8px;">
+        <button class="btn btn-primary" onclick="saveReport()">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu nhật ký
+        </button>
+        <button class="btn btn-outline" onclick="closeEditForm()">Hủy</button>
+    </div>
+</div>
+
+@section Styles {
+<style>
+    .emoji-group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .emoji-btn {
+        font-size: 1.6rem;
+        padding: 8px 14px;
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        background: var(--bg-body);
+        cursor: pointer;
+        transition: all 0.2s;
+        line-height: 1;
+    }
+    .emoji-btn:hover {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+        transform: scale(1.08);
+    }
+    .emoji-btn.active {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 233, 30, 99), 0.15);
+    }
+    .student-name-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .student-avatar-sm {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--border);
+        flex-shrink: 0;
+    }
+    .allergy-tag {
+        display: inline-block;
+        background: #fff3e0;
+        color: #e65100;
+        border-radius: 4px;
+        padding: 2px 7px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        margin: 1px;
+    }
+    .status-emoji {
+        font-size: 1.3rem;
+        text-align: center;
+    }
+    .temp-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        background: var(--bg-body);
+        border: 1px solid var(--border);
+    }
+    .temp-badge.fever {
+        background: #fff0f0;
+        color: var(--danger);
+        border-color: var(--danger);
+    }
+    .done-badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .done-badge.done { background: #e8f5e9; color: #2e7d32; }
+    .done-badge.pending { background: var(--bg-body); color: var(--text-muted); border: 1px solid var(--border); }
+
+    @@media (max-width: 768px) {
+        .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+        #editCard > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+        .emoji-btn { font-size: 1.3rem; padding: 6px 10px; }
+    }
+</style>
+}
+
+@section Scripts {
+<script>
+    let currentClassId = 0;
+    let allStudents = [];
+    let allReports = [];
+    let allHealth = [];
+
+    const EATING_EMOJI = ['😋', '🙂', '😟'];
+    const SLEEPING_EMOJI = ['💤', '🥱', '😫', '❌'];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Set today's date
+        const today = new Date();
+        document.getElementById('reportDate').value = localDateStr(today);
+
+        await loadMyClasses();
+        showEmptyState();
+
+        document.getElementById('classSelector').addEventListener('change', function () {
+            currentClassId = parseInt(this.value) || 0;
+            if (currentClassId) loadClassData();
+            else showEmptyState();
+        });
+        document.getElementById('reportDate').addEventListener('change', () => {
+            if (currentClassId) loadClassData();
+        });
+
+        setupEmojiGroup('eatingGroup');
+        setupEmojiGroup('sleepingGroup');
+    });
+
+    function localDateStr(d) {
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    async function loadMyClasses() {
+        try {
+            const resp = await fetch('/DailyReport/GetMyClasses');
+            const classes = await resp.json();
+            const sel = document.getElementById('classSelector');
+            if (classes.length === 0) {
+                sel.innerHTML = '<option value="">Không có lớp được phân công</option>';
+                return;
+            }
+            classes.forEach(c => {
+                sel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
+            currentClassId = parseInt(classes[0].id);
+            sel.value = currentClassId;
+            await loadClassData();
+        } catch (e) {
+            console.error('Error loading classes', e);
+        }
+    }
+
+    async function loadClassData() {
+        if (!currentClassId) return;
+        const date = document.getElementById('reportDate').value;
+        try {
+            const resp = await fetch(`/DailyReport/GetClassDailyData?classId=${currentClassId}&date=${date}`);
+            const data = await resp.json();
+            allStudents = data.students || [];
+            allReports = data.reports || [];
+            allHealth = data.healthRecords || [];
+            renderTable();
+        } catch (e) {
+            if (window.showToast) window.showToast('Lỗi', 'Không thể tải dữ liệu lớp.', 'error');
+        }
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('studentTableBody');
+        tbody.innerHTML = '';
+
+        if (allStudents.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted" style="padding:32px;">Lớp này chưa có học sinh.</td></tr>`;
+            document.getElementById('quickActionsBar').style.display = 'none';
+            document.getElementById('studentTableCard').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('quickActionsBar').style.display = 'block';
+        document.getElementById('studentTableCard').style.display = 'block';
+        document.getElementById('emptyState').style.display = 'none';
+
+        allStudents.forEach((s, i) => {
+            const report = allReports.find(r => r.studentId === s.id);
+            const health = allHealth.find(h => h.studentId === s.id);
+            const temp = health ? health.temperature : null;
+            const isFever = temp && temp >= 37.5;
+            const allergies = s.allergies
+                ? s.allergies.split(',').map(a => `<span class="allergy-tag">${a.trim()}</span>`).join('')
+                : '<span style="color:var(--text-muted); font-size:0.8rem;">--</span>';
+
+            tbody.innerHTML += `
+                <tr id="row-${s.id}">
+                    <td style="color:var(--text-muted); font-size:0.8rem;">${i+1}</td>
+                    <td>
+                        <div class="student-name-cell">
+                            <img src="${s.avatarPath || '/images/lion_orange.png'}" class="student-avatar-sm" onerror="this.src='/images/lion_orange.png'" />
+                            <div>
+                                <div style="font-weight:600; font-size:0.9rem;">${s.lastName} ${s.firstName}</div>
+                                ${s.allergies ? '<div style="font-size:0.72rem; color:var(--danger);">⚠ Có dị ứng</div>' : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td>${allergies}</td>
+                    <td class="status-emoji">${report ? EATING_EMOJI[report.eatingStatus] || '?' : '<span style="color:var(--border);">--</span>'}</td>
+                    <td class="status-emoji">${report ? SLEEPING_EMOJI[report.sleepingStatus] || '?' : '<span style="color:var(--border);">--</span>'}</td>
+                    <td style="text-align:center;">
+                        ${temp
+                            ? `<span class="temp-badge ${isFever ? 'fever' : ''}">${temp}°C</span>`
+                            : `<span style="color:var(--border);">--</span>`
+                        }
+                    </td>
+                    <td style="text-align:center;">
+                        <span class="done-badge ${report ? 'done' : 'pending'}">${report ? '✓ Đã ghi' : 'Chưa ghi'}</span>
+                    </td>
+                    <td>
+                        <button class="btn-table" onclick="openEditForm(${s.id})">Ghi nhật ký</button>
+                    </td>
+                </tr>`;
+        });
+
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const done = allReports.length;
+        const total = allStudents.length;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        document.getElementById('progressText').textContent = `Tiến độ: ${done}/${total}`;
+        document.getElementById('progressBar').style.width = pct + '%';
+    }
+
+    function openEditForm(studentId) {
+        const s = allStudents.find(x => x.id === studentId);
+        if (!s) return;
+        const report = allReports.find(r => r.studentId === studentId);
+        const health = allHealth.find(h => h.studentId === studentId);
+
+        document.getElementById('editStudentId').value = studentId;
+        document.getElementById('editReportId').value = report?.id || 0;
+        document.getElementById('editClassId').value = currentClassId;
+        document.getElementById('editCardTitle').textContent = `Nhật ký bé: ${s.lastName} ${s.firstName}`;
+
+        // Fill eating
+        setActiveEmoji('eatingGroup', report?.eatingStatus ?? 0);
+        document.getElementById('eatingNote').value = report?.eatingNote || '';
+
+        // Fill sleeping
+        setActiveEmoji('sleepingGroup', report?.sleepingStatus ?? 0);
+        document.getElementById('sleepingNote').value = report?.sleepingNote || '';
+
+        // Fill health
+        document.getElementById('temperature').value = health?.temperature || '';
+        document.getElementById('moodNote').value = report?.moodNote || '';
+        document.getElementById('activityNote').value = report?.activityNote || '';
+
+        // Show form and scroll
+        document.getElementById('editCard').style.display = 'block';
+        document.getElementById('editCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Highlight row
+        document.querySelectorAll('tr.selected-row').forEach(r => r.classList.remove('selected-row'));
+        const row = document.getElementById(`row-${studentId}`);
+        if (row) row.style.background = 'var(--primary-soft)';
+    }
+
+    function closeEditForm() {
+        document.getElementById('editCard').style.display = 'none';
+        document.querySelectorAll('#studentTable tbody tr').forEach(r => r.style.background = '');
+    }
+
+    async function saveReport() {
+        const studentId = parseInt(document.getElementById('editStudentId').value);
+        const date = document.getElementById('reportDate').value;
+        const temp = parseFloat(document.getElementById('temperature').value);
+
+        const dto = {
+            reportId: parseInt(document.getElementById('editReportId').value) || 0,
+            studentId: studentId,
+            classId: parseInt(document.getElementById('editClassId').value),
+            date: date,
+            eatingStatus: getActiveEmoji('eatingGroup'),
+            eatingNote: document.getElementById('eatingNote').value.trim(),
+            sleepingStatus: getActiveEmoji('sleepingGroup'),
+            sleepingNote: document.getElementById('sleepingNote').value.trim(),
+            moodNote: document.getElementById('moodNote').value.trim(),
+            activityNote: document.getElementById('activityNote').value.trim(),
+            temperature: isNaN(temp) ? null : temp
+        };
+
+        try {
+            const resp = await fetch('/DailyReport/SaveStudentReport', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dto)
+            });
+            const result = await resp.json();
+            if (result.success) {
+                if (window.showToast) window.showToast('Thành công', 'Đã lưu nhật ký!', 'success');
+                closeEditForm();
+                await loadClassData();
+            } else {
+                if (window.showToast) window.showToast('Lỗi', 'Lưu thất bại, vui lòng thử lại.', 'error');
+            }
+        } catch (e) {
+            if (window.showToast) window.showToast('Lỗi', 'Lỗi kết nối máy chủ.', 'error');
+        }
+    }
+
+    // ── Batch actions ──────────────────────────────────────────────
+    async function batchSetEating(status) {
+        const date = document.getElementById('reportDate').value;
+        const promises = allStudents.map(s => {
+            const report = allReports.find(r => r.studentId === s.id);
+            return fetch('/DailyReport/SaveStudentReport', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    reportId: report?.id || 0,
+                    studentId: s.id, classId: currentClassId, date,
+                    eatingStatus: status, eatingNote: report?.eatingNote || '',
+                    sleepingStatus: report?.sleepingStatus || 0, sleepingNote: report?.sleepingNote || '',
+                    moodNote: report?.moodNote || '', activityNote: report?.activityNote || ''
+                })
+            });
+        });
+        await Promise.all(promises);
+        if (window.showToast) window.showToast('Thành công', 'Đã cập nhật tất cả!', 'success');
+        await loadClassData();
+    }
+
+    async function batchSetSleeping(status) {
+        const date = document.getElementById('reportDate').value;
+        const promises = allStudents.map(s => {
+            const report = allReports.find(r => r.studentId === s.id);
+            return fetch('/DailyReport/SaveStudentReport', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    reportId: report?.id || 0,
+                    studentId: s.id, classId: currentClassId, date,
+                    eatingStatus: report?.eatingStatus || 0, eatingNote: report?.eatingNote || '',
+                    sleepingStatus: status, sleepingNote: report?.sleepingNote || '',
+                    moodNote: report?.moodNote || '', activityNote: report?.activityNote || ''
+                })
+            });
+        });
+        await Promise.all(promises);
+        if (window.showToast) window.showToast('Thành công', 'Đã cập nhật tất cả!', 'success');
+        await loadClassData();
+    }
+
+    // ── Emoji helpers ──────────────────────────────────────────────
+    function setupEmojiGroup(groupId) {
+        const btns = document.getElementById(groupId).querySelectorAll('.emoji-btn');
+        btns.forEach(btn => {
+            btn.onclick = () => {
+                btns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            };
+        });
+    }
+
+    function setActiveEmoji(groupId, val) {
+        const btns = document.getElementById(groupId).querySelectorAll('.emoji-btn');
+        btns.forEach(b => b.classList.remove('active'));
+        btns.forEach(b => { if (parseInt(b.dataset.val) === val) b.classList.add('active'); });
+    }
+
+    function getActiveEmoji(groupId) {
+        const active = document.getElementById(groupId).querySelector('.emoji-btn.active');
+        return active ? parseInt(active.dataset.val) : 0;
+    }
+
+    function showEmptyState() {
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('quickActionsBar').style.display = 'none';
+        document.getElementById('studentTableCard').style.display = 'none';
+        document.getElementById('editCard').style.display = 'none';
+    }
+</script>
+}

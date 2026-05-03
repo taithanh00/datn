@@ -202,6 +202,14 @@ async function openEditPanel(teacherId) {
     document.getElementById("baseSalary").value = data.baseSalary || "";
     document.getElementById("avatarPreview").src =
       data.avatarPath || "/images/lion_blue.png";
+    
+    // Landing Page Fields
+    document.getElementById("specialty").value = data.specialty || "";
+    document.getElementById("bio").value = data.bio || "";
+    document.getElementById("qualifications").value = data.qualifications || "";
+    document.getElementById("experience").value = data.experience || "";
+    document.getElementById("philosophy").value = data.philosophy || "";
+    document.getElementById("showOnLanding").checked = data.showOnLanding || false;
 
     // Đổi nút theo trạng thái isActive
     const deleteBtn = document.getElementById("deleteTeacherBtn");
@@ -297,6 +305,14 @@ async function handleFormSubmit(e) {
   formData.append("Phone", document.getElementById("phone").value);
   formData.append("Position", document.getElementById("position").value);
   formData.append("BaseSalary", document.getElementById("baseSalary").value);
+
+  // Landing Page Fields
+  formData.append("Specialty", document.getElementById("specialty").value);
+  formData.append("Bio", document.getElementById("bio").value);
+  formData.append("Qualifications", document.getElementById("qualifications").value);
+  formData.append("Experience", document.getElementById("experience").value);
+  formData.append("Philosophy", document.getElementById("philosophy").value);
+  formData.append("ShowOnLanding", document.getElementById("showOnLanding").checked);
 
   if (!isEditMode) {
     formData.append("Username", document.getElementById("username").value);

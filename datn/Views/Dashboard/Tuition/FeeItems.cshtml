@@ -1,0 +1,109 @@
+@{
+    ViewData["Title"] = "Danh mục Khoản thu";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Danh mục Khoản thu</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Quản lý các loại phí dịch vụ, học phí và các khoản thu khác</p>
+    </div>
+    <div class="page-actions">
+        <a href="/Tuition" class="btn btn-outline" style="border-color: var(--border-focus);">
+            <i class="fa-solid fa-arrow-left"></i> Quay lại
+        </a>
+        <button class="btn btn-primary" onclick="showCreateFeeModal()">
+            <i class="fa-solid fa-plus"></i> Thêm khoản thu mới
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div id="feeAlert" style="display:none; margin-bottom: 20px;"></div>
+    
+    <div class="table-container">
+        <table id="feeItemsTable">
+            <thead>
+                <tr>
+                    <th style="padding-left: 24px;">Tên khoản thu</th>
+                    <th>Áp dụng tuổi</th>
+                    <th>Số tiền mặc định</th>
+                    <th>Tính chất</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end" style="padding-right: 24px;">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="feeItemsTableBody">
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 text-muted">Đang tải dữ liệu...</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Create/Edit Fee Item -->
+<div class="modal-overlay" id="feeModalOverlay">
+    <div class="modal-card" style="width: 520px; max-width: 95vw; border-radius: var(--radius-lg);">
+        <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px;">
+            <div class="modal-title" id="modalTitle" style="font-weight: 700; color: var(--text-main);">Thêm khoản thu mới</div>
+            <button class="modal-close" onclick="closeFeeModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <form id="feeItemForm">
+            <input type="hidden" id="feeItemId" />
+            
+            <div class="form-group mb-4">
+                <label class="form-label">Tên khoản thu <span class="text-danger">*</span></label>
+                <input type="text" id="feeName" class="form-input" placeholder="VD: Học phí chính quy" required>
+            </div>
+
+            <div class="form-group mb-4">
+                <label class="form-label">Áp dụng cho lứa tuổi</label>
+                <select id="feeAgeRange" class="form-select">
+                    <option value="">-- Tất cả độ tuổi (Dịch vụ chung) --</option>
+                    <option value="2-3">2 - 3 tuổi</option>
+                    <option value="3-4">3 - 4 tuổi</option>
+                    <option value="4-5">4 - 5 tuổi</option>
+                    <option value="5-6">5 - 6 tuổi</option>
+                </select>
+                <small class="text-muted" style="display: block; margin-top: 6px;">Chọn nếu đây là khoản học phí chính quy theo lứa tuổi.</small>
+            </div>
+
+            <div class="form-group mb-4">
+                <label class="form-label">Số tiền mặc định (VNĐ) <span class="text-danger">*</span></label>
+                <input type="number" id="feeAmount" class="form-input" placeholder="VD: 2.000.000" required>
+            </div>
+
+            <div class="form-group mb-4">
+                <label class="form-label">Mô tả chi tiết</label>
+                <textarea id="feeDescription" class="form-input" rows="3" placeholder="Thông tin chi tiết về khoản thu..."></textarea>
+            </div>
+
+            <div class="form-group mb-4" style="display: flex; gap: 24px; padding: 12px 16px; background: var(--bg-main); border-radius: var(--radius-md);">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600;">
+                    <input type="checkbox" id="feeIsRequired" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                    <span>Bắt buộc</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600;">
+                    <input type="checkbox" id="feeIsActive" checked style="width: 18px; height: 18px; accent-color: var(--success);">
+                    <span>Hoạt động</span>
+                </label>
+            </div>
+
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <button type="button" class="btn btn-outline" onclick="closeFeeModal()">Hủy bỏ</button>
+                <button type="button" class="btn btn-primary" onclick="saveFeeItem()" style="padding-left: 24px; padding-right: 24px;">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu khoản thu
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/fee-items.js" asp-append-version="true"></script>
+}

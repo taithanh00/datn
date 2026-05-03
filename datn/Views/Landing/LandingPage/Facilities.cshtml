@@ -1,0 +1,106 @@
+@{
+    Layout = "~/Views/Common/Shared/_LandingLayout.cshtml";
+    ViewData["Title"] = "Cơ sở vật chất - SenHồng";
+}
+
+<!-- Hero Facilities -->
+<section class="p-10" style="background: linear-gradient(135deg, #fff5f8 0%, #fdf2f8 100%); padding-top: 160px; padding-bottom: 80px;">
+    <div class="container text-center">
+        <h1 class="hero-title" style="font-size: 3.5rem; margin-bottom: 24px;">Không gian <span>Sáng tạo</span></h1>
+        <p class="section-subtitle">Hệ thống cơ sở vật chất hiện đại, an toàn và thân thiện, tạo điều kiện tối ưu cho sự phát triển toàn diện của trẻ.</p>
+    </div>
+</section>
+
+<!-- Main Facilities Grid -->
+<section class="p-10">
+    <div class="container">
+        <!-- Classroom -->
+        <div class="flex items-center gap-4" style="flex-wrap: wrap; margin-bottom: 120px;">
+            <div style="flex: 1; min-width: 350px;">
+                <div style="position: relative;">
+                    <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+                         alt="Lớp học" style="width: 100%; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);" />
+                    <div style="position: absolute; top: 20px; left: 20px; background: var(--primary); color: white; padding: 10px 25px; border-radius: 20px; font-weight: 800; font-size: 1.1rem; box-shadow: 0 10px 20px rgba(233,30,99,0.3);">Lớp học thông minh</div>
+                </div>
+            </div>
+            <div style="flex: 1; min-width: 350px; padding: 20px;">
+                <h2 style="font-size: 2.5rem; color: var(--text-main); margin-bottom: 20px;">Không gian học tập chuẩn quốc tế</h2>
+                <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 24px;">
+                    Các lớp học tại SenHồng được thiết kế theo tiêu chuẩn Montessori với ánh sáng tự nhiên ngập tràn. Mỗi phòng học đều được trang bị đầy đủ giáo cụ trực quan sinh động, bảng tương tác thông minh và hệ thống điều hòa lọc không khí hiện đại.
+                </p>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-circle-check" style="color: var(--primary);"></i>
+                        <span style="font-weight: 600;">Diện tích 60m²/lớp, tối đa 20 trẻ.</span>
+                    </li>
+                    <li style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-circle-check" style="color: var(--primary);"></i>
+                        <span style="font-weight: 600;">Sàn gỗ tự nhiên, chống trơn trượt.</span>
+                    </li>
+                    <li style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-circle-check" style="color: var(--primary);"></i>
+                        <span style="font-weight: 600;">Hệ thống camera giám sát 24/7 cho phụ huynh.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Playground -->
+        <div class="flex items-center gap-4" style="flex-wrap: wrap-reverse; margin-bottom: 120px;">
+            <div style="flex: 1; min-width: 350px; padding: 20px;">
+                <h2 style="font-size: 2.5rem; color: var(--text-main); margin-bottom: 20px;">Sân chơi ngoài trời năng động</h2>
+                <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 24px;">
+                    Khu vui chơi rộng lớn với cỏ nhân tạo cao cấp và các trò chơi vận động liên hoàn giúp trẻ phát triển thể chất vượt trội. Chúng tôi ưu tiên các trò chơi gắn liền với thiên nhiên để khơi gợi trí tò mò của trẻ.
+                </p>
+                <div class="grid grid-2" style="gap: 15px;">
+                    <div style="background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.03);">
+                        <i class="fa-solid fa-tree" style="font-size: 1.5rem; color: #10b981; margin-bottom: 10px;"></i>
+                        <h4 style="margin: 0;">Vườn rau xanh</h4>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.03);">
+                        <i class="fa-solid fa-water" style="font-size: 1.5rem; color: #0ea5e9; margin-bottom: 10px;"></i>
+                        <h4 style="margin: 0;">Bể vầy mini</h4>
+                    </div>
+                </div>
+            </div>
+            <div style="flex: 1; min-width: 350px;">
+                <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+                     alt="Sân chơi" style="width: 100%; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);" />
+            </div>
+        </div>
+
+        <!-- Specialized Rooms -->
+        <div class="grid grid-3" style="gap: 30px;">
+            <div class="program-card" style="padding: 0; overflow: hidden; text-align: left;">
+                <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Library" style="width: 100%; height: 200px; object-fit: cover;" />
+                <div style="padding: 24px;">
+                    <h3 style="color: var(--primary);">Thư viện SenHồng</h3>
+                    <p class="text-muted">Hơn 1000 đầu sách thiếu nhi song ngữ chất lượng cao.</p>
+                </div>
+            </div>
+            <div class="program-card" style="padding: 0; overflow: hidden; text-align: left;">
+                <img src="https://images.unsplash.com/photo-1547592166-23ac45744acd?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Dining" style="width: 100%; height: 200px; object-fit: cover;" />
+                <div style="padding: 24px;">
+                    <h3 style="color: var(--primary);">Bếp ăn 1 chiều</h3>
+                    <p class="text-muted">Đạt tiêu chuẩn HACCP về vệ sinh an toàn thực phẩm.</p>
+                </div>
+            </div>
+            <div class="program-card" style="padding: 0; overflow: hidden; text-align: left;">
+                <img src="https://images.unsplash.com/photo-1505751172107-573225a94291?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Medical" style="width: 100%; height: 200px; object-fit: cover;" />
+                <div style="padding: 24px;">
+                    <h3 style="color: var(--primary);">Phòng y tế</h3>
+                    <p class="text-muted">Trang bị đầy đủ thiết bị sơ cứu và thuốc thiết yếu.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="p-10" style="background: #fff5f8; text-align: center;">
+    <div class="container">
+        <h2 style="font-size: 2.5rem; margin-bottom: 20px;">Hãy đến và trải nghiệm trực tiếp!</h2>
+        <p style="font-size: 1.2rem; margin-bottom: 40px; color: var(--text-secondary);">SenHồng luôn mở cửa đón chào quý phụ huynh tham quan vào các ngày trong tuần.</p>
+        <a href="/LandingPage/Index#contact" class="btn btn-primary" style="padding: 16px 50px; font-size: 1.1rem; border-radius: 50px;">Đăng ký tham quan</a>
+    </div>
+</section>

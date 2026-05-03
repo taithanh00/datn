@@ -879,7 +879,13 @@ namespace datn.Controllers
                     position = teacher.Position,
                     baseSalary = teacher.BaseSalary,
                     avatarPath = teacher.AvatarPath,
-                    isActive = teacher.Account?.IsActive ?? true 
+                    isActive = teacher.Account?.IsActive ?? true,
+                    bio = teacher.Bio,
+                    qualifications = teacher.Qualifications,
+                    experience = teacher.Experience,
+                    philosophy = teacher.Philosophy,
+                    specialty = teacher.Specialty,
+                    showOnLanding = teacher.ShowOnLanding
                 }
             });
         }
@@ -934,7 +940,13 @@ namespace datn.Controllers
                     FullName = model.FullName,
                     Phone = model.Phone,
                     Position = model.Position,
-                    BaseSalary = model.BaseSalary
+                    BaseSalary = model.BaseSalary,
+                    Bio = model.Bio,
+                    Qualifications = model.Qualifications,
+                    Experience = model.Experience,
+                    Philosophy = model.Philosophy,
+                    Specialty = model.Specialty,
+                    ShowOnLanding = model.ShowOnLanding
                 };
                 if (model.Avatar != null) teacher.AvatarPath = await SaveAvatar(model.Avatar, "teacher");
 
@@ -974,6 +986,12 @@ namespace datn.Controllers
                 teacher.Phone = model.Phone;
                 teacher.Position = model.Position;
                 teacher.BaseSalary = model.BaseSalary;
+                teacher.Bio = model.Bio;
+                teacher.Qualifications = model.Qualifications;
+                teacher.Experience = model.Experience;
+                teacher.Philosophy = model.Philosophy;
+                teacher.Specialty = model.Specialty;
+                teacher.ShowOnLanding = model.ShowOnLanding;
                 
                 if (teacher.Account != null)
                 {
@@ -2029,6 +2047,12 @@ namespace datn.Controllers
         public string? Position { get; set; }
         public decimal? BaseSalary { get; set; }
         public IFormFile? Avatar { get; set; }
+        public string? Bio { get; set; }
+        public string? Qualifications { get; set; }
+        public string? Experience { get; set; }
+        public string? Philosophy { get; set; }
+        public string? Specialty { get; set; }
+        public bool ShowOnLanding { get; set; }
     }
 
     public class UpdateTeacherViewModel
@@ -2042,6 +2066,12 @@ namespace datn.Controllers
         public string? Position { get; set; }
         public decimal? BaseSalary { get; set; }
         public IFormFile? Avatar { get; set; }
+        public string? Bio { get; set; }
+        public string? Qualifications { get; set; }
+        public string? Experience { get; set; }
+        public string? Philosophy { get; set; }
+        public string? Specialty { get; set; }
+        public bool ShowOnLanding { get; set; }
     }
 
     public class SaveClassViewModel

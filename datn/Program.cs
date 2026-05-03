@@ -57,7 +57,7 @@ builder.Services.AddAuthentication(options =>
         OnChallenge = context =>
         {
             context.HandleResponse();
-            context.Response.Redirect("/Auth/Login");
+            context.Response.Redirect("/");
             return Task.CompletedTask;
         },
 
@@ -87,6 +87,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddControllersWithViews()
+    .AddRazorOptions(options =>
+    {
+        options.ViewLocationExpanders.Add(new datn.Data.CustomViewLocationExpander());
+    })
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
@@ -133,6 +137,8 @@ app.UseMiddleware<RefreshTokenMiddleware>();
 app.UseAuthorization();
 
 // Map route
-app.MapDefaultControllerRoute();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=LandingPage}/{action=Index}/{id?}");
 app.MapHub<RealtimeHub>("/hubs/realtime");
 app.Run();

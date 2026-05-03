@@ -363,6 +363,12 @@ namespace datn.Migrations
                     b.Property<decimal?>("BaseSalary")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Experience")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -370,10 +376,22 @@ namespace datn.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Philosophy")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Position")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Qualifications")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ShowOnLanding")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Specialty")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

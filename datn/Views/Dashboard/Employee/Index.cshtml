@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Bảng điều khiển";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="card stat-card">
+        <div class="flex items-center gap-2">
+            <div class="avatar" style="background:var(--primary);"><i class="fa-solid fa-users"></i></div>
+            <div><div class="stat-value" id="statClassSize">...</div><div class="stat-title" id="statClassName">Lớp phụ trách</div></div>
+        </div>
+    </div>
+    <div class="card stat-card">
+        <div class="flex items-center gap-2">
+            <div class="avatar" style="background:#F59E0B;"><i class="fa-solid fa-clock"></i></div>
+            <div><div class="stat-value" id="statCheckIn">...</div><div class="stat-title">Check-in hôm nay</div></div>
+        </div>
+    </div>
+    <div class="card stat-card">
+        <div class="flex items-center gap-2">
+            <div class="avatar" style="background:var(--success);"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+            <div><div class="stat-value" id="statLastSalary">...</div><div class="stat-title">Lương tháng trước</div></div>
+        </div>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+    <div class="card">
+        <div class="flex items-center justify-between mb-2">
+            <h3>Lịch dạy hôm nay</h3>
+            <span id="currentDate" class="text-muted" style="font-size:0.85rem;">...</span>
+        </div>
+        <div id="todaySchedule"><div class="text-muted text-center" style="padding:20px;">Đang tải...</div></div>
+    </div>
+    <div class="card">
+    <h3 class="mb-2">Phân loại học lực</h3>
+    <div style="position: relative; height: 300px;">
+        <canvas id="rankingChart"></canvas>
+    </div>
+</div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/employee-dashboard.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/js/pages/employee-dashboard.js" asp-append-version="true"></script>
+}

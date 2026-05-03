@@ -1,0 +1,63 @@
+@{
+    ViewData["Title"] = "Tổng quan";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+    var role = ViewBag.Role as string ?? "";
+}
+
+@if (role == "Manager")
+{
+    <div class="stats-grid">
+        <div class="card stat-card">
+            <div class="stat-title">Tổng học sinh</div>
+            <div class="stat-value" id="totalStudents">--</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-title">Giáo viên / Nhân viên</div>
+            <div class="stat-value" id="totalEmployees">--</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-title">Chấm công chờ duyệt</div>
+            <div class="stat-value text-warning" id="pendingAttendanceCount">0</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-title">Đơn nghỉ phép chờ duyệt</div>
+            <div class="stat-value text-primary" id="pendingLeaveCount">0</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom:16px;">Hoạt động hệ thống</h3>
+        <p id="managerRealtimeStatus" class="text-muted" style="font-size:0.85rem;">Đang kết nối realtime...</p>
+    </div>
+}
+
+@if (role == "Employee")
+{
+    <div class="stats-grid">
+        <div class="card stat-card">
+            <div class="stat-title">Lớp phụ trách</div>
+            <div class="stat-value" id="myClassCount">--</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-title">Trạng thái chấm công hôm nay</div>
+            <div class="stat-value" id="todayCheckStatus">Chưa check-in</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom:16px;">Chào mừng trở lại!</h3>
+        <p class="text-muted">Sử dụng menu bên trái để điểm danh, xem lịch dạy hoặc quản lý chấm công cá nhân.</p>
+    </div>
+}
+
+@if (role == "Parent")
+{
+    <div class="card">
+        <h3 style="margin-bottom:16px;">Xin chào, @ViewBag.FullName!</h3>
+        <p class="text-muted">Bạn có thể theo dõi thông tin học tập, chuyên cần và học phí của bé qua menu bên trái.</p>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/pages/home-index.js" asp-append-version="true"></script>
+}

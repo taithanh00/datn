@@ -1,0 +1,109 @@
+@{
+    Layout = "~/Views/Common/Shared/_LandingLayout.cshtml";
+    ViewData["Title"] = "Trang chủ";
+}
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container flex justify-between items-center">
+        <div class="hero-content">
+            <h1 class="hero-title">Nơi khởi đầu <span>Yêu thương</span> & Sáng tạo</h1>
+            <p class="hero-desc">Mầm non SenHồng kiến tạo môi trường giáo dục hạnh phúc, giúp bé tự tin khám phá thế giới và phát triển tiềm năng vô hạn.</p>
+            <div class="flex gap-4">
+                <a href="#contact" class="btn btn-primary">Tìm hiểu ngay</a>
+                <a href="#program" class="btn btn-outline">Xem chương trình</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <div class="image-blob">
+                <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Happy kids" />
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="p-10" style="background: var(--bg-white);">
+    <div class="container">
+        <div class="grid grid-3 text-center">
+            <div>
+                <h2 style="font-size: 3rem; color: var(--primary);">500+</h2>
+                <p class="text-muted">Học sinh tin tưởng</p>
+            </div>
+            <div>
+                <h2 style="font-size: 3rem; color: var(--primary);">50+</h2>
+                <p class="text-muted">Giáo viên tâm huyết</p>
+            </div>
+            <div>
+                <h2 style="font-size: 3rem; color: var(--primary);">10+</h2>
+                <p class="text-muted">Năm kinh nghiệm</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Programs -->
+<section id="program" class="p-10">
+    <div class="container text-center">
+        <h2 class="section-title">Chương trình giáo dục</h2>
+        <p class="section-subtitle">Chúng tôi thiết kế lộ trình phát triển toàn diện, kết hợp giữa phương pháp truyền thống và hiện đại.</p>
+        
+        <div class="grid grid-3">
+            <div class="program-card">
+                <div class="card-icon"><i class="fa-solid fa-palette"></i></div>
+                <h3 class="mb-2">Phát triển Năng khiếu</h3>
+                <p class="text-muted">Khơi dậy niềm đam mê nghệ thuật, âm nhạc và hội họa ngay từ nhỏ.</p>
+            </div>
+            <div class="program-card">
+                <div class="card-icon"><i class="fa-solid fa-brain"></i></div>
+                <h3 class="mb-2">Tư duy Logic</h3>
+                <p class="text-muted">Rèn luyện khả năng quan sát, phân tích thông qua các trò chơi trí tuệ.</p>
+            </div>
+            <div class="program-card">
+                <div class="card-icon"><i class="fa-solid fa-heart"></i></div>
+                <h3 class="mb-2">Kỹ năng Sống</h3>
+                <p class="text-muted">Xây dựng thói quen tự lập và bồi dưỡng lòng nhân ái cho bé.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Consultation Form -->
+<section id="contact" class="p-10" style="background: #fff5f8;">
+    <div class="container text-center">
+        <h2 class="section-title">Đăng ký tư vấn</h2>
+        <p class="section-subtitle">Để lại thông tin, đội ngũ tuyển sinh của SenHồng sẽ liên hệ với bạn trong vòng 24h.</p>
+        
+        <div class="consultation-form">
+            <form id="consultForm">
+                <div class="grid grid-2 gap-4" style="grid-template-columns: 1fr 1fr; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label>Tên của bạn</label>
+                        <input type="text" class="form-control" placeholder="Nhập họ tên" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Số điện thoại</label>
+                        <input type="tel" class="form-control" placeholder="0xxx xxx xxx" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email (nếu có)</label>
+                    <input type="email" class="form-control" placeholder="example@gmail.com" />
+                </div>
+                <div class="form-group">
+                    <label>Bé bao nhiêu tuổi?</label>
+                    <select class="form-control">
+                        <option>Dưới 2 tuổi</option>
+                        <option>2 - 4 tuổi</option>
+                        <option>Trên 4 tuổi</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Lời nhắn</label>
+                    <textarea class="form-control" rows="4" placeholder="Bạn quan tâm đến điều gì nhất?"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-full" style="padding: 16px;">Gửi thông tin ngay</button>
+            </form>
+        </div>
+    </div>
+</section>

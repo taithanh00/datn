@@ -384,7 +384,6 @@ D:\datn\datn\datn\obj\Debug\net10.0\compressed\kh6xtglmss-{0}-1sdv3e9tpy-1sdv3e9
 D:\datn\datn\datn\bin\Debug\net10.0\BouncyCastle.Cryptography.dll
 D:\datn\datn\datn\bin\Debug\net10.0\MailKit.dll
 D:\datn\datn\datn\bin\Debug\net10.0\MimeKit.dll
-D:\datn\datn\datn\obj\Debug\net10.0\compressed\r5yd36ebae-{0}-clvvcg1k96-clvvcg1k96.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\acvmzaf8vk-{0}-t5zzs1u3hy-t5zzs1u3hy.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\fn340qhe60-{0}-kpadmiwp2p-kpadmiwp2p.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\whwaxosmbb-{0}-ctqf9pney4-ctqf9pney4.gz
@@ -410,11 +409,14 @@ D:\datn\datn\datn\obj\Debug\net10.0\compressed\6aczbrnql9-{0}-c9golh9sk5-c9golh9
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\vps1ytfu77-{0}-b4e5hugorw-b4e5hugorw.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\znrdv8k3qn-{0}-rgbh2d6uqp-rgbh2d6uqp.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\gmg76wd3gf-{0}-4mnym1gsuh-4mnym1gsuh.gz
-D:\datn\datn\datn\obj\Debug\net10.0\compressed\gnj500cxoh-{0}-8qr7vb373s-8qr7vb373s.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\p7czzjm0al-{0}-u9pgp4x056-u9pgp4x056.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\bvy462mwqh-{0}-kcmrqjuxzm-kcmrqjuxzm.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\8atn58vwiv-{0}-befs6t03x7-befs6t03x7.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\jmwzi72gfx-{0}-fy8mi4l4rg-fy8mi4l4rg.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\7zyttg4qzf-{0}-ifnw5f0mkl-ifnw5f0mkl.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\8bq9t1oz7n-{0}-v539hts25r-v539hts25r.gz
+D:\datn\datn\datn\obj\Debug\net10.0\compressed\r5yd36ebae-{0}-ba88zlt1i0-ba88zlt1i0.gz
+D:\datn\datn\datn\obj\Debug\net10.0\compressed\3t1hmoof64-{0}-zbli8ypjcy-zbli8ypjcy.gz
+D:\datn\datn\datn\obj\Debug\net10.0\compressed\jbp14jxeti-{0}-jv7kqmk7dq-jv7kqmk7dq.gz
+D:\datn\datn\datn\obj\Debug\net10.0\compressed\gnj500cxoh-{0}-5bmv4nmju0-5bmv4nmju0.gz
 D:\datn\datn\datn\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

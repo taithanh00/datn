@@ -1,0 +1,96 @@
+@{
+    ViewData["Title"] = "Lớp của tôi";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="page-header flex justify-between items-center mb-4">
+    <div>
+        <h1 class="page-title">Lớp của tôi</h1>
+        <p class="text-muted mb-1" style="font-size:0.85rem;">Danh sách các lớp bạn đang phụ trách</p>
+    </div>
+</div>
+
+<div id="classesContainer" class="card-grid-animate">
+    <div class="p-10 text-center" style="grid-column: 1 / -1;">
+        <div class="spinner" style="margin: 0 auto 20px;"></div>
+        <p class="text-muted">Đang tải danh sách lớp học của bạn...</p>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/employee-dashboard.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            loadMyClasses();
+        });
+
+        async function loadMyClasses() {
+            try {
+                const response = await fetch('/Employee/Api/MyClasses');
+                const result = await response.json();
+                
+                const container = document.getElementById('classesContainer');
+                if (!container) return;
+                
+                if (result.success) {
+                    if (result.data.length === 0) {
+                        container.innerHTML = `
+                            <div style="grid-column: 1 / -1;" class="card">
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-info-circle"></i>
+                                    <p>Bạn chưa được phân công phụ trách lớp học nào.</p>
+                                </div>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    container.innerHTML = result.data.map((item, index) => `
+                        <div class="card class-card animate-card" style="animation-delay: ${index * 0.1}s">
+                            <div class="class-header">
+                                <div>
+                                    <span class="role-badge ${item.role === 'Chủ nhiệm' ? 'role-chu-nhiem' : 'role-giao-vien'}">
+                                        ${item.role}
+                                    </span>
+                                    <h3 class="class-title">${item.className}</h3>
+                                </div>
+                                <div class="class-icon-wrapper">
+                                    <i class="fa-solid fa-school"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="class-info">
+                                <div class="info-item">
+                                    <i class="fa-solid fa-users"></i>
+                                    <span>Sĩ số: <strong>${item.studentCount}</strong> học sinh</span>
+                                </div>
+                            </div>
+                            
+                            <div class="class-actions">
+                                <a href="/Employee/Attendance?classId=${item.classId}" class="btn btn-attendance" data-transition>
+                                    <i class="fa-solid fa-calendar-check"></i> Điểm danh ngay
+                                </a>
+                                <a href="/Employee/WorkSchedule?classId=${item.classId}" class="btn btn-view-list" data-transition>
+                                    <i class="fa-solid fa-list-ul"></i> Xem danh sách
+                                </a>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div style="grid-column: 1 / -1;" class="card">
+                            <div class="page-alert error">
+                                Lỗi: ${result.message}
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải danh sách lớp:", error);
+            }
+        }
+    </script>
+}

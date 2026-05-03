@@ -1,0 +1,75 @@
+@model IEnumerable<datn.Models.Employee>
+@{
+    Layout = "~/Views/Common/Shared/_LandingLayout.cshtml";
+    ViewData["Title"] = "Đội ngũ Giáo viên";
+}
+
+<section class="p-10" style="background: linear-gradient(135deg, #fff5f8 0%, #fdf2f8 100%); padding-top: 160px; padding-bottom: 80px;">
+    <div class="container text-center">
+        <h1 class="hero-title" style="font-size: 3.5rem; margin-bottom: 24px;">Đội ngũ <span>Giáo viên</span></h1>
+        <p class="section-subtitle">Gặp gỡ những người truyền lửa, những người mẹ thứ hai luôn đồng hành cùng sự phát triển của các em tại SenHồng.</p>
+    </div>
+</section>
+
+<section class="p-10">
+    <div class="container">
+        @if (!Model.Any())
+        {
+            <div class="text-center p-10">
+                <div style="font-size: 4rem; color: #cbd5e1; margin-bottom: 20px;">
+                    <i class="fa-solid fa-user-group"></i>
+                </div>
+                <h3>Thông tin đang được cập nhật</h3>
+                <p class="text-muted">Chúng tôi đang hoàn thiện hồ sơ các thầy cô để gửi tới quý phụ huynh sớm nhất.</p>
+            </div>
+        }
+        else
+        {
+            <div class="grid grid-3">
+                @foreach (var teacher in Model)
+                {
+                    <div class="program-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="position: relative; height: 300px; overflow: hidden;">
+                            <img src="@(string.IsNullOrEmpty(teacher.AvatarPath) ? "/images/lion_blue.png" : teacher.AvatarPath)" 
+                                 alt="@teacher.FullName" 
+                                 style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" 
+                                 onmouseover="this.style.transform='scale(1.1)'" 
+                                 onmouseout="this.style.transform='scale(1)'" />
+                            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(233,30,99,0.9), transparent); padding: 20px; color: white;">
+                                <h3 style="margin: 0; font-size: 1.25rem;">@teacher.FullName</h3>
+                                <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">@teacher.Specialty</p>
+                            </div>
+                        </div>
+                        <div style="padding: 24px; flex-grow: 1; text-align: left;">
+                            <div style="margin-bottom: 16px;">
+                                <span style="background: var(--primary-light); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">
+                                    <i class="fa-solid fa-graduation-cap"></i> @teacher.Qualifications
+                                </span>
+                                <span style="background: #f1f5f9; color: #475569; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; margin-left: 8px;">
+                                    <i class="fa-solid fa-briefcase"></i> @teacher.Experience
+                                </span>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
+                                "@teacher.Bio"
+                            </p>
+                            <div style="border-top: 1px dashed #e2e8f0; padding-top: 15px;">
+                                <p style="font-size: 0.85rem; font-style: italic; color: var(--primary);">
+                                    <strong>Triết lý:</strong> @teacher.Philosophy
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="p-10" style="background: var(--primary); color: white; text-align: center;">
+    <div class="container">
+        <h2 style="font-size: 2.5rem; margin-bottom: 20px;">Bạn muốn trò chuyện cùng các giáo viên?</h2>
+        <p style="font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9;">Đăng ký tham quan trường để trực tiếp trải nghiệm môi trường giáo dục và gặp gỡ đội ngũ của chúng tôi.</p>
+        <a href="/LandingPage/Index#contact" class="btn" style="background: white; color: var(--primary); padding: 16px 40px; font-weight: 800; font-size: 1.1rem; border-radius: 50px;">Đăng ký ngay</a>
+    </div>
+</section>

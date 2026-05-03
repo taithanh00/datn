@@ -5,3 +5,205 @@
 .timeline-subject { font-weight: 700; color: var(--text-main); font-size: 0.95rem; }
 .timeline-topic { font-size: 0.85rem; color: var(--primary); margin: 4px 0; font-style: italic; }
 .timeline-class { font-size: 0.8rem; color: var(--text-muted); }
+
+/* Layout & Utility Helpers (Vanilla CSS) */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.gap-1 { gap: 8px; }
+.gap-2 { gap: 12px; }
+.gap-3 { gap: 16px; }
+.gap-4 { gap: 24px; }
+.w-full { width: 100%; }
+.text-center { text-align: center; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 12px; }
+.mb-3 { margin-bottom: 16px; }
+.mb-4 { margin-bottom: 24px; }
+.mt-2 { margin-top: 12px; }
+.p-4 { padding: 20px; }
+.p-10 { padding: 60px; }
+
+/* Premium Class Card Styles */
+.class-card {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-soft, #eef2f6);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 24px;
+    border-radius: 20px;
+}
+
+.class-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-soft);
+}
+
+.class-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 0;
+    background: var(--primary);
+    transition: height 0.3s ease;
+}
+
+.class-card:hover::before {
+    height: 100%;
+}
+
+.class-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.class-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--primary-light, #e0e7ff) 0%, #f0f4ff 100%);
+    color: var(--primary, #6366f1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.1);
+}
+
+.class-card:hover .class-icon-wrapper {
+    transform: rotate(-5deg) scale(1.1);
+}
+
+.role-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.role-chu-nhiem {
+    background: #FFEDD5;
+    color: #EA580C;
+    border: 1px solid #FED7AA;
+}
+
+.role-giao-vien {
+    background: #DBEAFE;
+    color: #2563EB;
+    border: 1px solid #BFDBFE;
+}
+
+.class-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 8px 0 4px 0;
+}
+
+.class-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.info-item i {
+    color: var(--primary);
+    opacity: 0.7;
+}
+
+.class-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.btn-attendance {
+    background: linear-gradient(135deg, #FF4D8D 0%, #FF2E74 100%);
+    color: white;
+    padding: 14px;
+    border-radius: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(255, 46, 116, 0.3);
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-attendance:hover {
+    box-shadow: 0 6px 20px rgba(255, 46, 116, 0.4);
+    transform: translateY(-2px);
+    color: white;
+}
+
+.btn-view-list {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 14px;
+    border-radius: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-view-list:hover {
+    background: #ffffff;
+    border-color: #6366f1;
+    color: #6366f1;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+}
+
+.card-grid-animate {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-card {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+}

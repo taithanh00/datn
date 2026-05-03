@@ -257,8 +257,8 @@ namespace datn.Controllers
             // Xóa các cookie chứa token
             Response.Cookies.Delete("access_token");
             Response.Cookies.Delete("refresh_token");
-            // Chuyển hướng về trang Login sau khi đăng xuất
-            return RedirectToAction("Login");
+            // Chuyển hướng về trang chủ (Landing Page) sau khi đăng xuất
+            return Redirect("/");
         }
 
         // ACCESS DENIED
