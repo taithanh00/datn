@@ -8,6 +8,8 @@ namespace datn.Models
         public string StudentCode { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public string FullName => $"{LastName} {FirstName}".Trim();
         public bool Gender { get; set; }
         public DateOnly DateOfBirth { get; set; }
         public string? Address { get; set; }

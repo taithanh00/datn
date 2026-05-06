@@ -78,7 +78,7 @@ namespace datn.Controllers
                 .Take(5)
                 .Select(r => new {
                     id = r.Id,
-                    name = r.Employee.FullName,
+                    name = r.Employee.LastName + " " + r.Employee.FirstName,
                     startDate = r.StartDate.ToString("dd/MM/yyyy"),
                     endDate = r.EndDate.ToString("dd/MM/yyyy"),
                     reason = r.Reason
@@ -565,7 +565,7 @@ namespace datn.Controllers
                     .Include(e => e.Account)
                     .ThenInclude(a => a.Role)
                     .Where(e => e.Account.Role.Name == "Employee")
-                    .OrderBy(e => e.FullName)
+                    .OrderBy(e => e.FirstName).ThenBy(e => e.LastName)
                     .ToListAsync();
 
                 var result = teachers.Select(t => new
@@ -576,7 +576,8 @@ namespace datn.Controllers
                     position = t.Position ?? "Giáo viên",
                     baseSalary = t.BaseSalary,
                     avatarPath = t.AvatarPath ?? "/images/lion_blue.png",
-                    isActive = t.IsActive // Now using Employee.IsActive
+                    isActive = t.IsActive, // Now using Employee.IsActive
+                    gender = t.Gender
                 }).ToList();
                 
                 var total = result.Count;
@@ -644,7 +645,7 @@ namespace datn.Controllers
                         childrenCount = p.ParentStudents.Count,
                         children = p.ParentStudents.Select(ps => new {
                             id = ps.StudentId,
-                            fullName = ps.Student.FirstName + " " + ps.Student.LastName
+                            fullName = ps.Student.LastName + " " + ps.Student.FirstName
                         })
                     });
 
@@ -873,8 +874,11 @@ namespace datn.Controllers
                 data = new
                 {
                     id = teacher.Id,
+                    firstName = teacher.FirstName,
+                    lastName = teacher.LastName,
                     fullName = teacher.FullName,
                     email = teacher.Account?.Email,
+                    gender = teacher.Gender,
                     phone = teacher.Phone,
                     position = teacher.Position,
                     baseSalary = teacher.BaseSalary,
@@ -937,7 +941,9 @@ namespace datn.Controllers
                 var teacher = new Employee
                 {
                     AccountId = account.Id,
-                    FullName = model.FullName,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Gender = model.Gender,
                     Phone = model.Phone,
                     Position = model.Position,
                     BaseSalary = model.BaseSalary,
@@ -982,7 +988,9 @@ namespace datn.Controllers
                 if (await _context.Accounts.AnyAsync(a => a.Email == model.Email && a.Id != teacher.AccountId))
                     return Json(new { success = false, message = "Email này đã được sử dụng bởi tài khoản khác." });
 
-                teacher.FullName = model.FullName;
+                teacher.FirstName = model.FirstName;
+                teacher.LastName = model.LastName;
+                teacher.Gender = model.Gender;
                 teacher.Phone = model.Phone;
                 teacher.Position = model.Position;
                 teacher.BaseSalary = model.BaseSalary;
@@ -1132,7 +1140,7 @@ namespace datn.Controllers
                     .Select(a => new
                     {
                         employeeId = a.EmployeeId,
-                        teacherName = a.Employee.FullName,
+                        teacherName = a.Employee.LastName + " " + a.Employee.FirstName,
                         roleInClass = a.RoleInClass ?? "Giáo viên"
                     })
                     .ToList()
@@ -1171,7 +1179,7 @@ namespace datn.Controllers
                         .Select(a => new
                         {
                             employeeId = a.EmployeeId,
-                            teacherName = a.Employee.FullName,
+                            teacherName = a.Employee.LastName + " " + a.Employee.FirstName,
                             roleInClass = a.RoleInClass ?? "Giáo viên"
                         })
                         .ToList()
@@ -2041,8 +2049,11 @@ namespace datn.Controllers
         [RegularExpression(@"^(?=.*[A-Z])(?=.*[!@#$%^&*()_+=\-\[\]{}|;:'"",.<>?/\\\\]).+$", 
             ErrorMessage = "Mật khẩu phải chứa ít nhất 1 chữ hoa và 1 ký tự đặc biệt")]
         public string Password { get; set; } = string.Empty;
-        [Required(ErrorMessage = "Họ và tên không được để trống")]
-        public string FullName { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Họ đệm không được để trống")]
+        public string FirstName { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Tên không được để trống")]
+        public string LastName { get; set; } = string.Empty;
+        public bool Gender { get; set; }
         public string? Phone { get; set; }
         public string? Position { get; set; }
         public decimal? BaseSalary { get; set; }
@@ -2060,8 +2071,11 @@ namespace datn.Controllers
         [Required(ErrorMessage = "Email không được để trống")]
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]
         public string Email { get; set; } = string.Empty;
-        [Required(ErrorMessage = "Họ và tên không được để trống")]
-        public string FullName { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Họ đệm không được để trống")]
+        public string FirstName { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Tên không được để trống")]
+        public string LastName { get; set; } = string.Empty;
+        public bool Gender { get; set; }
         public string? Phone { get; set; }
         public string? Position { get; set; }
         public decimal? BaseSalary { get; set; }

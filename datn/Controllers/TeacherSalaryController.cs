@@ -98,11 +98,11 @@ namespace datn.Controllers
             var data = await _context.Salaries
                 .Where(s => s.PayrollPeriodId == period.Id)
                 .Include(s => s.Employee).ThenInclude(e => e.Account)
-                .OrderBy(s => s.Employee.FullName)
+                .OrderBy(s => s.Employee.FirstName).ThenBy(s => s.Employee.LastName)
                 .Select(s => new
                 {
                     employeeId = s.EmployeeId,
-                    employeeName = s.Employee.FullName,
+                    employeeName = s.Employee.LastName + " " + s.Employee.FirstName,
                     baseSalary = s.Employee.BaseSalary ?? 0,
                     workingDays = s.WorkingDays ?? 0,
                     salaryAmount = s.SalaryAmount ?? 0

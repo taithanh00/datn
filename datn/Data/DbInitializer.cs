@@ -36,7 +36,8 @@ namespace datn.Data
                 var adminEmployee = new Employee
                 {
                     AccountId = adminAccount.Id,
-                    FullName = "Hệ thống Quản trị",
+                    FirstName = "Hệ thống",
+                    LastName = "Quản trị",
                     Position = "Administrator",
                     IsActive = true
                 };

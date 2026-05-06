@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 
 namespace datn.Models
@@ -6,12 +8,19 @@ namespace datn.Models
     {
         public int Id { get; set; }
         public int AccountId { get; set; }
-        public string FullName { get; set; }
+        [Required]
+        public string FirstName { get; set; } = string.Empty;
+        [Required]
+        public string LastName { get; set; } = string.Empty;
+
+        [NotMapped]
+        public string FullName => $"{LastName} {FirstName}".Trim();
         public string? Phone { get; set; }
         public string? Position { get; set; }
         public decimal? BaseSalary { get; set; }
         public string? AvatarPath { get; set; }
         public bool IsActive { get; set; } = true;
+        public bool Gender { get; set; } // true: Male, false: Female
 
         // Các trường phục vụ Landing Page
         public string? Bio { get; set; }                 // Giới thiệu ngắn

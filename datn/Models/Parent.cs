@@ -6,6 +6,8 @@ namespace datn.Models
         public int AccountId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public string FullName => $"{LastName} {FirstName}".Trim();
         public string? Phone { get; set; }
         public string? Address { get; set; }
         public bool Gender { get; set; }

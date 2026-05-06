@@ -1,12 +1,22 @@
 using datn.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using System.Text.Json;
+using System.Security.Claims;
 
 namespace datn.Data
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options)
-            : base(options) { }
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor httpContextAccessor)
+            : base(options) 
+        { 
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         public DbSet<Role> Roles { get; set; }
         public DbSet<Account> Accounts { get; set; }
@@ -450,6 +460,160 @@ namespace datn.Data
             modelBuilder.Entity<TeachingPlan>().HasQueryFilter(tp => tp.IsActive);
             modelBuilder.Entity<Menu>().HasQueryFilter(m => m.IsActive);
             modelBuilder.Entity<MenuOverride>().HasQueryFilter(mo => mo.IsActive);
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            // 1. Capture audit entries before saving
+            var auditEntries = OnBeforeSaveChanges();
+
+            // 2. Perform the actual save (this generates IDs for new records)
+            var result = await base.SaveChangesAsync(cancellationToken);
+
+            // 3. Update audit entries with new IDs and save them
+            if (auditEntries != null && auditEntries.Count > 0)
+            {
+                await OnAfterSaveChanges(auditEntries, cancellationToken);
+            }
+
+            return result;
+        }
+
+        private List<AuditEntry> OnBeforeSaveChanges()
+        {
+            ChangeTracker.DetectChanges();
+            var auditEntries = new List<AuditEntry>();
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            var userId = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userName = user?.FindFirst("FullName")?.Value ?? user?.Identity?.Name;
+            var ipAddress = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString();
+
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.Entity is AuditLog || entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
+                    continue;
+
+                Console.WriteLine($"[Audit] Detected change on {entry.Entity.GetType().Name} - State: {entry.State}");
+
+                var auditEntry = new AuditEntry(entry)
+                {
+                    EntityName = entry.Metadata.ClrType.Name,
+                    UserId = userId,
+                    UserName = userName ?? "System", // Fallback
+                    IpAddress = ipAddress,
+                    AuditType = entry.State.ToString()
+                };
+                auditEntries.Add(auditEntry);
+
+                foreach (var property in entry.Properties)
+                {
+                    string propertyName = property.Metadata.Name;
+
+                    if (property.IsTemporary)
+                    {
+                        auditEntry.TemporaryProperties.Add(property);
+                        continue;
+                    }
+
+                    if (property.Metadata.IsPrimaryKey())
+                    {
+                        auditEntry.KeyValues[propertyName] = property.CurrentValue;
+                        continue;
+                    }
+
+                    switch (entry.State)
+                    {
+                        case EntityState.Added:
+                            auditEntry.NewValues[propertyName] = property.CurrentValue;
+                            break;
+
+                        case EntityState.Deleted:
+                            auditEntry.OldValues[propertyName] = property.OriginalValue;
+                            break;
+
+                        case EntityState.Modified:
+                            // Even if EF says not modified, we can check ourselves if values differ
+                            bool isModified = property.IsModified || !Equals(property.OriginalValue, property.CurrentValue);
+                            if (isModified)
+                            {
+                                auditEntry.ChangedColumns.Add(propertyName);
+                                auditEntry.OldValues[propertyName] = property.OriginalValue;
+                                auditEntry.NewValues[propertyName] = property.CurrentValue;
+                                Console.WriteLine($"[Audit] Property {propertyName} changed: {property.OriginalValue} -> {property.CurrentValue}");
+                            }
+                            break;
+                    }
+                }
+            }
+
+            foreach (var auditEntry in auditEntries.Where(_ => !_.HasTemporaryProperties))
+            {
+                AuditLogs.Add(auditEntry.ToAudit());
+            }
+
+            return auditEntries.Where(_ => _.HasTemporaryProperties).ToList();
+        }
+
+        private Task OnAfterSaveChanges(List<AuditEntry> auditEntries, CancellationToken cancellationToken)
+        {
+            if (auditEntries == null || auditEntries.Count == 0)
+                return Task.CompletedTask;
+
+            foreach (var auditEntry in auditEntries)
+            {
+                foreach (var prop in auditEntry.TemporaryProperties)
+                {
+                    if (prop.Metadata.IsPrimaryKey())
+                    {
+                        auditEntry.KeyValues[prop.Metadata.Name] = prop.CurrentValue;
+                    }
+                    else
+                    {
+                        auditEntry.NewValues[prop.Metadata.Name] = prop.CurrentValue;
+                    }
+                }
+                AuditLogs.Add(auditEntry.ToAudit());
+            }
+
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        private class AuditEntry
+        {
+            public AuditEntry(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry)
+            {
+                Entry = entry;
+            }
+
+            public Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry Entry { get; }
+            public string? UserId { get; set; }
+            public string? UserName { get; set; }
+            public string EntityName { get; set; }
+            public string AuditType { get; set; }
+            public string IpAddress { get; set; }
+            public Dictionary<string, object> KeyValues { get; } = new Dictionary<string, object>();
+            public Dictionary<string, object> OldValues { get; } = new Dictionary<string, object>();
+            public Dictionary<string, object> NewValues { get; } = new Dictionary<string, object>();
+            public List<Microsoft.EntityFrameworkCore.ChangeTracking.PropertyEntry> TemporaryProperties { get; } = new List<Microsoft.EntityFrameworkCore.ChangeTracking.PropertyEntry>();
+            public List<string> ChangedColumns { get; } = new List<string>();
+
+            public bool HasTemporaryProperties => TemporaryProperties.Any();
+
+            public AuditLog ToAudit()
+            {
+                var audit = new AuditLog();
+                audit.UserId = UserId;
+                audit.UserName = UserName;
+                audit.Action = AuditType;
+                audit.EntityName = EntityName;
+                audit.CreatedAtUtc = DateTime.UtcNow;
+                audit.EntityId = JsonSerializer.Serialize(KeyValues);
+                audit.OldValues = OldValues.Count == 0 ? null : JsonSerializer.Serialize(OldValues);
+                audit.NewValues = NewValues.Count == 0 ? null : JsonSerializer.Serialize(NewValues);
+                audit.IpAddress = IpAddress;
+                return audit;
+            }
         }
     }
 }

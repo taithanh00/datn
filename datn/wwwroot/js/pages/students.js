@@ -4,6 +4,7 @@
 let currentStudentId = null;
 let isEditMode = false;
 let showInactiveStudents = false;
+let allStudentsData = [];
 
 // DOMContentLoaded - Khởi tạo trang khi HTML đã load xong
 document.addEventListener("DOMContentLoaded", function () {
@@ -13,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // ====== INITIALIZATION ======
 async function initializeStudentsPage() {
   setupEventListeners();
+  setupFilterListeners();
   await loadClasses();
   await refreshData();
 }
@@ -129,11 +131,64 @@ async function loadStudents() {
       return;
     }
 
-    renderStudentsTable(result.data);
+    allStudentsData = result.data;
+    populateFilterClasses();
+    applyStudentFilters();
   } catch (error) {
     console.error("Error loading students:", error);
     showTableError("Lỗi kết nối máy chủ");
   }
+}
+
+function setupFilterListeners() {
+  document.getElementById('btnToggleFilter').addEventListener('click', function() {
+    this.classList.toggle('active');
+    document.getElementById('filterPanel').classList.toggle('active');
+  });
+  document.getElementById('btnApplyFilter').addEventListener('click', () => applyStudentFilters());
+  document.getElementById('btnResetFilter').addEventListener('click', () => {
+    document.getElementById('filterGender').value = '';
+    document.getElementById('filterClass').value = '';
+    document.getElementById('filterEnrollFrom').value = '';
+    document.getElementById('filterEnrollTo').value = '';
+    applyStudentFilters();
+  });
+}
+
+function populateFilterClasses() {
+  const select = document.getElementById('filterClass');
+  const currentVal = select.value;
+  select.innerHTML = '<option value="">-- Tất cả --</option>';
+  const classNames = [...new Set(allStudentsData.map(s => s.className).filter(Boolean))];
+  classNames.sort().forEach(name => {
+    select.innerHTML += `<option value="${name}">${name}</option>`;
+  });
+  select.value = currentVal;
+}
+
+function applyStudentFilters() {
+  const gender = document.getElementById('filterGender').value;
+  const className = document.getElementById('filterClass').value;
+  const enrollFrom = document.getElementById('filterEnrollFrom').value;
+  const enrollTo = document.getElementById('filterEnrollTo').value;
+
+  let filtered = allStudentsData;
+
+  if (gender !== '') {
+    const genderText = gender === 'true' ? 'Nam' : 'Nữ';
+    filtered = filtered.filter(s => s.gender === genderText);
+  }
+  if (className) {
+    filtered = filtered.filter(s => s.className === className);
+  }
+  if (enrollFrom) {
+    filtered = filtered.filter(s => s.enrollDate && s.enrollDate >= enrollFrom);
+  }
+  if (enrollTo) {
+    filtered = filtered.filter(s => s.enrollDate && s.enrollDate <= enrollTo);
+  }
+
+  renderStudentsTable(filtered);
 }
 
 let classesData = []; // Lưu trữ thông tin lớp học để validate ở frontend

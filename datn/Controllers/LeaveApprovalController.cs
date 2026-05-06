@@ -45,7 +45,7 @@ namespace datn.Controllers
                 .Select(w => new
                 {
                     employeeId = w.EmployeeId,
-                    employeeName = w.Employee.FullName,
+                    employeeName = w.Employee.LastName + " " + w.Employee.FirstName,
                     date = w.Date.ToString("dd/MM/yyyy"),
                     rawDate = w.Date.ToString("yyyy-MM-dd"),
                     checkInAt = w.CheckInAtUtc,
@@ -137,7 +137,7 @@ namespace datn.Controllers
                 {
                     id = r.Id,
                     employeeId = r.EmployeeId,
-                    employeeName = r.Employee.FullName,
+                    employeeName = r.Employee.LastName + " " + r.Employee.FirstName,
                     startDate = r.StartDate.ToString("dd/MM/yyyy"),
                     endDate = r.EndDate.ToString("dd/MM/yyyy"),
                     isPaid = r.IsPaid,
@@ -310,7 +310,7 @@ namespace datn.Controllers
             var teachers = await _context.Employees
                 .Include(e => e.Account)
                 .Where(e => e.Account.IsActive && e.Account.Role.Name == "Employee")
-                .Select(e => new { id = e.Id, fullName = e.FullName })
+                .Select(e => new { id = e.Id, fullName = e.LastName + " " + e.FirstName })
                 .ToListAsync();
 
             return Json(new { success = true, data = teachers });

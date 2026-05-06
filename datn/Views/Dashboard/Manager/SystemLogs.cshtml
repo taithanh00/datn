@@ -1,0 +1,154 @@
+@{
+    ViewData["Title"] = "Nhật ký hệ thống";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="page-header">
+    <h1 class="page-title"><i class="fa-solid fa-clock-rotate-left mr-2"></i> Nhật ký hệ thống</h1>
+    <div class="page-actions">
+        <div class="search-bar">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="searchLogs" placeholder="Tìm tên người dùng, bảng, hành động..." />
+        </div>
+        <button class="btn-filter-toggle" id="btnToggleFilter">
+            <i class="fa-solid fa-filter"></i> Bộ lọc nâng cao
+        </button>
+    </div>
+</div>
+
+<!-- Advanced Filter Panel -->
+<div class="filter-panel" id="filterPanel">
+    <div class="filter-grid">
+        <div class="filter-group">
+            <label>Từ ngày</label>
+            <input type="date" id="filterStartDate" class="form-control" />
+        </div>
+        <div class="filter-group">
+            <label>Đến ngày</label>
+            <input type="date" id="filterEndDate" class="form-control" />
+        </div>
+        <div class="filter-group">
+            <label>Đối tượng (Bảng)</label>
+            <select id="filterEntity" class="form-control">
+                <option value="">-- Tất cả --</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Người thực hiện</label>
+            <select id="filterUser" class="form-control">
+                <option value="">-- Tất cả --</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Hành động</label>
+            <select id="filterAction" class="form-control">
+                <option value="">-- Tất cả --</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-primary" id="btnApplyFilter">Áp dụng</button>
+            <button class="btn btn-outline" id="btnResetFilter">Đặt lại</button>
+        </div>
+    </div>
+</div>
+
+<div class="card log-container">
+    <div class="table-container">
+        <table id="logsTable">
+            <thead>
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Người thực hiện</th>
+                    <th>Hành động</th>
+                    <th>Đối tượng (Bảng)</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="logsTableBody">
+                <tr class="loading-row">
+                    <td colspan="7" style="text-align:center; padding:40px;">
+                        <div class="spinner"></div>
+                        <p class="text-muted">Đang tải nhật ký...</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-wrapper">
+        <div class="text-muted small" id="paginationInfo">Đang hiển thị ... bản ghi</div>
+        <div class="d-flex gap-1" id="paginationButtons">
+            <!-- Buttons dynamically generated -->
+        </div>
+    </div>
+</div>
+
+<!-- Slide-out Panel for Details -->
+<div class="modal-overlay" id="logModalOverlay"></div>
+<div class="slide-panel" id="logDetailPanel">
+    <div class="slide-panel-header">
+        <h3><i class="fa-solid fa-circle-info mr-2"></i> Chi tiết nhật ký</h3>
+        <button class="close-btn" id="closeLogPanel">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <div class="slide-panel-body">
+        <div class="form-section">
+            <h4 style="margin-bottom: 16px;"><i class="fa-solid fa-layer-group mr-2"></i> Thông tin chung</h4>
+            <div class="info-grid">
+                <div class="info-block">
+                    <span class="label"><i class="fa-solid fa-user"></i> Người thực hiện</span>
+                    <span class="value" id="detailUser"></span>
+                </div>
+                <div class="info-block">
+                    <span class="label"><i class="fa-solid fa-calendar-day"></i> Thời gian</span>
+                    <span class="value" id="detailTime"></span>
+                </div>
+                <div class="info-block">
+                    <span class="label"><i class="fa-solid fa-cube"></i> Đối tượng</span>
+                    <div><span id="detailEntity" class="entity-badge"></span></div>
+                </div>
+                <div class="info-block">
+                    <span class="label"><i class="fa-solid fa-hashtag"></i> ID bản ghi</span>
+                    <span class="value" id="detailEntityId"></span>
+                </div>
+                <div class="info-block">
+                    <span class="label"><i class="fa-solid fa-network-wired"></i> Địa chỉ IP</span>
+                    <span class="value" id="detailIp"></span>
+                </div>
+                <div class="info-block">
+                    <span class="label"><i class="fa-solid fa-bolt"></i> Hành động</span>
+                    <div id="detailActionBadge"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section" style="margin-top: 32px;">
+            <h4 style="margin-bottom: 16px;"><i class="fa-solid fa-list-check mr-2"></i> Chi tiết thay đổi dữ liệu</h4>
+            <div id="diffTableContainer" class="table-container mt-2" style="border: 1px solid var(--border); border-radius: 12px; overflow: hidden;">
+                <table class="diff-table">
+                    <thead>
+                        <tr>
+                            <th>TRƯỜNG DỮ LIỆU</th>
+                            <th>GIÁ TRỊ THAY ĐỔI</th>
+                        </tr>
+                    </thead>
+                    <tbody id="diffTableBody">
+                        <!-- Content generated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="jsonViewContainer" style="display:none;">
+                <pre id="detailNewValues" class="json-block"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/system-logs.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/pages/system-logs.js" asp-append-version="true"></script>
+}

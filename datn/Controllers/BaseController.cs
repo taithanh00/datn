@@ -22,7 +22,7 @@ namespace datn.Controllers
             {
                 ViewBag.Username = User.Identity.Name;
                 ViewBag.Role = User.FindFirst(ClaimTypes.Role)?.Value;
-                ViewBag.FullName = User.FindFirst(ClaimTypes.Name)?.Value; // Hoặc nếu bạn muốn lấy FullName từ claim khác
+                ViewBag.FullName = User.FindFirst("FullName")?.Value ?? User.Identity.Name;
 
                 // Lấy Avatar trực tiếp từ Claims (đã được JwtService thêm vào)
                 var avatarClaim = User.FindFirst("Avatar")?.Value;

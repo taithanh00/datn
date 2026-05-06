@@ -48,11 +48,11 @@ namespace datn.Controllers
                 Username = account.Username,
                 Email = account.Email,
                 Role = account.Role?.Name,
-                FullName = account.Employee?.FullName,
+                FullName = account.Employee?.FullName ?? account.Parent?.FullName,
                 Phone = account.Employee?.Phone ?? account.Parent?.Phone,
                 Position = account.Employee?.Position,
-                FirstName = account.Parent?.FirstName,
-                LastName = account.Parent?.LastName,
+                FirstName = account.Employee?.FirstName ?? account.Parent?.FirstName,
+                LastName = account.Employee?.LastName ?? account.Parent?.LastName,
                 Address = account.Parent?.Address,
                 Employee = account.Employee,
                 Parent = account.Parent
@@ -125,10 +125,12 @@ namespace datn.Controllers
                 account.Email = model.Email;
             }
 
-            if (account.Role?.Name == "Employee" && account.Employee != null)
+            if ((account.Role?.Name == "Employee" || account.Role?.Name == "Manager") && account.Employee != null)
             {
-                if (!string.IsNullOrWhiteSpace(model.FullName))
-                    account.Employee.FullName = model.FullName;
+                if (!string.IsNullOrWhiteSpace(model.FirstName))
+                    account.Employee.FirstName = model.FirstName;
+                if (!string.IsNullOrWhiteSpace(model.LastName))
+                    account.Employee.LastName = model.LastName;
                 if (!string.IsNullOrWhiteSpace(model.Phone))
                     account.Employee.Phone = model.Phone;
                 if (!string.IsNullOrWhiteSpace(model.Position))

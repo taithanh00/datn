@@ -12,9 +12,35 @@
             <i class="fa-solid fa-search"></i>
             <input type="text" id="searchTeachers" placeholder="Tìm kiếm nhân sự..." />
         </div>
+        <button class="btn-filter-toggle" id="btnToggleFilter">
+            <i class="fa-solid fa-filter"></i> Bộ lọc
+        </button>
         <button class="btn btn-primary" id="btnCreateTeacher">
             <i class="fa-solid fa-plus"></i> Thêm giáo viên
         </button>
+    </div>
+</div>
+
+<div class="filter-panel" id="filterPanel">
+    <div class="filter-grid">
+        <div class="filter-group">
+            <label>Chức vụ</label>
+            <select id="filterPosition" class="form-control">
+                <option value="">-- Tất cả --</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Giới tính</label>
+            <select id="filterGender" class="form-control">
+                <option value="">-- Tất cả --</option>
+                <option value="true">Nam</option>
+                <option value="false">Nữ</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-primary" id="btnApplyFilter">Áp dụng</button>
+            <button class="btn btn-outline" id="btnResetFilter">Đặt lại</button>
+        </div>
     </div>
 </div>
 
@@ -96,8 +122,16 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="fullName">Họ và tên</label>
-                    <input type="text" id="fullName" name="FullName" class="form-control" placeholder="Nhập họ và tên" required />
+                <div class="grid grid-2" style="gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label" for="lastName">Họ đệm</label>
+                        <input type="text" id="lastName" name="LastName" class="form-control" placeholder="Họ và tên đệm" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="firstName">Tên</label>
+                        <input type="text" id="firstName" name="FirstName" class="form-control" placeholder="Tên" required />
+                    </div>
+                </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="phone">Điện thoại</label>
@@ -106,6 +140,17 @@
                 <div class="form-group">
                     <label class="form-label" for="position">Chức vụ</label>
                     <input type="text" id="position" name="Position" class="form-control" placeholder="VD: Giáo viên" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Giới tính</label>
+                    <div class="gender-options" style="display: flex; gap: 20px; margin-top: 8px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="Gender" value="true" checked /> Nam
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="Gender" value="false" /> Nữ
+                        </label>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="baseSalary">Lương cơ bản</label>

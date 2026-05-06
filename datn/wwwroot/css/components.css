@@ -938,3 +938,95 @@ textarea.form-input {
 .btn-table.delete:hover {
     background: rgba(248, 113, 113, 0.1);
 }
+
+/* ===== ADVANCED FILTER PANEL ===== */
+.filter-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    background: var(--bg-soft, #f8fafc);
+    border-radius: 12px;
+    margin-bottom: 0;
+}
+
+.filter-panel.active {
+    max-height: 500px;
+    opacity: 1;
+    margin-bottom: 24px;
+    padding: 20px;
+    border: 1px solid var(--border);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.btn-filter-toggle {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-filter-toggle:hover {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-filter-toggle.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+.filter-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 4px;
+}
+
+.filter-actions .btn {
+    padding: 8px 16px;
+    min-width: 90px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    height: 38px;
+}
+
+@media (max-width: 600px) {
+    .filter-grid { grid-template-columns: 1fr; }
+}

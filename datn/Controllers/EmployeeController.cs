@@ -205,7 +205,7 @@ namespace datn.Controllers
                     .Select(s => new
                     {
                         id = s.Id,
-                        fullName = ((s.FirstName ?? "") + " " + (s.LastName ?? "")).Trim(),
+                        fullName = ((s.LastName ?? "") + " " + (s.FirstName ?? "")).Trim(),
                         avatarPath = s.AvatarPath ?? "/images/lion_orange.png",
                         report = _context.StudyReports
                             .Where(sr => sr.StudentId == s.Id && sr.Date == reportDate)
@@ -272,7 +272,7 @@ namespace datn.Controllers
 
                         if (student == null) continue;
 
-                        var studentName = $"{student.FirstName} {student.LastName}".Trim();
+                        var studentName = $"{student.LastName} {student.FirstName}".Trim();
                         foreach (var ps in student.ParentStudents)
                         {
                             if (ps.Parent != null)
@@ -446,7 +446,7 @@ namespace datn.Controllers
                     .Select(s => new
                     {
                         id = s.Id,
-                        fullName = ((s.FirstName ?? "") + " " + (s.LastName ?? "")).Trim(),
+                        fullName = ((s.LastName ?? "") + " " + (s.FirstName ?? "")).Trim(),
                         gender = s.Gender ? "Nam" : "Nữ",
                         dateOfBirth = s.DateOfBirth.ToString("dd/MM/yyyy"),
                         address = s.Address ?? "Chưa cập nhật",
@@ -487,7 +487,7 @@ namespace datn.Controllers
                     .Select(s => new
                     {
                         id = s.Id,
-                        fullName = ((s.FirstName ?? "") + " " + (s.LastName ?? "")).Trim(),
+                        fullName = ((s.LastName ?? "") + " " + (s.FirstName ?? "")).Trim(),
                         gender = s.Gender ? "Nam" : "Nữ",
                         attendanceStatus = _context.Attendances
                             .Where(a => a.StudentId == s.Id && a.Date == today)
@@ -642,7 +642,7 @@ namespace datn.Controllers
             var data = students.Select(s => new
             {
                 id = s.Id,
-                fullName = $"{s.FirstName} {s.LastName}",
+                fullName = $"{s.LastName} {s.FirstName}",
                 isParticipating = participants.Contains(s.Id)
             });
 

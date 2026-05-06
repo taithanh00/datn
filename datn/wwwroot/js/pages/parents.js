@@ -5,6 +5,7 @@ let currentParentId = null;
 let currentParentGender = true; // Default to Male (Nam)
 let selectedStudentForLink = null;
 let showInactiveParents = false;
+let allParentsData = [];
 
 // DOMContentLoaded - Khởi tạo trang khi HTML đã load xong
 document.addEventListener("DOMContentLoaded", function () {
@@ -14,6 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // ====== INITIALIZATION ======
 async function initializeParentsPage() {
   setupEventListeners();
+  setupFilterListeners();
   await refreshData();
 }
 
@@ -118,11 +120,44 @@ async function loadParents() {
       return;
     }
 
-    renderParentsTable(result.data);
+    allParentsData = result.data;
+    applyParentFilters();
   } catch (error) {
     console.error("Error loading parents:", error);
     showTableError("Lỗi kết nối máy chủ");
   }
+}
+
+function setupFilterListeners() {
+  document.getElementById('btnToggleFilter').addEventListener('click', function() {
+    this.classList.toggle('active');
+    document.getElementById('filterPanel').classList.toggle('active');
+  });
+  document.getElementById('btnApplyFilter').addEventListener('click', () => applyParentFilters());
+  document.getElementById('btnResetFilter').addEventListener('click', () => {
+    document.getElementById('filterGender').value = '';
+    document.getElementById('filterHasChildren').value = '';
+    applyParentFilters();
+  });
+}
+
+function applyParentFilters() {
+  const gender = document.getElementById('filterGender').value;
+  const hasChildren = document.getElementById('filterHasChildren').value;
+
+  let filtered = allParentsData;
+
+  if (gender !== '') {
+    const genderBool = gender === 'true';
+    filtered = filtered.filter(p => p.gender === genderBool);
+  }
+  if (hasChildren === 'yes') {
+    filtered = filtered.filter(p => p.children && p.children.length > 0);
+  } else if (hasChildren === 'no') {
+    filtered = filtered.filter(p => !p.children || p.children.length === 0);
+  }
+
+  renderParentsTable(filtered);
 }
 
 // ====== TABLE RENDERING ======

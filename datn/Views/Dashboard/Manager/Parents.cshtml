@@ -10,9 +10,37 @@
             <i class="fa-solid fa-search"></i>
             <input type="text" id="searchParents" placeholder="Tìm kiếm tên hoặc số điện thoại..." />
         </div>
+        <button class="btn-filter-toggle" id="btnToggleFilter">
+            <i class="fa-solid fa-filter"></i> Bộ lọc
+        </button>
         <button class="btn btn-primary" id="btnCreateParent">
             <i class="fa-solid fa-user-plus"></i> Thêm phụ huynh
         </button>
+    </div>
+</div>
+
+<div class="filter-panel" id="filterPanel">
+    <div class="filter-grid">
+        <div class="filter-group">
+            <label>Giới tính</label>
+            <select id="filterGender" class="form-control">
+                <option value="">-- Tất cả --</option>
+                <option value="true">Nam</option>
+                <option value="false">Nữ</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Liên kết con</label>
+            <select id="filterHasChildren" class="form-control">
+                <option value="">-- Tất cả --</option>
+                <option value="yes">Đã liên kết</option>
+                <option value="no">Chưa liên kết</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-primary" id="btnApplyFilter">Áp dụng</button>
+            <button class="btn btn-outline" id="btnResetFilter">Đặt lại</button>
+        </div>
     </div>
 </div>
 

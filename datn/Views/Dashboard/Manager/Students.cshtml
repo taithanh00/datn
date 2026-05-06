@@ -10,9 +10,43 @@
             <i class="fa-solid fa-search"></i>
             <input type="text" id="searchStudents" placeholder="Tìm kiếm học sinh..." />
         </div>
+        <button class="btn-filter-toggle" id="btnToggleFilter">
+            <i class="fa-solid fa-filter"></i> Bộ lọc
+        </button>
         <button class="btn btn-primary" id="btnCreateStudent">
             <i class="fa-solid fa-plus"></i> Thêm học sinh
         </button>
+    </div>
+</div>
+
+<div class="filter-panel" id="filterPanel">
+    <div class="filter-grid">
+        <div class="filter-group">
+            <label>Giới tính</label>
+            <select id="filterGender" class="form-control">
+                <option value="">-- Tất cả --</option>
+                <option value="true">Nam</option>
+                <option value="false">Nữ</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Lớp</label>
+            <select id="filterClass" class="form-control">
+                <option value="">-- Tất cả --</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Nhập học từ</label>
+            <input type="date" id="filterEnrollFrom" class="form-control" />
+        </div>
+        <div class="filter-group">
+            <label>Nhập học đến</label>
+            <input type="date" id="filterEnrollTo" class="form-control" />
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-primary" id="btnApplyFilter">Áp dụng</button>
+            <button class="btn btn-outline" id="btnResetFilter">Đặt lại</button>
+        </div>
     </div>
 </div>
 

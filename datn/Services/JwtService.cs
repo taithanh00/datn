@@ -51,6 +51,15 @@ namespace datn.Services
                 new Claim(ClaimTypes.Role,           account.Role.Name)        // Vai trò
             };
 
+            // Thêm FullName claim
+            string fullName = account.Username == "admin" ? "Admin" : account.Username;
+            if (account.Username != "admin")
+            {
+                if (account.Employee != null) fullName = account.Employee.FullName;
+                else if (account.Parent != null) fullName = account.Parent.FullName;
+            }
+            claims.Add(new Claim("FullName", fullName));
+
             // Thêm EmployeeId nếu có (Dành cho Giáo viên/Quản lý)
             if (account.Employee != null)
             {

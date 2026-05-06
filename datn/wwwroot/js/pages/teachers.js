@@ -4,6 +4,7 @@ let showInactiveTeachers = false;
 
 let currentTeacherId = null;
 let isEditMode = false;
+let allTeachersData = [];
 
 // DOMContentLoaded - Khởi tạo trang khi HTML đã load xong
 document.addEventListener("DOMContentLoaded", function () {
@@ -13,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // ====== INITIALIZATION ======
 async function initializeTeachersPage() {
   setupEventListeners();
+  setupFilterListeners();
   await loadTeachers();
 
   // Khởi tạo pagination và search sau khi dữ liệu đã được load và render
@@ -110,7 +112,9 @@ async function loadTeachers() {
       return;
     }
 
-    renderTeachersTable(result.data);
+    allTeachersData = result.data;
+    populateFilterPositions();
+    applyTeacherFilters();
   } catch (error) {
     console.error("Error loading teachers:", error);
     showTableError("Lỗi kết nối máy chủ");
@@ -195,13 +199,19 @@ async function openEditPanel(teacherId) {
 
     const data = result.data;
     document.getElementById("teacherId").value = data.id;
-    document.getElementById("fullName").value = data.fullName || "";
+    document.getElementById("firstName").value = data.firstName || "";
+    document.getElementById("lastName").value = data.lastName || "";
     document.getElementById("email").value = data.email || "";
     document.getElementById("phone").value = data.phone || "";
     document.getElementById("position").value = data.position || "";
     document.getElementById("baseSalary").value = data.baseSalary || "";
     document.getElementById("avatarPreview").src =
       data.avatarPath || "/images/lion_blue.png";
+    
+    // Set gender radio
+    const genderVal = data.gender ? "true" : "false";
+    const radio = document.querySelector(`input[name="Gender"][value="${genderVal}"]`);
+    if (radio) radio.checked = true;
     
     // Landing Page Fields
     document.getElementById("specialty").value = data.specialty || "";
@@ -293,14 +303,16 @@ function closePanel() {
 async function handleFormSubmit(e) {
   e.preventDefault();
 
-  const fullName = document.getElementById("fullName").value.trim();
-  if (!fullName) {
-    showAlert("error", "Vui lòng nhập họ và tên");
+  const firstName = document.getElementById("firstName").value.trim();
+  const lastName = document.getElementById("lastName").value.trim();
+  if (!firstName || !lastName) {
+    showAlert("error", "Vui lòng nhập đầy đủ họ đệm và tên");
     return;
   }
 
   const formData = new FormData();
-  formData.append("FullName", fullName);
+  formData.append("FirstName", firstName);
+  formData.append("LastName", lastName);
   formData.append("Email", document.getElementById("email").value);
   formData.append("Phone", document.getElementById("phone").value);
   formData.append("Position", document.getElementById("position").value);
@@ -389,4 +401,61 @@ function formatCurrency(value) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+function setupFilterListeners() {
+  const btnToggle = document.getElementById('btnToggleFilter');
+  if (btnToggle) {
+    btnToggle.addEventListener('click', function() {
+      this.classList.toggle('active');
+      document.getElementById('filterPanel').classList.toggle('active');
+    });
+  }
+  
+  const btnApply = document.getElementById('btnApplyFilter');
+  if (btnApply) {
+    btnApply.addEventListener('click', () => applyTeacherFilters());
+  }
+  
+  const btnReset = document.getElementById('btnResetFilter');
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      document.getElementById('filterPosition').value = '';
+      document.getElementById('filterGender').value = '';
+      applyTeacherFilters();
+    });
+  }
+}
+
+function populateFilterPositions() {
+  const select = document.getElementById('filterPosition');
+  if (!select) return;
+  const currentVal = select.value;
+  select.innerHTML = '<option value="">-- Tất cả --</option>';
+  const positions = [...new Set(allTeachersData.map(t => t.position).filter(Boolean))];
+  positions.sort().forEach(pos => {
+    select.innerHTML += `<option value="${pos}">${pos}</option>`;
+  });
+  select.value = currentVal;
+}
+
+function applyTeacherFilters() {
+  const positionEl = document.getElementById('filterPosition');
+  const genderEl = document.getElementById('filterGender');
+  if (!positionEl || !genderEl) return;
+
+  const position = positionEl.value;
+  const gender = genderEl.value;
+
+  let filtered = allTeachersData;
+
+  if (position) {
+    filtered = filtered.filter(t => t.position === position);
+  }
+  if (gender !== '') {
+    const genderBool = gender === 'true';
+    filtered = filtered.filter(t => t.gender === genderBool);
+  }
+
+  renderTeachersTable(filtered);
 }
