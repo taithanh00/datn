@@ -574,6 +574,7 @@ namespace datn.Controllers
                     fullName = t.FullName,
                     phone = t.Phone,
                     position = t.Position ?? "Giáo viên",
+                    teacherType = t.TeacherType,
                     baseSalary = t.BaseSalary,
                     avatarPath = t.AvatarPath ?? "/images/lion_blue.png",
                     isActive = t.IsActive, // Now using Employee.IsActive
@@ -881,6 +882,7 @@ namespace datn.Controllers
                     gender = teacher.Gender,
                     phone = teacher.Phone,
                     position = teacher.Position,
+                    teacherType = teacher.TeacherType,
                     baseSalary = teacher.BaseSalary,
                     avatarPath = teacher.AvatarPath,
                     isActive = teacher.Account?.IsActive ?? true,
@@ -946,6 +948,7 @@ namespace datn.Controllers
                     Gender = model.Gender,
                     Phone = model.Phone,
                     Position = model.Position,
+                    TeacherType = model.TeacherType,
                     BaseSalary = model.BaseSalary,
                     Bio = model.Bio,
                     Qualifications = model.Qualifications,
@@ -993,6 +996,7 @@ namespace datn.Controllers
                 teacher.Gender = model.Gender;
                 teacher.Phone = model.Phone;
                 teacher.Position = model.Position;
+                teacher.TeacherType = model.TeacherType;
                 teacher.BaseSalary = model.BaseSalary;
                 teacher.Bio = model.Bio;
                 teacher.Qualifications = model.Qualifications;
@@ -2056,6 +2060,7 @@ namespace datn.Controllers
         public bool Gender { get; set; }
         public string? Phone { get; set; }
         public string? Position { get; set; }
+        public TeacherType TeacherType { get; set; }
         public decimal? BaseSalary { get; set; }
         public IFormFile? Avatar { get; set; }
         public string? Bio { get; set; }
@@ -2078,6 +2083,7 @@ namespace datn.Controllers
         public bool Gender { get; set; }
         public string? Phone { get; set; }
         public string? Position { get; set; }
+        public TeacherType TeacherType { get; set; }
         public decimal? BaseSalary { get; set; }
         public IFormFile? Avatar { get; set; }
         public string? Bio { get; set; }

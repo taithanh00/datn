@@ -77,9 +77,12 @@ namespace datn.Controllers
             // Ràng buộc: Mỗi tháng chỉ được nghỉ phép CÓ LƯƠNG tối đa 1 lần (dựa trên ngày bắt đầu)
             if (model.IsPaid)
             {
+                // Chỉ tính các đơn đang chờ duyệt (Pending) hoặc đã được duyệt (Approved). 
+                // Bỏ qua các đơn bị từ chối (Rejected) để GV có thể gửi lại đơn mới.
                 var alreadyRequestedPaidThisMonth = await _context.EmployeeLeaveRequests
                     .AnyAsync(r => r.EmployeeId == employeeId.Value 
                                    && r.IsPaid
+                                   && r.Status != "Rejected"
                                    && r.StartDate.Month == startDate.Month 
                                    && r.StartDate.Year == startDate.Year);
 

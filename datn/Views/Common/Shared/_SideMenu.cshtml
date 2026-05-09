@@ -62,7 +62,8 @@
                 }
                 else if (role == "Employee")
                 {
-                    <span class="role-badge employee">👨‍🏫 Giáo viên</span>
+                    var isLead = ViewBag.IsLead as bool? ?? false;
+                    <span class="role-badge employee">👨‍🏫 @(isLead ? "GV Chủ nhiệm" : "GV Bộ môn")</span>
                 }
                 else if (role == "Parent")
                 {
@@ -233,6 +234,7 @@
 
         @if (role == "Employee")
             {
+            var isLead = ViewBag.IsLead as bool? ?? false;
             <div class="nav-section">
                 <div class="nav-section-label">Cá nhân</div>
 
@@ -280,25 +282,40 @@
                     <span class="nav-label">Danh sách lớp</span>
                 </a>
 
-                <a href="/Employee/Attendance"
-                   class="nav-item @(pageTitle == "Điểm danh" ? "active" : "")"
-                   title="Điểm danh">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
-                    <span class="nav-label">Điểm danh học sinh</span>
-                </a>
+                @if (isLead)
+                {
+                    <!-- Chỉ GVCN mới thấy mục Điểm danh -->
+                    <a href="/Employee/Attendance"
+                       class="nav-item @(pageTitle == "Điểm danh" ? "active" : "")"
+                       title="Điểm danh">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <span class="nav-label">Điểm danh học sinh</span>
+                    </a>
 
-                <a href="/Employee/StudyReport"
-                   class="nav-item @(pageTitle == "Đánh giá học tập" ? "active" : "")"
-                   title="Đánh giá học tập">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span class="nav-label">Đánh giá học sinh</span>
-                </a>
+                    <!-- Chỉ GVCN mới thấy mục Đánh giá học sinh -->
+                    <a href="/Employee/StudyReport"
+                       class="nav-item @(pageTitle == "Đánh giá học tập" ? "active" : "")"
+                       title="Đánh giá học tập">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span class="nav-label">Đánh giá học sinh</span>
+                    </a>
+
+                    <!-- Chỉ GVCN mới thấy mục Nhật ký lớp học -->
+                    <a href="/DailyReport/ClassReports"
+                       class="nav-item @(pageTitle == "Nhật ký lớp học" ? "active" : "")"
+                       title="Nhật ký lớp học">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.248 6.089 2 7.324 2 12.972v6.278c0 .977 4.248 2.212 10 2.212s10-1.235 10-2.212v-6.278c0-5.648-4.248-6.883-10-7.019m0 13V6.253m0 13c5.752.192 10 1.424 10 2.972m0-13c-5.752-.192-10-1.424-10-2.972" />
+                        </svg>
+                        <span class="nav-label">Nhật ký lớp học</span>
+                    </a>
+                }
 
                 <a href="/TimeAttendance"
                    class="nav-item @(pageTitle == "Chấm công" ? "active" : "")"
@@ -318,15 +335,6 @@
                               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <span class="nav-label">Đơn xin nghỉ phép</span>
-                </a>
-
-                <a href="/DailyReport/ClassReports"
-                   class="nav-item @(pageTitle == "Nhật ký lớp học" ? "active" : "")"
-                   title="Nhật ký lớp học">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.248 6.089 2 7.324 2 12.972v6.278c0 .977 4.248 2.212 10 2.212s10-1.235 10-2.212v-6.278c0-5.648-4.248-6.883-10-7.019m0 13V6.253m0 13c5.752.192 10 1.424 10 2.972m0-13c-5.752-.192-10-1.424-10-2.972" />
-                    </svg>
-                    <span class="nav-label">Nhật ký lớp học</span>
                 </a>
 
                 <a href="/Manager/Nutrition"

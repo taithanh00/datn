@@ -321,17 +321,27 @@ namespace datn.Controllers
         {
             var managerEmployeeId = await GetCurrentEmployeeIdAsync();
             var date = DateOnly.Parse(model.Date);
-            
+
+            var schedule = await _context.ClassSchedules
+                .Include(cs => cs.Class)
+                .Include(cs => cs.Subject)
+                .FirstOrDefaultAsync(cs => cs.Id == model.ClassScheduleId);
+            if (schedule == null) return Json(new { success = false, message = "Không tìm thấy tiết học." });
+
+            // ── CONFLICT CHECK: Kiểm tra giáo viên có đang bận không ──
+            var isFree = await IsTeacherFreeAsync(model.SubstituteEmployeeId, date, schedule.StartTime, schedule.EndTime, excludeScheduleId: model.ClassScheduleId);
+            if (!isFree)
+            {
+                return Json(new { success = false, message = $"Giáo viên này đã có lịch dạy hoặc đang dạy thay tại lớp khác vào khung giờ {schedule.StartTime:HH:mm} - {schedule.EndTime:HH:mm} ngày {date:dd/MM/yyyy}. Vui lòng chọn giáo viên khác." });
+            }
+
             var existing = await _context.Substitutions
                 .FirstOrDefaultAsync(s => s.ClassScheduleId == model.ClassScheduleId && s.Date == date);
-            
+
             if (existing != null)
             {
                 _context.Substitutions.Remove(existing);
             }
-
-            var schedule = await _context.ClassSchedules.FindAsync(model.ClassScheduleId);
-            if (schedule == null) return Json(new { success = false, message = "Không tìm thấy tiết học." });
 
             var sub = new Substitution
             {
@@ -370,8 +380,70 @@ namespace datn.Controllers
             }
 
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Đã phân công dạy thay và cộng công thành công." });
+
+            // ── SIGNALR NOTIFICATION: Gửi thông báo cho GV được phân công ──
+            var substituteEmployee = await _context.Employees
+                .Include(e => e.Account)
+                .FirstOrDefaultAsync(e => e.Id == model.SubstituteEmployeeId);
+
+            if (substituteEmployee?.Account != null)
+            {
+                await _notificationService.SendToUserAsync(
+                    substituteEmployee.Account.Id,
+                    "Lịch dạy thay mới",
+                    $"Bạn được phân công dạy thay môn {schedule.Subject.Name} tại lớp {schedule.Class.Name} vào lúc {schedule.StartTime:HH:mm} - {schedule.EndTime:HH:mm} ngày {date:dd/MM/yyyy}. Cảm ơn bạn!",
+                    "info",
+                    "/Employee/WorkSchedule"
+                );
+            }
+
+            return Json(new { success = true, message = "Đã phân công dạy thay, cộng công và gửi thông báo thành công." });
         }
+
+        /// <summary>
+        /// Kiểm tra giáo viên có rảnh trong khung giờ cho trước không.
+        /// Trả về true nếu rảnh, false nếu đang bận.
+        /// </summary>
+        private async Task<bool> IsTeacherFreeAsync(int employeeId, DateOnly date, TimeOnly startTime, TimeOnly endTime, int? excludeScheduleId = null)
+        {
+            var dayOfWeek = date.DayOfWeek switch
+            {
+                DayOfWeek.Monday => 1,
+                DayOfWeek.Tuesday => 2,
+                DayOfWeek.Wednesday => 3,
+                DayOfWeek.Thursday => 4,
+                DayOfWeek.Friday => 5,
+                _ => 0
+            };
+
+            if (dayOfWeek == 0) return true; // Cuối tuần luôn rảnh
+
+            // Kiểm tra trong ClassSchedule (lịch dạy cố định)
+            var hasRegularConflict = await _context.ClassSchedules
+                .AnyAsync(cs =>
+                    cs.EmployeeId == employeeId &&
+                    cs.DayOfWeek == dayOfWeek &&
+                    cs.IsActive &&
+                    cs.EffectiveFrom <= date &&
+                    (cs.EffectiveTo == null || cs.EffectiveTo >= date) &&
+                    (excludeScheduleId == null || cs.Id != excludeScheduleId) &&
+                    cs.StartTime < endTime && cs.EndTime > startTime); // Kiểm tra giao nhau về thời gian
+
+            if (hasRegularConflict) return false;
+
+            // Kiểm tra trong Substitution (đã nhận dạy thay ở lớp khác)
+            var hasSubConflict = await _context.Substitutions
+                .Include(s => s.ClassSchedule)
+                .AnyAsync(s =>
+                    s.SubstituteEmployeeId == employeeId &&
+                    s.Date == date &&
+                    s.Status == "Confirmed" &&
+                    (excludeScheduleId == null || s.ClassScheduleId != excludeScheduleId) &&
+                    s.ClassSchedule.StartTime < endTime && s.ClassSchedule.EndTime > startTime);
+
+            return !hasSubConflict;
+        }
+
 
         private async Task<int?> GetCurrentEmployeeIdAsync()
         {

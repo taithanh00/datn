@@ -39,10 +39,34 @@ namespace datn.Controllers
                         ? "/images/lion_orange.png"
                         : "/images/lion_blue.png";
                 }
+
+                // Nếu là Employee, tải TeacherType để phân biệt GVCN / GVBM trong View
+                if (User.FindFirst(ClaimTypes.Role)?.Value == "Employee")
+                {
+                    var accountIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (int.TryParse(accountIdStr, out var accountId))
+                    {
+                        var employee = _context.Employees
+                            .FirstOrDefault(e => e.AccountId == accountId);
+
+                        if (employee != null)
+                        {
+                            ViewBag.TeacherType = employee.TeacherType.ToString(); // "Lead" hoặc "Subject"
+                            ViewBag.IsLead = employee.TeacherType == TeacherType.Lead;
+                        }
+                        else
+                        {
+                            ViewBag.TeacherType = "Subject";
+                            ViewBag.IsLead = false;
+                        }
+                    }
+                }
             }
             else
             {
                 ViewBag.UserAvatar = "/images/lion_blue.png";
+                ViewBag.IsLead = false;
+                ViewBag.TeacherType = "Subject";
             }
 
             base.OnActionExecuting(context);

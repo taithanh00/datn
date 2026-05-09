@@ -506,14 +506,14 @@ textarea.form-input {
 }
 
 /* ===== TOOLTIP ===== */
-[data-tooltip] {
+[data-tooltip],
+[data-tooltip-bottom] {
     position: relative;
 }
 
-[data-tooltip]:hover::after {
-    content: attr(data-tooltip);
+[data-tooltip]:hover::after,
+[data-tooltip-bottom]:hover::after {
     position: absolute;
-    bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
     padding: 6px 10px;
@@ -522,8 +522,19 @@ textarea.form-input {
     font-size: 0.75rem;
     border-radius: 6px;
     white-space: nowrap;
-    margin-bottom: 6px;
     z-index: 50;
+}
+
+[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    bottom: 100%;
+    margin-bottom: 6px;
+}
+
+[data-tooltip-bottom]:hover::after {
+    content: attr(data-tooltip-bottom);
+    top: 100%;
+    margin-top: 6px;
 }
 
 /* ===== CARD GRID ===== */

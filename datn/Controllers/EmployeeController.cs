@@ -232,8 +232,21 @@ namespace datn.Controllers
             {
                 var employeeId = await GetCurrentEmployeeId();
                 if (employeeId == null) return Json(new { success = false, message = "Hết phiên đăng nhập" });
-                
+
+                // Xác nhận vai trò trong lớp: chỉ GVCN mới được gửi đánh giá tháng
                 var reportDate = new DateOnly(model.Year, model.Month, 1);
+                var firstStudentId = model.Records.FirstOrDefault()?.StudentId;
+                if (firstStudentId.HasValue)
+                {
+                    var student = await _context.Students.FindAsync(firstStudentId.Value);
+                    if (student?.ClassId != null)
+                    {
+                        var today = GetTodayVnt();
+                        var isLead = await HasActiveAssignmentAsync(employeeId.Value, student.ClassId.Value, today, requireLead: true);
+                        if (!isLead)
+                            return Json(new { success = false, message = "Chỉ Giáo viên Chủ nhiệm mới có quyền gửi đánh giá học tập tháng." });
+                    }
+                }
                 
                 foreach (var item in model.Records)
                 {
@@ -527,9 +540,10 @@ namespace datn.Controllers
                 var classIds = students.Select(s => s.ClassId!.Value).Distinct().ToList();
                 foreach (var classId in classIds)
                 {
-                    var isAssigned = await HasActiveAssignmentAsync(employeeId.Value, classId, today);
-                    if (!isAssigned)
-                        return Json(new { success = false, message = "Bạn không có quyền điểm danh cho một hoặc nhiều lớp trong danh sách." });
+                    // Chỉ GVCN (RoleInClass == "Lead") mới được điểm danh buổi sáng
+                    var isLeadAssigned = await HasActiveAssignmentAsync(employeeId.Value, classId, today, requireLead: true);
+                    if (!isLeadAssigned)
+                        return Json(new { success = false, message = "Chỉ Giáo viên Chủ nhiệm mới có quyền điểm danh học sinh." });
                 }
 
                 foreach (var item in model.Records)
@@ -563,13 +577,14 @@ namespace datn.Controllers
             }
         }
 
-        private async Task<bool> HasActiveAssignmentAsync(int employeeId, int classId, DateOnly onDate)
+        private async Task<bool> HasActiveAssignmentAsync(int employeeId, int classId, DateOnly onDate, bool requireLead = false)
         {
             return await _context.Assignments.AnyAsync(a =>
                 a.EmployeeId == employeeId
                 && a.ClassId == classId
                 && a.StartDate <= onDate
-                && (a.EndDate == null || a.EndDate >= onDate));
+                && (a.EndDate == null || a.EndDate >= onDate)
+                && (!requireLead || a.RoleInClass == "Lead"));
         }
 
         // ============ ACTIVITY PARTICIPATION API ============

@@ -139,12 +139,16 @@ function renderTeachersTable(teachers) {
 
     const row = document.createElement("tr");
     const actionBtn = `<button class="btn-table" onclick="openEditPanel(${teacher.id})">Sửa</button>`;
+    const roleBadge = teacher.teacherType === 0 || teacher.teacherType === 'Lead' 
+      ? '<span class="badge" style="background:#e3f2fd; color:#1976d2;">GV Chủ nhiệm</span>' 
+      : '<span class="badge" style="background:#f3e5f5; color:#7b1fa2;">GV Bộ môn</span>';
+
     row.innerHTML = `
     <td>${index + 1}</td>
     <td> <img src="${teacher.avatarPath}" class="rounded-circle" style="width:36px; height:36px; object-fit:cover; border-radius:50%;"> </td>
     <td> <a href="/Manager/TeacherDetail/${teacher.id}" target="_blank" class="teacher-name-link" title="${teacher.fullName}"><strong>${teacher.fullName}</strong></a> </td>
     <td>${teacher.phone || "Chưa cập nhật"}</td>
-    <td>${teacher.position || "Chưa cập nhật"}</td>
+    <td>${roleBadge}<br><small class="text-muted">${teacher.position || ""}</small></td>
     <td>${statusBadge}</td>
     <td class="text-end">${actionBtn}</td>
 `;
@@ -204,6 +208,7 @@ async function openEditPanel(teacherId) {
     document.getElementById("email").value = data.email || "";
     document.getElementById("phone").value = data.phone || "";
     document.getElementById("position").value = data.position || "";
+    document.getElementById("teacherType").value = (data.teacherType === 0 || data.teacherType === 'Lead') ? "Lead" : "Subject";
     document.getElementById("baseSalary").value = data.baseSalary || "";
     document.getElementById("avatarPreview").src =
       data.avatarPath || "/images/lion_blue.png";
@@ -316,6 +321,7 @@ async function handleFormSubmit(e) {
   formData.append("Email", document.getElementById("email").value);
   formData.append("Phone", document.getElementById("phone").value);
   formData.append("Position", document.getElementById("position").value);
+  formData.append("TeacherType", document.getElementById("teacherType").value);
   formData.append("BaseSalary", document.getElementById("baseSalary").value);
 
   // Landing Page Fields

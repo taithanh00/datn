@@ -4,6 +4,11 @@ using System.Diagnostics;
 
 namespace datn.Models
 {
+    public enum TeacherType
+    {
+        Lead,    // Giáo viên Chủ nhiệm
+        Subject  // Giáo viên Bộ môn
+    }
     public class Employee
     {
         public int Id { get; set; }
@@ -29,6 +34,10 @@ namespace datn.Models
         public string? Philosophy { get; set; }          // Triết lý giáo dục
         public string? Specialty { get; set; }           // Chuyên môn chính
         public bool ShowOnLanding { get; set; } = false; // Hiển thị ra trang chủ
+
+        // Phân loại giáo viên
+        public TeacherType TeacherType { get; set; } = TeacherType.Subject;
+        public string? SpecializedSubjects { get; set; } // JSON array of Subject IDs (dành cho GVBM)
 
         public Account Account { get; set; }
         public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();

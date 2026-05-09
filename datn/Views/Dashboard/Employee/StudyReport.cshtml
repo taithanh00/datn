@@ -2,6 +2,7 @@
     ViewData["Title"] = "Đánh giá học tập";
     Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
     var selectedClassId = ViewBag.SelectedClassId as int?;
+    var isLead = ViewBag.IsLead as bool? ?? false;
 }
 
 <div class="page-header">
@@ -10,6 +11,17 @@
         <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Tháng hiện tại: <strong>Tháng @DateTime.Now.Month / @DateTime.Now.Year</strong></p>
     </div>
 </div>
+
+@if (!isLead)
+{
+    <div style="background:#fff8e1; border:1px solid #ffc107; border-radius:10px; padding:12px 18px; margin-bottom:16px; display:flex; align-items:center; gap:10px;">
+        <span style="font-size:1.4rem;">👁️</span>
+        <div>
+            <strong style="color:#856404;">Chế độ Xem - Giáo viên Bộ môn</strong>
+            <p style="margin:2px 0 0; font-size:0.83rem; color:#856404;">Bạn chỉ được xem đánh giá học tập. Việc xếp hạng và gửi đánh giá thuộc về Giáo viên Chủ nhiệm.</p>
+        </div>
+    </div>
+}
 
 <div class="card mb-4">
     <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 24px;">
@@ -39,11 +51,14 @@
                 }
             </select>
         </div>
-        <div>
-            <button class="btn btn-primary" onclick="submitReports()" id="btnSave" style="display: none; height: 42px;">
-                <i class="fa-solid fa-paper-plane"></i> Gửi đánh giá cho Phụ huynh
-            </button>
-        </div>
+        @if (isLead)
+        {
+            <div>
+                <button class="btn btn-primary" onclick="submitReports()" id="btnSave" style="display: none; height: 42px;">
+                    <i class="fa-solid fa-paper-plane"></i> Gửi đánh giá cho Phụ huynh
+                </button>
+            </div>
+        }
     </div>
 
     <div id="reportContent" style="border-top: 1px solid var(--border); padding-top: 24px;">

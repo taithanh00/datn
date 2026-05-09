@@ -87,7 +87,10 @@ namespace datn.Controllers
         public async Task<IActionResult> SaveStudentReport([FromBody]   SaveReportDto dto)
         {
             if (dto == null) return BadRequest();
-            if (!await CanAccessClass(dto.ClassId)) return Forbid();
+
+            // GVBM chỉ được xem, không được sửa nhật ký ăn ngủ
+            if (!await CanEditClass(dto.ClassId))
+                return Json(new { success = false, message = "Chỉ Giáo viên Chủ nhiệm mới có quyền ghi nhật ký lớp học." });
 
             if (!DateOnly.TryParse(dto.Date, out var d)) d = DateOnly.FromDateTime(DateTime.Now);
 
@@ -137,18 +140,35 @@ namespace datn.Controllers
             return emp?.Id ?? 0;
         }
 
-        private async Task<bool> CanAccessClass(int classId)
+        // GVCN và GVBM đều có thể XEM nhật ký lớp
+        private async Task<bool> CanViewClass(int classId)
         {
             var employeeId = await GetCurrentEmployeeId();
             if (employeeId == 0) return false;
-            
             var today = DateOnly.FromDateTime(DateTime.Now);
-            return await _context.Assignments.AnyAsync(a => 
-                a.EmployeeId == employeeId && 
-                a.ClassId == classId && 
-                a.IsActive && 
+            return await _context.Assignments.AnyAsync(a =>
+                a.EmployeeId == employeeId &&
+                a.ClassId == classId &&
+                a.IsActive &&
                 (a.EndDate == null || a.EndDate >= today));
         }
+
+        // Chỉ GVCN mới được CHỈNH SỦA nhật ký lớp
+        private async Task<bool> CanEditClass(int classId)
+        {
+            var employeeId = await GetCurrentEmployeeId();
+            if (employeeId == 0) return false;
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            return await _context.Assignments.AnyAsync(a =>
+                a.EmployeeId == employeeId &&
+                a.ClassId == classId &&
+                a.IsActive &&
+                a.RoleInClass == "Lead" &&
+                (a.EndDate == null || a.EndDate >= today));
+        }
+
+        // Giữ lại cho tương thích ngược
+        private Task<bool> CanAccessClass(int classId) => CanViewClass(classId);
 
         // ────── PARENT VIEWS ────────────────────────────────────────
 

@@ -1,6 +1,7 @@
 @{
     ViewData["Title"] = "Nhật ký lớp học";
     Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+    var isLead = ViewBag.IsLead as bool? ?? false;
 }
 
 <div class="page-header">
@@ -21,9 +22,22 @@
 
 <div id="pageAlert" class="page-alert" style="display:none;"></div>
 
+@if (!isLead)
+{
+    <div style="background:#fff8e1; border:1px solid #ffc107; border-radius:10px; padding:12px 18px; margin-bottom:16px; display:flex; align-items:center; gap:10px;">
+        <span style="font-size:1.4rem;">👁️</span>
+        <div>
+            <strong style="color:#856404;">Chế độ Xem - Giáo viên Bộ môn</strong>
+            <p style="margin:2px 0 0; font-size:0.83rem; color:#856404;">Bạn đang xem nhật ký lớp học. Quyền ghi nhận thuộc về Giáo viên Chủ nhiệm.</p>
+        </div>
+    </div>
+}
+
 <!-- Quick Actions + Progress Bar -->
 <div class="card" id="quickActionsBar" style="display:none; padding:12px 20px;">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        @if (isLead)
+        {
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
             <span style="font-size:0.82rem; color:var(--text-muted); font-weight:600;">
                 <i class="fa-solid fa-bolt" style="color:var(--warning);"></i> Thao tác nhanh:
@@ -31,6 +45,7 @@
             <button class="btn btn-outline" style="font-size:0.82rem; padding:5px 14px;" onclick="batchSetEating(0)">😋 Tất cả ăn tốt</button>
             <button class="btn btn-outline" style="font-size:0.82rem; padding:5px 14px;" onclick="batchSetSleeping(0)">💤 Tất cả ngủ tốt</button>
         </div>
+        }
         <div style="display:flex; align-items:center; gap:10px;">
             <span id="progressText" style="font-size:0.82rem; color:var(--text-muted);">Tiến độ: 0/0</span>
             <div style="width:120px; height:6px; background:var(--border); border-radius:3px; overflow:hidden;">
@@ -127,10 +142,13 @@
     </div>
 
     <div style="display:flex; gap:10px; margin-top:8px;">
-        <button class="btn btn-primary" onclick="saveReport()">
-            <i class="fa-solid fa-floppy-disk"></i> Lưu nhật ký
-        </button>
-        <button class="btn btn-outline" onclick="closeEditForm()">Hủy</button>
+        @if (isLead)
+        {
+            <button class="btn btn-primary" onclick="saveReport()">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu nhật ký
+            </button>
+        }
+        <button class="btn btn-outline" onclick="closeEditForm()">@(isLead ? "Hủy" : "Đóng")</button>
     </div>
 </div>
 
@@ -340,7 +358,14 @@
                         <span class="done-badge ${report ? 'done' : 'pending'}">${report ? '✓ Đã ghi' : 'Chưa ghi'}</span>
                     </td>
                     <td>
-                        <button class="btn-table" onclick="openEditForm(${s.id})">Ghi nhật ký</button>
+                        @if (isLead)
+                        {
+                            <button class="btn-table" onclick="openEditForm(${s.id})">Ghi nhật ký</button>
+                        }
+                        else
+                        {
+                            <button class="btn-table" onclick="openEditForm(${s.id})">Xem</button>
+                        }
                     </td>
                 </tr>`;
         });

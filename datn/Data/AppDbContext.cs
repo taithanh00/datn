@@ -112,6 +112,13 @@ namespace datn.Data
                 .HasIndex(s => s.StudentCode)
                 .IsUnique();
 
+            // ── Class.LeadTeacher (GVCN) ─────────────────────────
+            modelBuilder.Entity<Class>()
+                .HasOne(c => c.LeadTeacher)
+                .WithMany()
+                .HasForeignKey(c => c.LeadTeacherId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // ── ParentStudent (composite PK) ──────────────────────
             modelBuilder.Entity<ParentStudent>()
                 .HasKey(ps => new { ps.ParentId, ps.StudentId });

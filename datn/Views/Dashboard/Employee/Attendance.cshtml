@@ -2,6 +2,7 @@
     ViewData["Title"] = "Điểm danh";
     Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
     var selectedClassId = ViewBag.SelectedClassId as int?;
+    var isLead = ViewBag.IsLead as bool? ?? false;
 }
 
 <div class="page-header">
@@ -21,7 +22,16 @@
     </div>
     <div id="footerActions" style="display:none; border-top:1px solid var(--border); padding-top:20px; margin-top:20px;" class="d-flex gap-1 justify-between">
         <button class="btn btn-outline" onclick="loadStudents(document.getElementById('classSelect').value)"><i class="fa-solid fa-rotate"></i> Làm mới</button>
-        <button class="btn btn-primary" onclick="submitAttendance()"><i class="fa-solid fa-floppy-disk"></i> Lưu điểm danh</button>
+        @if (isLead)
+        {
+            <button class="btn btn-primary" onclick="submitAttendance()"><i class="fa-solid fa-floppy-disk"></i> Lưu điểm danh</button>
+        }
+        else
+        {
+            <div style="background:#fff8e1; border:1px solid #ffc107; border-radius:8px; padding:8px 14px; font-size:0.82rem; color:#856404;">
+                👁️ Chế độ xem — Chỉ GV Chủ nhiệm mới có quyền lưu điểm danh.
+            </div>
+        }
     </div>
 </div>
 
