@@ -41,135 +41,58 @@
 
                 @if (ViewBag.Role == "Manager")
                 {
-                    <div class="nav-group">
-                        <button class="nav-item has-submenu" onclick="this.parentElement.classList.toggle('open')">
-                            <div class="submenu-title"><i class="fa-solid fa-users"></i> Nhân sự & Học sinh</div>
-                            <i class="fa-solid fa-chevron-down submenu-arrow"></i>
-                        </button>
-                        <div class="submenu-content">
-                            <a href="/Manager/Teachers" class="nav-item" data-transition><i class="fa-solid fa-user-tie"></i> Quản lý Nhân sự</a>
-                            <a href="/Manager/Students" class="nav-item" data-transition><i class="fa-solid fa-user-graduate"></i> Quản lý Học sinh</a>
-                            <a href="/Manager/Parents" class="nav-item" data-transition><i class="fa-solid fa-users-viewfinder"></i> Quản lý Phụ huynh</a>
-                        </div>
-                    </div>
+                    <div class="nav-label">Quản trị hệ thống</div>
+                    <a href="/Manager/Classes" class="nav-item" data-transition><i class="fa-solid fa-school"></i> Quản lý lớp học</a>
+                    <a href="/Manager/Subjects" class="nav-item" data-transition><i class="fa-solid fa-book"></i> Danh mục môn học</a>
+                    <a href="/Manager/Schedules" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Thời khóa biểu</a>
+                    <a href="/Manager/Students" class="nav-item" data-transition><i class="fa-solid fa-user-graduate"></i> Học sinh</a>
+                    <a href="/Manager/Parents" class="nav-item" data-transition><i class="fa-solid fa-users-viewfinder"></i> Phụ huynh</a>
+                    <a href="/Manager/Teachers" class="nav-item" data-transition><i class="fa-solid fa-user-tie"></i> Nhân sự</a>
+                    <a href="/HolidayManagement" class="nav-item" data-transition><i class="fa-solid fa-umbrella-beach"></i> Ngày lễ</a>
+                    <a href="/Manager/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động</a>
+                    <a href="/Manager/Nutrition" class="nav-item" data-transition><i class="fa-solid fa-utensils"></i> Quản lý Dinh dưỡng</a>
+                    <a href="/Manager/SystemLog" class="nav-item" data-transition><i class="fa-solid fa-clock-rotate-left"></i> Nhật ký hệ thống</a>
 
-                    <div class="nav-group open">
-                        <button class="nav-item has-submenu" onclick="this.parentElement.classList.toggle('open')">
-                            <div class="submenu-title"><i class="fa-solid fa-school"></i> Đào tạo & Lớp học</div>
-                            <i class="fa-solid fa-chevron-down submenu-arrow"></i>
-                        </button>
-                        <div class="submenu-content">
-                            <a href="/Manager/Curriculums" class="nav-item" data-transition><i class="fa-solid fa-book-open"></i> Chương trình học</a>
-                            <a href="/Manager/Subjects" class="nav-item" data-transition><i class="fa-solid fa-book"></i> Danh mục môn học</a>
-                            <a href="/Manager/Classes" class="nav-item" data-transition><i class="fa-solid fa-school"></i> Quản lý lớp học</a>
-                            <a href="/Manager/Schedules" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Thời khóa biểu</a>
-                            <a href="/Manager/Assignments" class="nav-item" data-transition><i class="fa-solid fa-chalkboard-user"></i> Phân công giảng dạy</a>
-                            <a href="/Manager/TeachingPlans" class="nav-item" data-transition><i class="fa-solid fa-list-check"></i> Kế hoạch giảng dạy</a>
-                        </div>
-                    </div>
+                    <div class="nav-label">Đào tạo</div>
+                    <a href="/Manager/Assignments" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Phân công giảng dạy</a>
+                    <a href="/Manager/TeachingPlans" class="nav-item" data-transition><i class="fa-solid fa-list-check"></i> Kế hoạch giảng dạy</a>
+                    <a href="/Manager/Curriculums" class="nav-item" data-transition><i class="fa-solid fa-book-open"></i> Chương trình học</a>
 
-                    <div class="nav-group">
-                        <button class="nav-item has-submenu" onclick="this.parentElement.classList.toggle('open')">
-                            <div class="submenu-title"><i class="fa-solid fa-calendar-check"></i> Vận hành & Tiện ích</div>
-                            <i class="fa-solid fa-chevron-down submenu-arrow"></i>
-                        </button>
-                        <div class="submenu-content">
-                            <a href="/Manager/Nutrition" class="nav-item" data-transition><i class="fa-solid fa-utensils"></i> Dinh dưỡng & Thực đơn</a>
-                            <a href="/Manager/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động ngoại khóa</a>
-                            <a href="/HolidayManagement" class="nav-item" data-transition><i class="fa-solid fa-umbrella-beach"></i> Quản lý Ngày lễ</a>
-                        </div>
-                    </div>
+                    <div class="nav-label">Tài chính</div>
+                    <a href="/Tuition" class="nav-item" data-transition><i class="fa-solid fa-file-invoice-dollar"></i> Học phí</a>
+                    <a href="/TeacherSalary" class="nav-item" data-transition><i class="fa-solid fa-money-check-dollar"></i> Tiền lương</a>
 
-                    <div class="nav-group">
-                        <button class="nav-item has-submenu" onclick="this.parentElement.classList.toggle('open')">
-                            <div class="submenu-title"><i class="fa-solid fa-wallet"></i> Tài chính & Nhân sự</div>
-                            <i class="fa-solid fa-chevron-down submenu-arrow"></i>
-                        </button>
-                        <div class="submenu-content">
-                            <a href="/Tuition" class="nav-item" data-transition><i class="fa-solid fa-file-invoice-dollar"></i> Quản lý Học phí</a>
-                            <a href="/TeacherSalary" class="nav-item" data-transition><i class="fa-solid fa-money-check-dollar"></i> Lương giáo viên</a>
-                            <a href="/LeaveApproval" class="nav-item" data-transition><i class="fa-solid fa-clipboard-check"></i> Phê duyệt Nghỉ phép</a>
-                        </div>
-                    </div>
-
-                    <div class="nav-group">
-                        <button class="nav-item has-submenu" onclick="this.parentElement.classList.toggle('open')">
-                            <div class="submenu-title"><i class="fa-solid fa-gears"></i> Hệ thống</div>
-                            <i class="fa-solid fa-chevron-down submenu-arrow"></i>
-                        </button>
-                        <div class="submenu-content">
-                            <a href="/Manager/SystemLog" class="nav-item" data-transition><i class="fa-solid fa-clock-rotate-left"></i> Nhật ký hệ thống</a>
-                        </div>
-                    </div>
+                    <div class="nav-label">Phê duyệt</div>
+                    <a href="/LeaveApproval" class="nav-item" data-transition><i class="fa-solid fa-clipboard-check"></i> Duyệt nghỉ phép</a>
                 }
 
                 @if (ViewBag.Role == "Employee")
                 {
-                    <div class="nav-group open">
-                        <button class="nav-item has-submenu" onclick="this.parentElement.classList.toggle('open')">
-                            <div class="submenu-title"><i class="fa-solid fa-chalkboard-user"></i> Nghiệp vụ Lớp học</div>
-                            <i class="fa-solid fa-chevron-down submenu-arrow"></i>
-                        </button>
-                        <div class="submenu-content">
-                            <a href="/Employee/Classes" class="nav-item" data-transition><i class="fa-solid fa-users-rectangle"></i> Lớp của tôi</a>
-                            <a href="/Employee/Attendance" class="nav-item" data-transition><i class="fa-solid fa-clipboard-user"></i> Điểm danh học sinh</a>
-                            <a href="/DailyReport/ClassReports" class="nav-item @(ViewData["Title"]?.ToString() == "Nhật ký lớp học" ? "active" : "")" data-transition><i class="fa-solid fa-book-open"></i> Nhật ký lớp học</a>
-                            <a href="/Employee/StudyReport" class="nav-item" data-transition><i class="fa-solid fa-file-signature"></i> Nhận xét & Báo cáo</a>
-                        </div>
-                    </div>
+                    <div class="nav-label">Giảng dạy</div>
+                    <a href="/Employee/Classes" class="nav-item" data-transition><i class="fa-solid fa-chalkboard-user"></i> Lớp của tôi</a>
+                    <a href="/Employee/Attendance" class="nav-item" data-transition><i class="fa-solid fa-clipboard-user"></i> Điểm danh</a>
+                    <a href="/Employee/StudyReport" class="nav-item" data-transition><i class="fa-solid fa-file-signature"></i> Nhận xét & Báo cáo</a>
+                    <a href="/Employee/TeachingPlan" class="nav-item" data-transition><i class="fa-solid fa-book-open-reader"></i> Kế hoạch giảng dạy</a>
+                    <a href="/Employee/Activities" class="nav-item @(ViewData["Title"]?.ToString() == "Hoạt động" ? "active" : "")" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động</a>
+                    <a href="/DailyReport/ClassReports" class="nav-item @(ViewData["Title"]?.ToString() == "Nhật ký lớp học" ? "active" : "")" data-transition><i class="fa-solid fa-book-open"></i> Nhật ký lớp học</a>
+                    <a href="/Manager/Nutrition" class="nav-item @(ViewData["Title"]?.ToString() == "Quản lý Dinh dưỡng & Thực đơn" ? "active" : "")" data-transition><i class="fa-solid fa-utensils"></i> Dinh dưỡng & Thực đơn</a>
 
-                    <div class="nav-group">
-                        <button class="nav-item has-submenu" onclick="this.parentElement.classList.toggle('open')">
-                            <div class="submenu-title"><i class="fa-solid fa-calendar-days"></i> Kế hoạch & Hoạt động</div>
-                            <i class="fa-solid fa-chevron-down submenu-arrow"></i>
-                        </button>
-                        <div class="submenu-content">
-                            <a href="/Employee/TeachingPlan" class="nav-item" data-transition><i class="fa-solid fa-book-open-reader"></i> Kế hoạch giảng dạy</a>
-                            <a href="/Employee/Activities" class="nav-item @(ViewData["Title"]?.ToString() == "Hoạt động" ? "active" : "")" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động ngoại khóa</a>
-                            <a href="/Manager/Nutrition" class="nav-item @(ViewData["Title"]?.ToString() == "Quản lý Dinh dưỡng & Thực đơn" ? "active" : "")" data-transition><i class="fa-solid fa-utensils"></i> Dinh dưỡng & Thực đơn</a>
-                        </div>
-                    </div>
-
-                    <div class="nav-group">
-                        <button class="nav-item has-submenu" onclick="this.parentElement.classList.toggle('open')">
-                            <div class="submenu-title"><i class="fa-solid fa-user-tie"></i> Thông tin Cá nhân</div>
-                            <i class="fa-solid fa-chevron-down submenu-arrow"></i>
-                        </button>
-                        <div class="submenu-content">
-                            <a href="/Employee/WorkSchedule" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Lịch dạy cá nhân</a>
-                            <a href="/TimeAttendance" class="nav-item" data-transition><i class="fa-solid fa-clock"></i> Chấm công</a>
-                            <a href="/LeaveRequest" class="nav-item" data-transition><i class="fa-solid fa-calendar-minus"></i> Xin nghỉ phép</a>
-                            <a href="/TeacherSalary/MySalary" class="nav-item" data-transition><i class="fa-solid fa-wallet"></i> Phiếu lương</a>
-                        </div>
-                    </div>
+                    <div class="nav-label">Cá nhân</div>
+                    <a href="/TimeAttendance" class="nav-item" data-transition><i class="fa-solid fa-clock"></i> Chấm công</a>
+                    <a href="/LeaveRequest" class="nav-item" data-transition><i class="fa-solid fa-calendar-minus"></i> Nghỉ phép</a>
+                    <a href="/Employee/WorkSchedule" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Lịch dạy cá nhân</a>
+                    <a href="/TeacherSalary/MySalary" class="nav-item" data-transition><i class="fa-solid fa-wallet"></i> Phiếu lương</a>
                 }
 
                 @if (ViewBag.Role == "Parent")
                 {
-                    <div class="nav-group open">
-                        <button class="nav-item has-submenu" onclick="this.parentElement.classList.toggle('open')">
-                            <div class="submenu-title"><i class="fa-solid fa-child"></i> Thông tin của Bé</div>
-                            <i class="fa-solid fa-chevron-down submenu-arrow"></i>
-                        </button>
-                        <div class="submenu-content">
-                            <a href="/Parent/Children" class="nav-item" data-transition><i class="fa-solid fa-id-card"></i> Hồ sơ học sinh</a>
-                            <a href="/Parent/AttendanceReport" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Báo cáo chuyên cần</a>
-                            <a href="/Parent/StudyReports" class="nav-item" data-transition><i class="fa-solid fa-chart-bar"></i> Đánh giá học tập</a>
-                            <a href="/DailyReport/MyChild" class="nav-item" data-transition><i class="fa-solid fa-notes-medical"></i> Nhật ký & Sức khỏe</a>
-                        </div>
-                    </div>
-
-                    <div class="nav-group">
-                        <button class="nav-item has-submenu" onclick="this.parentElement.classList.toggle('open')">
-                            <div class="submenu-title"><i class="fa-solid fa-school"></i> Trường lớp</div>
-                            <i class="fa-solid fa-chevron-down submenu-arrow"></i>
-                        </button>
-                        <div class="submenu-content">
-                            <a href="/Parent/TeachingPlan" class="nav-item" data-transition><i class="fa-solid fa-book"></i> Kế hoạch giảng dạy</a>
-                            <a href="/Parent/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-heart"></i> Hoạt động của bé</a>
-                        </div>
-                    </div>
-
+                    <div class="nav-label">Con của tôi</div>
+                    <a href="/Parent/Children" class="nav-item" data-transition><i class="fa-solid fa-child"></i> Thông tin bé</a>
+                    <a href="/Parent/AttendanceReport" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Chuyên cần</a>
+                    <a href="/Parent/StudyReports" class="nav-item" data-transition><i class="fa-solid fa-chart-bar"></i> Học tập</a>
+                    <a href="/Parent/TeachingPlan" class="nav-item" data-transition><i class="fa-solid fa-book"></i> Kế hoạch lớp</a>
+                    <a href="/Parent/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-heart"></i> Hoạt động của bé</a>
+                    <a href="/DailyReport/MyChild" class="nav-item" data-transition><i class="fa-solid fa-notes-medical"></i> Nhật ký & Sức khỏe</a>
                     <a href="/Tuition/MyTuition" class="nav-item" data-transition><i class="fa-solid fa-wallet"></i> Học phí</a>
                 }
 
@@ -292,16 +215,6 @@
                     }
                 });
             }
-
-            // Auto-open submenu if a link inside it is active
-            var currentUrl = window.location.pathname;
-            document.querySelectorAll('.submenu-content a').forEach(link => {
-                if(link.getAttribute('href') === currentUrl || link.classList.contains('active')) {
-                    var navGroup = link.closest('.nav-group');
-                    if(navGroup) navGroup.classList.add('open');
-                    link.classList.add('active');
-                }
-            });
         });
     </script>
     @await RenderSectionAsync("Scripts", required: false)

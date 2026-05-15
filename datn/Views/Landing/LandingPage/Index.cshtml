@@ -79,31 +79,94 @@
                 <div class="grid grid-2 gap-4" style="grid-template-columns: 1fr 1fr; margin-bottom: 20px;">
                     <div class="form-group">
                         <label>Tên của bạn</label>
-                        <input type="text" class="form-control" placeholder="Nhập họ tên" required />
+                        <input type="text" id="consultName" name="FullName" class="form-control" placeholder="Nhập họ tên" required />
                     </div>
                     <div class="form-group">
                         <label>Số điện thoại</label>
-                        <input type="tel" class="form-control" placeholder="0xxx xxx xxx" required />
+                        <input type="tel" id="consultPhone" name="PhoneNumber" class="form-control" placeholder="0xxx xxx xxx" required pattern="[0-9]{10}" title="Vui lòng nhập số điện thoại 10 chữ số" />
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Email (nếu có)</label>
-                    <input type="email" class="form-control" placeholder="example@gmail.com" />
+                    <input type="email" id="consultEmail" name="Email" class="form-control" placeholder="example@email.com" />
                 </div>
-                <div class="form-group">
-                    <label>Bé bao nhiêu tuổi?</label>
-                    <select class="form-control">
-                        <option>Dưới 2 tuổi</option>
-                        <option>2 - 4 tuổi</option>
-                        <option>Trên 4 tuổi</option>
-                    </select>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Nội dung cần tư vấn</label>
+                    <textarea id="consultNote" name="Note" class="form-control" rows="4" placeholder="Nhập nội dung yêu cầu (ví dụ: muốn đăng ký lớp mầm cho bé 3 tuổi)..."></textarea>
                 </div>
-                <div class="form-group">
-                    <label>Lời nhắn</label>
-                    <textarea class="form-control" rows="4" placeholder="Bạn quan tâm đến điều gì nhất?"></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary w-full" style="padding: 16px;">Gửi thông tin ngay</button>
+                <button type="submit" class="btn btn-primary" style="margin-top: 30px; width: 200px; padding: 12px;">GỬI YÊU CẦU</button>
             </form>
+            <div id="consultResult" style="margin-top: 20px; display: none;"></div>
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        document.getElementById('consultForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = this.querySelector('button[type="submit"]');
+            const resultDiv = document.getElementById('consultResult');
+            const originalText = btn.innerText;
+            
+            // Basic validation
+            const name = document.getElementById('consultName').value.trim();
+            const phone = document.getElementById('consultPhone').value.trim();
+            
+            if (name.length < 2) {
+                showResult('Vui lòng nhập họ tên hợp lệ', 'danger');
+                return;
+            }
+            
+            if (!/^[0-9]{10}$/.test(phone)) {
+                showResult('Số điện thoại phải có 10 chữ số', 'danger');
+                return;
+            }
+
+            try {
+                btn.disabled = true;
+                btn.innerText = 'ĐANG GỬI...';
+                
+                const formData = new FormData(this);
+                const response = await fetch('/LandingPage/SubmitConsultation', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('Cảm ơn bạn! Yêu cầu đã được gửi thành công. Chúng tôi sẽ liên hệ lại sớm nhất.', 'success');
+                    this.reset();
+                } else {
+                    showResult(result.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.', 'danger');
+                }
+            } catch (error) {
+                showResult('Không thể kết nối tới máy chủ. Vui lòng kiểm tra mạng.', 'danger');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        });
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('consultResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = `alert alert-${type}`;
+            resultDiv.style.padding = '15px';
+            resultDiv.style.borderRadius = '8px';
+            resultDiv.style.marginTop = '20px';
+            resultDiv.style.backgroundColor = type === 'success' ? '#dcfce7' : '#fef2f2';
+            resultDiv.style.color = type === 'success' ? '#166534' : '#991b1b';
+            resultDiv.style.border = `1px solid ${type === 'success' ? '#bbf7d0' : '#fee2e2'}`;
+            resultDiv.innerText = message;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    resultDiv.style.display = 'none';
+                }, 10000);
+            }
+        }
+    </script>
+}

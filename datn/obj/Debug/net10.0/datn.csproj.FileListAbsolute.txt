@@ -420,4 +420,5 @@ D:\datn\datn\datn\obj\Debug\net10.0\compressed\8bq9t1oz7n-{0}-91oixdpii6-91oixdp
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\hpt50xn2ve-{0}-atwxm0fqzx-atwxm0fqzx.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\gnj500cxoh-{0}-8h3l3n7ypv-8h3l3n7ypv.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\bvy462mwqh-{0}-z2anuprf6s-z2anuprf6s.gz
-D:\datn\datn\datn\obj\Debug\net10.0\compressed\ip7xgacu2z-{0}-xk268arott-xk268arott.gz
+D:\datn\datn\datn\obj\Debug\net10.0\compressed\ip7xgacu2z-{0}-q7196lne4b-q7196lne4b.gz
+D:\datn\datn\datn\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
