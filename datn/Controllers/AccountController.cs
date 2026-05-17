@@ -376,7 +376,7 @@ namespace datn.Controllers
             ViewBag.Role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "User";
             ViewBag.UserAvatar = "/images/lion_blue.png";
 
-            return View("~/Views/Auth/AccessDenied.cshtml");
+            return View("~/Views/Common/Auth/AccessDenied.cshtml");
         }
     }
 

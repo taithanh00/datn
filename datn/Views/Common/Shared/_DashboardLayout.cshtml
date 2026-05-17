@@ -91,7 +91,7 @@
                     <a href="/Parent/AttendanceReport" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Chuyên cần</a>
                     <a href="/Parent/StudyReports" class="nav-item" data-transition><i class="fa-solid fa-chart-bar"></i> Học tập</a>
                     <a href="/Parent/TeachingPlan" class="nav-item" data-transition><i class="fa-solid fa-book"></i> Kế hoạch lớp</a>
-                    <a href="/Parent/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-heart"></i> Hoạt động của bé</a>
+                    <a href="/Parent/Activities" class="nav-item" data-transition><i class="fa-solid fa-puzzle-piece"></i> Hoạt động của bé</a>
                     <a href="/DailyReport/MyChild" class="nav-item" data-transition><i class="fa-solid fa-notes-medical"></i> Nhật ký & Sức khỏe</a>
                     <a href="/Tuition/MyTuition" class="nav-item" data-transition><i class="fa-solid fa-wallet"></i> Học phí</a>
                 }
@@ -143,7 +143,7 @@
                 <div class="header-right d-flex align-center gap-2">
                     <!-- Notifications -->
                     <div style="position:relative;">
-                        <button class="theme-toggle" id="notificationToggle" style="position:relative;">
+                        <button class="theme-toggle" id="notificationToggle" style="position:relative;" data-tooltip-bottom="Thông báo">
                             <i class="fa-solid fa-bell"></i>
                             <span id="notificationCount" style="display:none; position:absolute; top:0; right:0; background:var(--danger); color:#fff; font-size:0.6rem; width:16px; height:16px; border-radius:50%; align-items:center; justify-content:center; font-weight:700;"></span>
                         </button>
@@ -197,6 +197,7 @@
     <!-- Toast Container -->
     <div id="toastContainer" style="position:fixed; right:20px; top:80px; z-index:9999; display:flex; flex-direction:column; gap:8px;"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
     <script src="~/js/app.js" asp-append-version="true"></script>
     <script src="~/js/layout.js" asp-append-version="true"></script>

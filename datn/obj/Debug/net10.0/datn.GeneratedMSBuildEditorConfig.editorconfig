@@ -19,273 +19,273 @@ build_property.TargetFrameworkIdentifier = .NETCoreApp
 build_property.TargetFrameworkVersion = v10.0
 build_property.RootNamespace = datn
 build_property.RootNamespace = datn
-build_property.ProjectDir = D:\datn\datn\datn\
+build_property.ProjectDir = d:\datn\datn\datn\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = D:\datn\datn\datn
+build_property.MSBuildProjectDirectory = d:\datn\datn\datn
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
-[D:/datn/datn/datn/Views/Common/Account/ChangePassword.cshtml]
+[d:/datn/datn/datn/Views/Common/Account/ChangePassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXEFjY291bnRcQ2hhbmdlUGFzc3dvcmQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Account/Profile.cshtml]
+[d:/datn/datn/datn/Views/Common/Account/Profile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXEFjY291bnRcUHJvZmlsZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Auth/AccessDenied.cshtml]
+[d:/datn/datn/datn/Views/Common/Auth/AccessDenied.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXEF1dGhcQWNjZXNzRGVuaWVkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Auth/ForgotPassword.cshtml]
+[d:/datn/datn/datn/Views/Common/Auth/ForgotPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXEF1dGhcRm9yZ290UGFzc3dvcmQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Auth/Login.cshtml]
+[d:/datn/datn/datn/Views/Common/Auth/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXEF1dGhcTG9naW4uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Auth/ResetPassword.cshtml]
+[d:/datn/datn/datn/Views/Common/Auth/ResetPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXEF1dGhcUmVzZXRQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Home/Index.cshtml]
+[d:/datn/datn/datn/Views/Common/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXEhvbWVcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Home/Privacy.cshtml]
+[d:/datn/datn/datn/Views/Common/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXEhvbWVcUHJpdmFjeS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Shared/Error.cshtml]
+[d:/datn/datn/datn/Views/Common/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXFNoYXJlZFxFcnJvci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Shared/_DashboardLayout.cshtml]
+[d:/datn/datn/datn/Views/Common/Shared/_DashboardLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXFNoYXJlZFxfRGFzaGJvYXJkTGF5b3V0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Shared/_LandingFooter.cshtml]
+[d:/datn/datn/datn/Views/Common/Shared/_LandingFooter.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXFNoYXJlZFxfTGFuZGluZ0Zvb3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Shared/_LandingHeader.cshtml]
+[d:/datn/datn/datn/Views/Common/Shared/_LandingHeader.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXFNoYXJlZFxfTGFuZGluZ0hlYWRlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Shared/_LandingLayout.cshtml]
+[d:/datn/datn/datn/Views/Common/Shared/_LandingLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXFNoYXJlZFxfTGFuZGluZ0xheW91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Shared/_Layout.cshtml]
+[d:/datn/datn/datn/Views/Common/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXFNoYXJlZFxfTGF5b3V0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Shared/_SideMenu.cshtml]
+[d:/datn/datn/datn/Views/Common/Shared/_SideMenu.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXFNoYXJlZFxfU2lkZU1lbnUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Shared/_TopBar.cshtml]
+[d:/datn/datn/datn/Views/Common/Shared/_TopBar.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXFNoYXJlZFxfVG9wQmFyLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Common/Shared/_ValidationScriptsPartial.cshtml]
+[d:/datn/datn/datn/Views/Common/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29tbW9uXFNoYXJlZFxfVmFsaWRhdGlvblNjcmlwdHNQYXJ0aWFsLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/DailyReport/ClassReports.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/DailyReport/ClassReports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXERhaWx5UmVwb3J0XENsYXNzUmVwb3J0cy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/DailyReport/MyChild.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/DailyReport/MyChild.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXERhaWx5UmVwb3J0XE15Q2hpbGQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Employee/Activities.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Employee/Activities.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEVtcGxveWVlXEFjdGl2aXRpZXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Employee/Attendance.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Employee/Attendance.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEVtcGxveWVlXEF0dGVuZGFuY2UuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Employee/Classes.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Employee/Classes.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEVtcGxveWVlXENsYXNzZXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Employee/Index.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Employee/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEVtcGxveWVlXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Employee/StudyReport.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Employee/StudyReport.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEVtcGxveWVlXFN0dWR5UmVwb3J0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Employee/TeachingPlan.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Employee/TeachingPlan.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEVtcGxveWVlXFRlYWNoaW5nUGxhbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Employee/WorkSchedule.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Employee/WorkSchedule.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEVtcGxveWVlXFdvcmtTY2hlZHVsZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/HolidayManagement/Index.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/HolidayManagement/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEhvbGlkYXlNYW5hZ2VtZW50XEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/LeaveApproval/Index.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/LeaveApproval/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXExlYXZlQXBwcm92YWxcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/LeaveRequest/Index.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/LeaveRequest/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXExlYXZlUmVxdWVzdFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/Activities.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/Activities.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcQWN0aXZpdGllcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/Assignments.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/Assignments.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcQXNzaWdubWVudHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/Classes.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/Classes.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcQ2xhc3Nlcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/Curriculums.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/Curriculums.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcQ3VycmljdWx1bXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/Index.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/ParentDetail.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/ParentDetail.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcUGFyZW50RGV0YWlsLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/Parents.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/Parents.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcUGFyZW50cy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/Schedules.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/Schedules.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcU2NoZWR1bGVzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/StudentDetail.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/StudentDetail.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcU3R1ZGVudERldGFpbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/Students.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/Students.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcU3R1ZGVudHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/Subjects.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/Subjects.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcU3ViamVjdHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/SystemLogs.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/SystemLogs.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcU3lzdGVtTG9ncy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/TeacherDetail.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/TeacherDetail.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcVGVhY2hlckRldGFpbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/Teachers.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/Teachers.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcVGVhY2hlcnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Manager/TeachingPlans.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Manager/TeachingPlans.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE1hbmFnZXJcVGVhY2hpbmdQbGFucy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Nutrition/Index.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Nutrition/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXE51dHJpdGlvblxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Parent/Activities.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Parent/Activities.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFBhcmVudFxBY3Rpdml0aWVzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Parent/AttendanceReport.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Parent/AttendanceReport.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFBhcmVudFxBdHRlbmRhbmNlUmVwb3J0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Parent/Children.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Parent/Children.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFBhcmVudFxDaGlsZHJlbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Parent/StudyReports.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Parent/StudyReports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFBhcmVudFxTdHVkeVJlcG9ydHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Parent/TeachingPlan.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Parent/TeachingPlan.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFBhcmVudFxUZWFjaGluZ1BsYW4uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/TeacherSalary/Index.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/TeacherSalary/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFRlYWNoZXJTYWxhcnlcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/TeacherSalary/MySalary.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/TeacherSalary/MySalary.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFRlYWNoZXJTYWxhcnlcTXlTYWxhcnkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/TeacherSalary/SalarySlip.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/TeacherSalary/SalarySlip.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFRlYWNoZXJTYWxhcnlcU2FsYXJ5U2xpcC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/TimeAttendance/Index.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/TimeAttendance/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFRpbWVBdHRlbmRhbmNlXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Tuition/FeeItems.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Tuition/FeeItems.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFR1aXRpb25cRmVlSXRlbXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Tuition/Index.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Tuition/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFR1aXRpb25cSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Tuition/MoMoReturn.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Tuition/MoMoReturn.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFR1aXRpb25cTW9Nb1JldHVybi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Tuition/Monitoring.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Tuition/Monitoring.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFR1aXRpb25cTW9uaXRvcmluZy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Dashboard/Tuition/MyTuition.cshtml]
+[d:/datn/datn/datn/Views/Dashboard/Tuition/MyTuition.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFR1aXRpb25cTXlUdWl0aW9uLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Landing/LandingPage/About.cshtml]
+[d:/datn/datn/datn/Views/Landing/LandingPage/About.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGFuZGluZ1xMYW5kaW5nUGFnZVxBYm91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Landing/LandingPage/Facilities.cshtml]
+[d:/datn/datn/datn/Views/Landing/LandingPage/Facilities.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGFuZGluZ1xMYW5kaW5nUGFnZVxGYWNpbGl0aWVzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Landing/LandingPage/Index.cshtml]
+[d:/datn/datn/datn/Views/Landing/LandingPage/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGFuZGluZ1xMYW5kaW5nUGFnZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/Landing/LandingPage/Teachers.cshtml]
+[d:/datn/datn/datn/Views/Landing/LandingPage/Teachers.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGFuZGluZ1xMYW5kaW5nUGFnZVxUZWFjaGVycy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/_ViewImports.cshtml]
+[d:/datn/datn/datn/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/datn/datn/datn/Views/_ViewStart.cshtml]
+[d:/datn/datn/datn/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 

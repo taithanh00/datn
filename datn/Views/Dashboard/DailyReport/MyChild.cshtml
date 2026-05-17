@@ -6,21 +6,31 @@
 <link rel="stylesheet" href="~/css/pages/parent-daily.css" />
 
 <div class="container page-content fade-in">
-    <div class="page-header d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="page-title">Nhật ký của bé</h2>
+    <div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 p-4" style="background: linear-gradient(135deg, rgba(232, 62, 140, 0.1), rgba(32, 201, 151, 0.1)); border-radius: 16px;">
+        <div class="mb-3 mb-md-0">
+            <h2 class="page-title fw-bold" style="color: var(--primary);">Nhật ký của bé</h2>
             <p class="text-muted mb-0">Hành trình mỗi ngày của con tại trường</p>
         </div>
-        <div class="header-actions">
-            <input type="date" id="logDate" class="form-control date-picker-premium" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+        <div class="header-actions d-flex gap-2">
+            @if (ViewBag.Children != null)
+            {
+                <select id="studentIdData" class="form-select shadow-sm" style="border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); min-width: 200px;">
+                    @foreach (var child in ViewBag.Children)
+                    {
+                        bool isSelected = child.Id == ViewBag.DefaultStudentId;
+                        <option value="@child.Id" selected="@isSelected">@child.LastName @child.FirstName</option>
+                    }
+                </select>
+            }
+            <input type="date" id="logDate" class="form-control shadow-sm" style="border-radius: 8px; border: 1px solid rgba(0,0,0,0.1);" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
         </div>
     </div>
 
     <div class="row">
         <!-- Daily Timeline -->
         <div class="col-lg-7">
-            <div class="card-premium glass p-4 mb-4">
-                <h5 class="section-title mb-4">Dòng thời gian hôm nay</h5>
+            <div class="card p-4 mb-4" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: none;">
+                <h5 class="section-title mb-4 fw-bold" style="color: var(--text-main);">Dòng thời gian hôm nay</h5>
                 <div class="timeline" id="dailyTimeline">
                     <!-- Timeline items will be injected here -->
                 </div>
@@ -29,8 +39,8 @@
 
         <!-- Health & Stats -->
         <div class="col-lg-5">
-            <div class="card-premium glass p-4 mb-4">
-                <h5 class="section-title mb-4">Sức khỏe & Phát triển</h5>
+            <div class="card p-4 mb-4" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: none;">
+                <h5 class="section-title mb-4 fw-bold" style="color: var(--text-main);">Sức khỏe & Phát triển</h5>
                 <div class="health-overview mb-4" id="healthOverview">
                     <!-- Health summary -->
                 </div>
@@ -38,8 +48,8 @@
             </div>
 
             <!-- Photos Section -->
-            <div class="card-premium glass p-4">
-                <h5 class="section-title mb-4">Khoảnh khắc trong ngày</h5>
+            <div class="card p-4" style="border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: none;">
+                <h5 class="section-title mb-4 fw-bold" style="color: var(--text-main);">Khoảnh khắc trong ngày</h5>
                 <div class="row g-2" id="photoGallery">
                     <p class="text-muted small">Chưa có ảnh nào được tải lên hôm nay.</p>
                 </div>

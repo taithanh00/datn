@@ -577,14 +577,66 @@ namespace datn.Controllers
             }
         }
 
+        /// <summary>
+        /// Kiểm tra xem vai trò có phải GVCN không.
+        /// Xử lý cả NFD/NFC Unicode (tiếng Việt có dấu) và ASCII không dấu.
+        /// </summary>
+        private static bool IsLeadRole(string role)
+        {
+            if (string.IsNullOrWhiteSpace(role)) return false;
+
+            // Loại bỏ dấu tiếng Việt để so sánh (giải quyết lỗi NFD vs NFC)
+            var normalized = RemoveDiacritics(role).Trim().ToLower();
+            
+            // Các keyword không dấu tương ứng với: Lead, Chủ Nhiệm, GVCN, Homeroom
+            var leadKeywords = new[] { "lead", "chu nhiem", "gvcn", "homeroom", "chuNhiem" };
+            
+            return leadKeywords.Any(k => normalized.Contains(k));
+        }
+
+        /// <summary>
+        /// Loại bỏ dấu tiếng Việt khỏi chuỗi Unicode (hỗ trợ cả NFD và NFC).
+        /// </summary>
+        private static string RemoveDiacritics(string text)
+        {
+            var normalized = text.Normalize(System.Text.NormalizationForm.FormD);
+            var sb = new System.Text.StringBuilder();
+            foreach (var c in normalized)
+            {
+                var category = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (category != System.Globalization.UnicodeCategory.NonSpacingMark)
+                    sb.Append(c);
+            }
+            return sb.ToString().Normalize(System.Text.NormalizationForm.FormC);
+        }
+
         private async Task<bool> HasActiveAssignmentAsync(int employeeId, int classId, DateOnly onDate, bool requireLead = false)
         {
-            return await _context.Assignments.AnyAsync(a =>
-                a.EmployeeId == employeeId
-                && a.ClassId == classId
-                && a.StartDate <= onDate
-                && (a.EndDate == null || a.EndDate >= onDate)
-                && (!requireLead || a.RoleInClass == "Lead"));
+            // 1. Kiểm tra nếu là GVCN chính thức trong bảng Class
+            if (requireLead)
+            {
+                var isOfficialLead = await _context.Classes.AnyAsync(c => c.Id == classId && c.LeadTeacherId == employeeId);
+                if (isOfficialLead) return true;
+            }
+
+            // 2. Kiểm tra trong bảng Phân công (Hỗ trợ tiếng Anh, tiếng Việt có dấu/không dấu, không phân biệt hoa thường)
+            var assignments = await _context.Assignments
+                .Where(a => a.EmployeeId == employeeId && a.ClassId == classId && a.IsActive)
+                .ToListAsync();
+
+            var activeAssignments = assignments.Where(a => 
+                a.StartDate <= onDate && (a.EndDate == null || a.EndDate >= onDate))
+                .ToList();
+
+            if (!activeAssignments.Any()) return false;
+            if (!requireLead) return true;
+
+            // Hỗ trợ cả NFD/NFC Unicode và không dấu (chu nhiem) do DB có thể lưu theo các chuẩn khác nhau
+            var leadKeywords = new[] { "lead", "chu nhiem", "gvcn", "homeroom" };
+            
+            return activeAssignments.Any(a => 
+                !string.IsNullOrEmpty(a.RoleInClass) && 
+                IsLeadRole(a.RoleInClass));
         }
 
         // ============ ACTIVITY PARTICIPATION API ============
@@ -738,22 +790,6 @@ namespace datn.Controllers
             return Json(new { success = true, data });
         }
 
-        private static DateOnly GetTodayVnt()
-        {
-            var utcNow = DateTimeOffset.UtcNow;
-            TimeZoneInfo tz;
-            try
-            {
-                tz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-            }
-            catch
-            {
-                tz = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
-            }
-
-            var localNow = TimeZoneInfo.ConvertTime(utcNow, tz);
-            return DateOnly.FromDateTime(localNow.DateTime);
-        }
 
         private static int? GetSchoolDayOfWeek(DateOnly date)
         {

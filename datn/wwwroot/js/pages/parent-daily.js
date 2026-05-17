@@ -1,16 +1,23 @@
 let studentId = window.location.search.split('studentId=')[1] || 0;
 
 document.addEventListener('DOMContentLoaded', function() {
-    if (!studentId) {
-        // Find studentId from UI if not in URL
-        const idElem = document.getElementById('studentIdData');
-        if (idElem) studentId = idElem.value;
+    const idElem = document.getElementById('studentIdData');
+    if (!studentId && idElem) {
+        studentId = idElem.value;
     }
 
     loadDailyLog();
     loadHealthHistory();
 
     document.getElementById('logDate').addEventListener('change', loadDailyLog);
+    
+    if (idElem) {
+        idElem.addEventListener('change', function() {
+            studentId = this.value;
+            loadDailyLog();
+            loadHealthHistory();
+        });
+    }
 });
 
 async function loadDailyLog() {
@@ -89,6 +96,7 @@ function renderTimeline(data) {
         div.className = 'timeline-item fade-in';
         div.innerHTML = `
             <div class="timeline-time">${item.time}</div>
+            <div class="timeline-icon"><i class="fa-solid fa-${item.icon}"></i></div>
             <div class="timeline-content">
                 <div class="timeline-title">${item.title}</div>
                 <div class="small">${item.content}</div>
@@ -98,7 +106,12 @@ function renderTimeline(data) {
     });
 
     if (items.length === 0) {
-        timeline.innerHTML = '<p class="text-center text-muted py-5">Chưa có nhật ký cho ngày này.</p>';
+        timeline.innerHTML = `
+            <div class="text-center py-5 fade-in">
+                <img src="/img/illustrations/empty-box.svg" alt="No data" style="width: 150px; opacity: 0.5; margin-bottom: 20px;">
+                <p class="text-muted">Chưa có nhật ký cho ngày này.</p>
+            </div>
+        `;
     }
 }
 

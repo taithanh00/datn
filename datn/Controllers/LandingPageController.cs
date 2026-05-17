@@ -11,7 +11,7 @@ namespace datn.Controllers
     public class LandingPageController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly IEmailService _emailService;
+        private readonly    IEmailService _emailService;
         private readonly IConfiguration _config;
 
         public LandingPageController(AppDbContext context, IEmailService emailService, IConfiguration config)
@@ -58,7 +58,7 @@ namespace datn.Controllers
 
             try
             {
-                var senderEmail = _config["EmailSettings:SenderEmail"];
+                var senderEmail = _config["EmailSettings:SenderEmail"] ?? "taithanh421@gmail.com";
                 var subject = "[SenHồng] Yêu cầu tư vấn mới từ Landing Page";
                 
                 var body = $@"

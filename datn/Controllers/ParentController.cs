@@ -220,5 +220,44 @@ namespace datn.Controllers
             ViewBag.SelectedStudentId = targetStudentId;
             return View(plans);
         }
+
+        [HttpGet("Api/DashboardStats")]
+        public async Task<IActionResult> GetDashboardStats()
+        {
+            var parentId = await GetCurrentParentId();
+            if (parentId == null) return Unauthorized();
+
+            var childrenIds = await _context.ParentStudents
+                .Where(ps => ps.ParentId == parentId)
+                .Select(ps => ps.StudentId)
+                .ToListAsync();
+
+            var childrenCount = childrenIds.Count;
+
+            var unpaidTuitionsCount = await _context.Tuitions
+                .Where(t => childrenIds.Contains(t.StudentId.Value) && t.PaymentStatus != "Paid")
+                .CountAsync();
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var todayAttendances = await _context.Attendances
+                .Where(a => childrenIds.Contains(a.StudentId) && a.Date == today)
+                .Select(a => new { a.StudentId, a.Status })
+                .ToListAsync();
+
+            int presentCount = todayAttendances.Count(a => a.Status == "Present");
+            int totalAttendancesRecorded = todayAttendances.Count;
+
+            return Ok(new
+            {
+                success = true,
+                data = new
+                {
+                    childrenCount = childrenCount,
+                    unpaidTuitions = unpaidTuitionsCount,
+                    presentCount = presentCount,
+                    totalRecorded = totalAttendancesRecorded
+                }
+            });
+        }
     }
 }

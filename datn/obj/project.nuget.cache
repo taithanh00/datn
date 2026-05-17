@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "NYN5s9XmD8E=",
+  "dgSpecHash": "5W3hcKljIwk=",
   "success": true,
-  "projectFilePath": "D:\\datn\\datn\\datn\\datn.csproj",
+  "projectFilePath": "d:\\datn\\datn\\datn\\datn.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\taith\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\taith\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",

@@ -23,12 +23,26 @@
     position: absolute;
     left: -30px;
     top: 5px;
-    width: 16px;
-    height: 16px;
+    width: 2px; /* fallback line if needed */
+    display: none; /* Hide the old circle because we use timeline-icon now */
+}
+
+.timeline-icon {
+    position: absolute;
+    left: -40px;
+    top: 0px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background: white;
-    border: 3px solid var(--primary);
-    z-index: 1;
+    border: 2px solid var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    z-index: 2;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .timeline-content {

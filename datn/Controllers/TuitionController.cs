@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text;
 
 namespace datn.Controllers
 {
@@ -13,7 +14,7 @@ namespace datn.Controllers
     [Route("[controller]")]
     public class TuitionController : BaseController
     {
-        private readonly INotificationService _notificationService;
+        private readonly INotificationService _notificationService; 
         private readonly IMoMoService _momoService;
         private readonly IConfiguration _config;
 
@@ -177,6 +178,7 @@ namespace datn.Controllers
 
                 if (resultCode == "0") // Success
                 {
+                    string plainExtraData = Encoding.UTF8.GetString(Convert.FromBase64String(extraData));
                     // Parse TuitionId from extraData (e.g., "TuitionId=123")
                     if (extraData.StartsWith("TuitionId="))
                     {
@@ -259,6 +261,13 @@ namespace datn.Controllers
         [HttpPost("Api/GenerateMonthlyTuition")]
         public async Task<IActionResult> GenerateMonthlyTuition(int month, int year)
         {
+            // Kiểm tra xem đã khởi tạo học phí cho tháng này chưa
+            var existingTuitionCount = await _context.Tuitions.CountAsync(t => t.Month == month && t.Year == year);
+            if (existingTuitionCount > 0)
+            {
+                return Json(new { success = false, message = $"Học phí tháng {month}/{year} đã được khởi tạo trước đó. Không thể khởi tạo lại." });
+            }
+
             // 1. Lấy danh sách học sinh đang hoạt động
             var students = await _context.Students
                 .Include(s => s.Class)
@@ -266,10 +275,20 @@ namespace datn.Controllers
                 .Where(s => s.Status == StudentStatus.Active)
                 .ToListAsync();
 
+            if (!students.Any())
+            {
+                return Json(new { success = false, message = "Chưa có học sinh nào đang hoạt động để khởi tạo học phí." });
+            }
+
             // 2. Lấy danh sách các khoản thu bắt buộc (toàn trường)
             var requiredFeeItems = await _context.FeeItems
                 .Where(f => f.IsActive && f.IsRequired)
                 .ToListAsync();
+
+            if (!requiredFeeItems.Any())
+            {
+                return Json(new { success = false, message = "Chưa có cấu hình khoản thu bắt buộc nào cho trường. Vui lòng vào Danh mục khoản thu để thiết lập trước khi khởi tạo học phí." });
+            }
 
             // 3. Lấy danh sách môn học có phí (để check đăng ký nếu cần - Tương lai)
             var subjectWithFees = await _context.Subjects

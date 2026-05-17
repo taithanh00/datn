@@ -48,5 +48,121 @@ namespace datn.Data
                 Console.WriteLine("--> Seeded default Manager account: admin / Thanhbinh24!");
             }
         }
+
+        public static async Task SeedEducationAsync(IServiceProvider serviceProvider)
+        {
+            using var scope = serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            // 1. Subjects
+            if (!await context.Subjects.AnyAsync())
+            {
+                var subjects = new List<Subject>
+                {
+                    new Subject { Code = "MATH", Name = "Toán tư duy", Description = "Làm quen với các con số và hình khối", IsActive = true },
+                    new Subject { Code = "VIET", Name = "Tiếng Việt", Description = "Nhận diện bảng chữ cái", IsActive = true },
+                    new Subject { Code = "ART", Name = "Mỹ thuật", Description = "Tô màu và vẽ tranh sáng tạo", IsActive = true },
+                    new Subject { Code = "ENG", Name = "Tiếng Anh (Bản ngữ)", Description = "Giao tiếp cơ bản với giáo viên nước ngoài", IsActive = true }
+                };
+                context.Subjects.AddRange(subjects);
+                await context.SaveChangesAsync();
+                Console.WriteLine("--> Seeded Subjects");
+            }
+
+            // 2. Employees (Teachers)
+            if (await context.Employees.CountAsync() <= 1) // Only system admin exists
+            {
+                var teachers = new List<Employee>
+                {
+                    new Employee { FirstName = "Nguyễn Thị", LastName = "Lan", Position = "Giáo viên mầm non", IsActive = true },
+                    new Employee { FirstName = "Trần Văn", LastName = "Hùng", Position = "Giáo viên chuyên môn", IsActive = true }
+                };
+                context.Employees.AddRange(teachers);
+                await context.SaveChangesAsync();
+                Console.WriteLine("--> Seeded Teachers");
+            }
+
+            var teacherLan = await context.Employees.FirstOrDefaultAsync(e => e.LastName == "Lan");
+            var teacherHung = await context.Employees.FirstOrDefaultAsync(e => e.LastName == "Hung" || e.LastName == "Hùng");
+
+            // 3. Classes
+            if (!await context.Classes.AnyAsync())
+            {
+                var classes = new List<Class>
+                {
+                    new Class { Name = "Lớp Mầm 1", AgeFrom = 3, AgeTo = 4, SchoolYear = "2023-2024", LeadTeacherId = teacherLan?.Id, IsActive = true },
+                    new Class { Name = "Lớp Chồi 2", AgeFrom = 4, AgeTo = 5, SchoolYear = "2023-2024", IsActive = true }
+                };
+                context.Classes.AddRange(classes);
+                await context.SaveChangesAsync();
+                Console.WriteLine("--> Seeded Classes");
+            }
+
+            var classMam1 = await context.Classes.FirstOrDefaultAsync(c => c.Name == "Lớp Mầm 1");
+            var mathSubject = await context.Subjects.FirstOrDefaultAsync(s => s.Code == "MATH");
+
+            // 4. Curriculums
+            if (!await context.Curriculums.AnyAsync())
+            {
+                var curriculums = new List<Curriculum>
+                {
+                    new Curriculum { Title = "Làm quen con số từ 1-10", SubjectId = mathSubject?.Id, AgeFrom = 3, AgeTo = 4, Content = "Nhận diện mặt số và đếm vật dụng xung quanh", IsActive = true },
+                    new Curriculum { Title = "Tô màu các hình khối cơ bản", SubjectId = await context.Subjects.Where(s => s.Code == "ART").Select(s => s.Id).FirstOrDefaultAsync(), AgeFrom = 3, AgeTo = 4, IsActive = true }
+                };
+                context.Curriculums.AddRange(curriculums);
+                await context.SaveChangesAsync();
+                Console.WriteLine("--> Seeded Curriculums");
+            }
+
+            // 5. Assignments
+            if (!await context.Assignments.AnyAsync() && teacherHung != null && classMam1 != null)
+            {
+                context.Assignments.Add(new Assignment 
+                { 
+                    EmployeeId = teacherHung.Id, 
+                    ClassId = classMam1.Id, 
+                    StartDate = DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)),
+                    RoleInClass = "Giáo viên bộ môn",
+                    IsActive = true 
+                });
+                await context.SaveChangesAsync();
+                Console.WriteLine("--> Seeded Assignments");
+            }
+
+            // 6. Teaching Plan
+            var curriculumMath = await context.Curriculums.FirstOrDefaultAsync(c => c.Title.Contains("số từ 1-10"));
+            if (!await context.TeachingPlans.AnyAsync() && classMam1 != null && curriculumMath != null)
+            {
+                context.TeachingPlans.Add(new TeachingPlan
+                {
+                    ClassId = classMam1.Id,
+                    CurriculumId = curriculumMath.Id,
+                    StartDate = DateOnly.FromDateTime(DateTime.Now),
+                    Status = "InProgress",
+                    IsActive = true
+                });
+                await context.SaveChangesAsync();
+                Console.WriteLine("--> Seeded TeachingPlans");
+            }
+
+            // 7. Class Schedule
+            if (!await context.ClassSchedules.AnyAsync() && classMam1 != null && mathSubject != null && teacherHung != null)
+            {
+                context.ClassSchedules.Add(new ClassSchedule
+                {
+                    ClassId = classMam1.Id,
+                    SubjectId = mathSubject.Id,
+                    EmployeeId = teacherHung.Id,
+                    DayOfWeek = 1, // Monday
+                    StartTime = new TimeOnly(8, 30),
+                    EndTime = new TimeOnly(10, 0),
+                    EffectiveFrom = DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)),
+                    Note = "Học tại phòng đa năng",
+                    IsActive = true
+                });
+                await context.SaveChangesAsync();
+                Console.WriteLine("--> Seeded ClassSchedules");
+            }
+        }
     }
 }

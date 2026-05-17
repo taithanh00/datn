@@ -71,5 +71,13 @@ namespace datn.Controllers
 
             base.OnActionExecuting(context);
         }
+        protected static DateOnly GetTodayVnt()
+        {
+            var utcNow = DateTimeOffset.UtcNow;
+            TimeZoneInfo tz;
+            try { tz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); }
+            catch { tz = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh"); }
+            return DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(utcNow, tz).DateTime);
+        }
     }
 }

@@ -52,9 +52,68 @@
 
 @if (role == "Parent")
 {
-    <div class="card">
-        <h3 style="margin-bottom:16px;">Xin chào, @ViewBag.FullName!</h3>
-        <p class="text-muted">Bạn có thể theo dõi thông tin học tập, chuyên cần và học phí của bé qua menu bên trái.</p>
+    var hour = DateTime.Now.Hour;
+    var greeting = hour < 12 ? "Chào buổi sáng" : hour < 18 ? "Chào buổi chiều" : "Chào buổi tối";
+
+    <div class="welcome-banner" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 16px; padding: 32px; color: white; margin-bottom: 24px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(232, 62, 140, 0.2);">
+        <div style="position: relative; z-index: 2;">
+            <h2 style="font-weight: 700; margin-bottom: 8px; font-size: 1.8rem;">@greeting, @ViewBag.FullName! 👋</h2>
+            <p style="opacity: 0.9; font-size: 1.1rem; max-width: 600px;">Chào mừng bạn đến với Cổng thông tin Phụ huynh. Hãy theo dõi hành trình học tập và phát triển của bé yêu mỗi ngày.</p>
+        </div>
+        <!-- Decorative shapes -->
+        <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; blur(10px);"></div>
+        <div style="position: absolute; bottom: -30px; right: 100px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; blur(5px);"></div>
+    </div>
+
+    <div class="stats-grid" id="parentDashboardGrid" style="margin-bottom: 32px;">
+        <div class="card stat-card" style="border-left: 4px solid var(--primary); transform: translateY(0); transition: transform 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div class="stat-title" style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-children text-primary"></i> Bé đang học</div>
+            <div class="stat-value" id="parentChildrenCount">--</div>
+        </div>
+        <div class="card stat-card" style="border-left: 4px solid var(--danger); transform: translateY(0); transition: transform 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'" onclick="window.location.href='/Tuition/MyTuition'">
+            <div class="stat-title" style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-file-invoice-dollar text-danger"></i> Hóa đơn chờ thanh toán</div>
+            <div class="stat-value text-danger" id="parentTuitionCount">--</div>
+        </div>
+        <div class="card stat-card" style="border-left: 4px solid var(--success); transform: translateY(0); transition: transform 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'" onclick="window.location.href='/Parent/AttendanceReport'">
+            <div class="stat-title" style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-calendar-check text-success"></i> Điểm danh hôm nay</div>
+            <div class="stat-value" id="parentAttendanceStatus" style="font-size: 1.2rem;">Đang tải...</div>
+        </div>
+    </div>
+
+    <h3 style="margin-bottom: 20px; font-weight: 600; font-size: 1.4rem; color: var(--text-main);">Truy cập nhanh</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+        
+        <a href="/DailyReport/MyChild" class="quick-access-card" style="background: white; border-radius: 16px; padding: 24px; text-align: center; text-decoration: none; color: var(--text-main); box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; display: block;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'">
+            <div style="width: 60px; height: 60px; background: rgba(232, 62, 140, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+                <i class="fa-solid fa-notes-medical" style="font-size: 24px; color: var(--primary);"></i>
+            </div>
+            <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">Sức khỏe</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Xem nhật ký</p>
+        </a>
+
+        <a href="/Parent/TeachingPlan" class="quick-access-card" style="background: white; border-radius: 16px; padding: 24px; text-align: center; text-decoration: none; color: var(--text-main); box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; display: block;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'">
+            <div style="width: 60px; height: 60px; background: rgba(32, 201, 151, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+                <i class="fa-solid fa-book" style="font-size: 24px; color: var(--success);"></i>
+            </div>
+            <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">Kế hoạch</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Chương trình học</p>
+        </a>
+
+        <a href="/Tuition/MyTuition" class="quick-access-card" style="background: white; border-radius: 16px; padding: 24px; text-align: center; text-decoration: none; color: var(--text-main); box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; display: block;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'">
+            <div style="width: 60px; height: 60px; background: rgba(255, 193, 7, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+                <i class="fa-solid fa-wallet" style="font-size: 24px; color: var(--warning);"></i>
+            </div>
+            <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">Học phí</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Thanh toán</p>
+        </a>
+
+        <a href="/Parent/Activities" class="quick-access-card" style="background: white; border-radius: 16px; padding: 24px; text-align: center; text-decoration: none; color: var(--text-main); box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; display: block;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'">
+            <div style="width: 60px; height: 60px; background: rgba(13, 110, 253, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+                <i class="fa-solid fa-puzzle-piece" style="font-size: 24px; color: var(--info);"></i>
+            </div>
+            <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">Sự kiện</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Ngoại khóa</p>
+        </a>
     </div>
 }
 

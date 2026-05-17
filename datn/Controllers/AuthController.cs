@@ -185,12 +185,19 @@ namespace datn.Controllers
                 .Include(a => a.Role)
                 .Include(a => a.Employee)
                 .Include(a => a.Parent)
-                .FirstOrDefaultAsync(a => a.Username == username && a.IsActive);
+                .FirstOrDefaultAsync(a => a.Username == username);
 
             // Kiểm tra account có tồn tại và mật khẩu có đúng không
             if (account == null || !BCrypt.Net.BCrypt.Verify(password, account.PasswordHash))
             {
                 ViewBag.Error = "Tên đăng nhập hoặc mật khẩu không đúng";
+                return View();
+            }
+
+            // Kiểm tra trạng thái hoạt động
+            if (!account.IsActive)
+            {
+                ViewBag.Error = "Tài khoản của bạn đã bị khóa hoặc vô hiệu hóa. Vui lòng liên hệ quản trị viên.";
                 return View();
             }
 
@@ -259,19 +266,6 @@ namespace datn.Controllers
             Response.Cookies.Delete("refresh_token");
             // Chuyển hướng về trang chủ (Landing Page) sau khi đăng xuất
             return Redirect("/");
-        }
-
-        // ACCESS DENIED
-        [HttpGet]
-        public IActionResult AccessDenied()
-        {
-            var username = User.Identity?.Name ?? "Người dùng";
-            var role = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "Chưa xác định";
-
-            ViewBag.Username = username;
-            ViewBag.Role = role;
-
-            return View();
         }
     }
 }   

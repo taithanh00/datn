@@ -148,7 +148,7 @@ function renderTeachersTable(teachers) {
     <td> <img src="${teacher.avatarPath}" class="rounded-circle" style="width:36px; height:36px; object-fit:cover; border-radius:50%;"> </td>
     <td> <a href="/Manager/TeacherDetail/${teacher.id}" target="_blank" class="teacher-name-link" title="${teacher.fullName}"><strong>${teacher.fullName}</strong></a> </td>
     <td>${teacher.phone || "Chưa cập nhật"}</td>
-    <td>${roleBadge}<br><small class="text-muted">${teacher.position || ""}</small></td>
+    <td>${roleBadge}</td>
     <td>${statusBadge}</td>
     <td class="text-end">${actionBtn}</td>
 `;
@@ -167,6 +167,8 @@ function openCreatePanel() {
 
   // Show account fields for creation
   document.getElementById("usernameGroup").style.display = "block";
+  document.getElementById("username").disabled = false;
+  document.getElementById("username").style.backgroundColor = "";
   document.getElementById("passwordGroup").style.display = "block";
   document.getElementById("password").required = true;
   document.getElementById("username").required = true;
@@ -184,7 +186,9 @@ async function openEditPanel(teacherId) {
   document.getElementById("panelTitle").textContent =
     "Chỉnh sửa thông tin giáo viên";
 
-  document.getElementById("usernameGroup").style.display = "none";
+  document.getElementById("usernameGroup").style.display = "block";
+  document.getElementById("username").disabled = true;
+  document.getElementById("username").style.backgroundColor = "#e9ecef";
   document.getElementById("passwordGroup").style.display = "none";
   document.getElementById("password").required = false;
   document.getElementById("username").required = false;
@@ -206,6 +210,7 @@ async function openEditPanel(teacherId) {
     document.getElementById("firstName").value = data.firstName || "";
     document.getElementById("lastName").value = data.lastName || "";
     document.getElementById("email").value = data.email || "";
+    document.getElementById("username").value = data.username || "";
     document.getElementById("phone").value = data.phone || "";
     document.getElementById("position").value = data.position || "";
     document.getElementById("teacherType").value = (data.teacherType === 0 || data.teacherType === 'Lead') ? "Lead" : "Subject";

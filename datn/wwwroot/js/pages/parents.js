@@ -183,7 +183,7 @@ function renderParentsTable(parents) {
             </td>
             <td>${p.gender ? "Nam" : "Nữ"}</td>
             <td>${p.email || "N/A"}</td>
-            <td><i class="fa-solid fa-phone me-2 text-muted" style="font-size:0.75rem;"></i>${p.phone || "N/A"}</td>
+            <td>${p.phone || "N/A"}</td>
             <td><div class="address-cell" title="${p.address}">${p.address || "N/A"}</div></td>
             <td>
                 ${

@@ -153,18 +153,51 @@ namespace datn.Controllers
                 (a.EndDate == null || a.EndDate >= today));
         }
 
-        // Chỉ GVCN mới được CHỈNH SỦA nhật ký lớp
+        // Chỉ GVCN mới được CHỈNH SỬA nhật ký lớp
         private async Task<bool> CanEditClass(int classId)
         {
             var employeeId = await GetCurrentEmployeeId();
             if (employeeId == 0) return false;
-            var today = DateOnly.FromDateTime(DateTime.Now);
-            return await _context.Assignments.AnyAsync(a =>
-                a.EmployeeId == employeeId &&
-                a.ClassId == classId &&
-                a.IsActive &&
-                a.RoleInClass == "Lead" &&
-                (a.EndDate == null || a.EndDate >= today));
+            
+            var today = GetTodayVnt();
+
+            // 1. Kiểm tra nếu là GVCN chính thức trong bảng Class
+            var isOfficialLead = await _context.Classes.AnyAsync(c => c.Id == classId && c.LeadTeacherId == employeeId);
+            if (isOfficialLead) return true;
+
+            // 2. Kiểm tra trong bảng Phân công (xử lý cả NFD/NFC Unicode và không dấu)
+            var assignments = await _context.Assignments
+                .Where(a => a.EmployeeId == employeeId && a.ClassId == classId && a.IsActive)
+                .ToListAsync();
+
+            var activeAssignments = assignments.Where(a => 
+                a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
+                .ToList();
+
+            if (!activeAssignments.Any()) return false;
+
+            return activeAssignments.Any(a => IsLeadRole(a.RoleInClass));
+        }
+
+        private static bool IsLeadRole(string? role)
+        {
+            if (string.IsNullOrWhiteSpace(role)) return false;
+            var normalized = RemoveDiacritics(role).Trim().ToLower();
+            var leadKeywords = new[] { "lead", "chu nhiem", "gvcn", "homeroom" };
+            return leadKeywords.Any(k => normalized.Contains(k));
+        }
+
+        private static string RemoveDiacritics(string text)
+        {
+            var nfd = text.Normalize(System.Text.NormalizationForm.FormD);
+            var sb = new System.Text.StringBuilder();
+            foreach (var c in nfd)
+            {
+                var cat = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (cat != System.Globalization.UnicodeCategory.NonSpacingMark)
+                    sb.Append(c);
+            }
+            return sb.ToString().Normalize(System.Text.NormalizationForm.FormC);
         }
 
         // Giữ lại cho tương thích ngược

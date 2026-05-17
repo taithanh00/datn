@@ -28,7 +28,7 @@ namespace datn.Middleware
                 path.Contains(".") || 
                 path.StartsWith("/lib", StringComparison.OrdinalIgnoreCase)) 
             {
-                await _next(context);
+                        await _next(context);
                 return;
             }
 

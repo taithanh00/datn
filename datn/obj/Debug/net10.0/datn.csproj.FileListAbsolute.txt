@@ -367,7 +367,6 @@ D:\datn\datn\datn\obj\Debug\net10.0\compressed\l7p3uk2007-{0}-ukn0ixylsl-ukn0ixy
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\8c1m8bx186-{0}-abzji43mun-abzji43mun.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\3z65dftx3d-{0}-7pvrs945ld-7pvrs945ld.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\pr1f74isvz-{0}-dd5huchfr4-dd5huchfr4.gz
-D:\datn\datn\datn\obj\Debug\net10.0\compressed\h3jurnnty8-{0}-anyg19ea9r-anyg19ea9r.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\1kfl9uqam1-{0}-bzeqcpo7uo-bzeqcpo7uo.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\c1t6eai87a-{0}-g7bm3weo25-g7bm3weo25.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\89zvsrsbeb-{0}-5qxaom2l1b-5qxaom2l1b.gz
@@ -401,9 +400,7 @@ D:\datn\datn\datn\obj\Debug\net10.0\compressed\echjsyqgcn-{0}-ru00mdxauz-ru00mdx
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\mdau99t98n-{0}-nu3g3fpbmq-nu3g3fpbmq.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\xddx4hyc0o-{0}-qme7d804uk-qme7d804uk.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\o07j983a7n-{0}-6w9we5qt64-6w9we5qt64.gz
-D:\datn\datn\datn\obj\Debug\net10.0\compressed\h3h3obvjc9-{0}-s8guwiu0xs-s8guwiu0xs.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\7b2dbz06z1-{0}-zlg5xfn1nu-zlg5xfn1nu.gz
-D:\datn\datn\datn\obj\Debug\net10.0\compressed\6aczbrnql9-{0}-c9golh9sk5-c9golh9sk5.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\vps1ytfu77-{0}-b4e5hugorw-b4e5hugorw.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\znrdv8k3qn-{0}-rgbh2d6uqp-rgbh2d6uqp.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\gmg76wd3gf-{0}-4mnym1gsuh-4mnym1gsuh.gz
@@ -416,9 +413,11 @@ D:\datn\datn\datn\obj\Debug\net10.0\compressed\3t1hmoof64-{0}-zbli8ypjcy-zbli8yp
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\jbp14jxeti-{0}-jv7kqmk7dq-jv7kqmk7dq.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\30h6o0hw94-{0}-pjzrhsia31-pjzrhsia31.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\juyn6la0tv-{0}-o6446u6mco-o6446u6mco.gz
-D:\datn\datn\datn\obj\Debug\net10.0\compressed\8bq9t1oz7n-{0}-91oixdpii6-91oixdpii6.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\hpt50xn2ve-{0}-atwxm0fqzx-atwxm0fqzx.gz
-D:\datn\datn\datn\obj\Debug\net10.0\compressed\gnj500cxoh-{0}-8h3l3n7ypv-8h3l3n7ypv.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\bvy462mwqh-{0}-z2anuprf6s-z2anuprf6s.gz
 D:\datn\datn\datn\obj\Debug\net10.0\compressed\ip7xgacu2z-{0}-q7196lne4b-q7196lne4b.gz
-D:\datn\datn\datn\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
+d:\datn\datn\datn\obj\Debug\net10.0\compressed\h3jurnnty8-{0}-s03splzksk-s03splzksk.gz
+d:\datn\datn\datn\obj\Debug\net10.0\compressed\h3h3obvjc9-{0}-h9uxm1ihty-h9uxm1ihty.gz
+d:\datn\datn\datn\obj\Debug\net10.0\compressed\6aczbrnql9-{0}-hub8zha293-hub8zha293.gz
+D:\datn\datn\datn\obj\Debug\net10.0\compressed\gnj500cxoh-{0}-tu0iqqht19-tu0iqqht19.gz
+d:\datn\datn\datn\obj\Debug\net10.0\compressed\8bq9t1oz7n-{0}-7j9xa7r61o-7j9xa7r61o.gz

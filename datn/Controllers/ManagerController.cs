@@ -879,6 +879,7 @@ namespace datn.Controllers
                     lastName = teacher.LastName,
                     fullName = teacher.FullName,
                     email = teacher.Account?.Email,
+                    username = teacher.Account?.Username,
                     gender = teacher.Gender,
                     phone = teacher.Phone,
                     position = teacher.Position,
