@@ -12,16 +12,23 @@ namespace datn.Data
 
         public IEnumerable<string> ExpandViewLocations(ViewLocationExpanderContext context, IEnumerable<string> viewLocations)
         {
-            // Các thư mục con mới của chúng ta
-            string[] customFolders = new[] { "Landing", "Dashboard", "Common" };
-
             var locations = viewLocations.ToList();
-            foreach (var folder in customFolders)
+
+            // Landing folder
+            locations.Insert(0, "/Views/Landing/{1}/{0}.cshtml");
+            locations.Insert(0, "/Views/Landing/Shared/{0}.cshtml");
+
+            // Dashboard sub-folders by roles (Admin, Teacher, Parent)
+            string[] roles = new[] { "Parent", "Teacher", "Admin" };
+            foreach (var role in roles)
             {
-                // Thêm đường dẫn tìm kiếm cho từng thư mục con
-                locations.Insert(0, "/Views/" + folder + "/{1}/{0}.cshtml");
-                locations.Insert(0, "/Views/" + folder + "/Shared/{0}.cshtml");
+                locations.Insert(0, "/Views/Dashboard/" + role + "/{1}/{0}.cshtml");
+                locations.Insert(0, "/Views/Dashboard/" + role + "/Shared/{0}.cshtml");
             }
+
+            // Common folder
+            locations.Insert(0, "/Views/Common/{1}/{0}.cshtml");
+            locations.Insert(0, "/Views/Common/Shared/{0}.cshtml");
 
             return locations;
         }

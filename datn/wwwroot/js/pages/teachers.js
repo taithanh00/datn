@@ -1,6 +1,10 @@
 // ====== TEACHER MANAGEMENT PAGE ======
 // Xử lý tất cả tương tác: tải dữ liệu, render table, quản lý form
+const TEACHERS_PAGE_SIZE = 10;
+const TEACHERS_TABLE_COLS = 7;
+
 let showInactiveTeachers = false;
+let teachersPaginationReady = false;
 
 let currentTeacherId = null;
 let isEditMode = false;
@@ -15,15 +19,61 @@ document.addEventListener("DOMContentLoaded", function () {
 async function initializeTeachersPage() {
   setupEventListeners();
   setupFilterListeners();
-  await loadTeachers();
+  await refreshData();
+}
 
-  // Khởi tạo pagination và search sau khi dữ liệu đã được load và render
-  if (typeof initPagination === "function") {
-    initPagination("teachersTable", 15);
+async function refreshData() {
+  await loadTeachers();
+  setupTeachersPaginationAndSearch();
+}
+
+function setupTeachersPaginationAndSearch() {
+  const table = document.getElementById("teachersTable");
+  if (!table) return;
+
+  if (!teachersPaginationReady) {
+    teachersPaginationReady = true;
+    if (typeof initPagination === "function") {
+      initPagination("teachersTable", TEACHERS_PAGE_SIZE);
+      wrapTeachersPaginationRefresh(table);
+    }
+    if (typeof initTableSearch === "function") {
+      initTableSearch("searchTeachers", "teachersTable");
+    }
   }
-  if (typeof initTableSearch === "function") {
-    initTableSearch("searchTeachers", "teachersTable");
+
+  refreshTeachersTablePagination(true);
+}
+
+function wrapTeachersPaginationRefresh(table) {
+  if (!table._refreshPagination || table._teachersPaginationWrapped) return;
+  const originalRefresh = table._refreshPagination;
+  table._refreshPagination = function () {
+    originalRefresh();
+    updateTeachersTableStt(table);
+  };
+  table._teachersPaginationWrapped = true;
+}
+
+function refreshTeachersTablePagination(resetPage) {
+  const table = document.getElementById("teachersTable");
+  if (!table) return;
+  if (resetPage) table._currentPage = 1;
+  if (typeof table._refreshPagination === "function") {
+    table._refreshPagination();
+  } else {
+    updateTeachersTableStt(table);
   }
+}
+
+function updateTeachersTableStt(table) {
+  const tbody = table.querySelector("tbody");
+  if (!tbody) return;
+  const rows = tbody.querySelectorAll("tr:not(.searching-hidden)");
+  rows.forEach((row, index) => {
+    const sttCell = row.querySelector("td:first-child");
+    if (sttCell) sttCell.textContent = String(index + 1);
+  });
 }
 
 // ====== EVENT LISTENERS SETUP ======
@@ -54,7 +104,7 @@ function setupEventListeners() {
         .forEach((t) => t.classList.remove("active"));
       this.classList.add("active");
       showInactiveTeachers = this.getAttribute("data-show-inactive") === "true";
-      loadTeachers();
+      refreshData();
     });
   });
 
@@ -104,7 +154,10 @@ function previewAvatar(input) {
 // ====== DATA LOADING ======
 async function loadTeachers() {
   try {
-    const response = await fetch(`/Manager/Api/Teachers?showInactive=${showInactiveTeachers}`);
+    const t = new Date().getTime();
+    const response = await fetch(
+      `/Manager/Api/Teachers?showInactive=${showInactiveTeachers}&_t=${t}`,
+    );
     const result = await response.json();
 
     if (!result.success) {
@@ -128,7 +181,8 @@ function renderTeachersTable(teachers) {
 
   if (teachers.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="6" style="text-align: center; padding: 20px;">Không có giáo viên nào</td></tr>';
+      `<tr><td colspan="${TEACHERS_TABLE_COLS}" style="text-align: center; padding: 20px;">Không có giáo viên nào</td></tr>`;
+    refreshTeachersTablePagination(true);
     return;
   }
 
@@ -154,6 +208,8 @@ function renderTeachersTable(teachers) {
 `;
     tbody.appendChild(row);
   });
+
+  refreshTeachersTablePagination(false);
 }
 
 // ====== PANEL MANAGEMENT ======
@@ -401,7 +457,8 @@ function clearAlert() {
 // ====== ERROR HANDLING ======
 function showTableError(message) {
   const tbody = document.getElementById("teachersTableBody");
-  tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #d32f2f;">${message}</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="${TEACHERS_TABLE_COLS}" style="text-align: center; padding: 20px; color: #d32f2f;">${message}</td></tr>`;
+  refreshTeachersTablePagination(true);
 }
 
 // ====== UTILITY FUNCTIONS ======
@@ -425,7 +482,10 @@ function setupFilterListeners() {
   
   const btnApply = document.getElementById('btnApplyFilter');
   if (btnApply) {
-    btnApply.addEventListener('click', () => applyTeacherFilters());
+    btnApply.addEventListener('click', () => {
+      applyTeacherFilters();
+      refreshTeachersTablePagination(true);
+    });
   }
   
   const btnReset = document.getElementById('btnResetFilter');
@@ -434,6 +494,7 @@ function setupFilterListeners() {
       document.getElementById('filterPosition').value = '';
       document.getElementById('filterGender').value = '';
       applyTeacherFilters();
+      refreshTeachersTablePagination(true);
     });
   }
 }

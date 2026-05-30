@@ -493,7 +493,62 @@ thead th.sticky-col {
     height: calc(100vh - 70px); /* 70px = header height */
 }
 
-/* Password Validation Hints */
+/* ===== LINK PANEL FOOTER BUTTONS (Bug 1: CSS thuần, không dùng Bootstrap) ===== */
+.link-panel-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    background: var(--bg-card);
+    flex-shrink: 0;
+}
+
+.link-btn-close {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg-main);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+.link-btn-close:hover {
+    background: var(--sidebar-active);
+    border-color: var(--text-secondary);
+}
+
+.link-btn-confirm {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--primary);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.link-btn-confirm:hover:not(:disabled) {
+    opacity: 0.88;
+}
+
+.link-btn-confirm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ===== BUG 5: Nested panel width = parent panel ===== */
+.slide-panel-nested {
+    width: 460px !important; /* same as .slide-panel default */
+}
 .requirement-list {
     margin-top: 12px;
     display: flex;

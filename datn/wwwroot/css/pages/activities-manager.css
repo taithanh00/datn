@@ -1,0 +1,134 @@
+/* Manager Activities — slide panel UX (aligned with parents.css) */
+
+.activities-page-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 1100px) {
+    .activities-page-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.tag {
+    background: var(--primary-soft);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.class-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+
+#activitySlidePanel .slide-panel-body,
+#locationSlidePanel .slide-panel-body {
+    padding: 24px;
+}
+
+#activitySlidePanel .form-section,
+#locationSlidePanel .form-section {
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+}
+
+#activitySlidePanel .form-section h4,
+#locationSlidePanel .form-section h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#activitySlidePanel .form-actions,
+#locationSlidePanel .form-actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-card);
+    padding: 20px 0 0;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+    display: flex;
+    gap: 12px;
+}
+
+#activitySlidePanel .btn-save,
+#locationSlidePanel .btn-save {
+    flex: 1;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+#activitySlidePanel .form-alert,
+#locationSlidePanel .form-alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+}
+
+#activitySlidePanel .form-alert.success,
+#locationSlidePanel .form-alert.success {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+#activitySlidePanel .form-alert.error,
+#locationSlidePanel .form-alert.error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.class-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    border: 1px solid var(--border);
+    padding: 12px;
+    border-radius: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.card-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.card-section-header h3 {
+    margin: 0;
+}

@@ -67,6 +67,16 @@ async function viewParticipants(id, name) {
     const result = await fetchJson(`/Employee/Api/Activity/${id}/Participants`);
 
     if (result.success) {
+        const capacityHint = document.getElementById('capacityHint');
+        if (capacityHint) {
+            if (result.locationCapacity != null && result.locationCapacity > 0) {
+                capacityHint.style.display = 'block';
+                capacityHint.innerHTML = `<i class="fa-solid fa-circle-info"></i> Sức chứa địa điểm: <strong>${result.locationCapacity}</strong> người (toàn hoạt động). Chỉ chọn học sinh thực sự tham gia — không bắt buộc cả lớp.`;
+            } else {
+                capacityHint.style.display = 'none';
+            }
+        }
+
         if (result.data.length === 0) {
             tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted py-4">Lớp không có học sinh.</td></tr>';
             return;

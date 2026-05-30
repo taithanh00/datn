@@ -1,20 +1,5 @@
-const managerAlert = document.getElementById("managerAlert");
 const filterMonthEl = document.getElementById("filterMonth");
 const filterYearEl = document.getElementById("filterYear");
-
-function setAlert(message, type = 'info') {
-    if(!managerAlert) return;
-    let icon = 'fa-circle-info'; let color = 'var(--text-muted)'; let border = 'var(--border)'; let bg = 'var(--bg-card)';
-    if (type === 'error') { icon = 'fa-circle-exclamation'; color = 'var(--danger)'; border = 'var(--danger)'; bg = 'rgba(248,113,113,0.1)'; }
-    if (type === 'success') { icon = 'fa-circle-check'; color = 'var(--success)'; border = 'var(--success)'; bg = 'rgba(52,211,153,0.1)'; }
-    if (type === 'connected') { icon = 'fa-link'; color = 'var(--primary)'; border = 'var(--primary)'; bg = 'var(--primary-soft)'; }
-    if (type === 'connecting') { icon = 'fa-circle-notch fa-spin'; }
-
-    managerAlert.style.background = bg;
-    managerAlert.style.color = color;
-    managerAlert.style.borderLeftColor = border;
-    managerAlert.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
-}
 
 const fmtMoney = (v) => new Intl.NumberFormat("vi-VN").format(v || 0) + " đ";
 const fmtTime = (v) => v ? new Date(v).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' }) : "--:--";
@@ -125,11 +110,10 @@ async function attendanceDecision(employeeId, date, approve) {
             body: JSON.stringify({ employeeId, date, reviewNote: "" })
         });
         const payload = await res.json();
-        setAlert(payload.message || "Đã xử lý thành công.", payload.success ? "success" : "error");
         if (payload.success && window.showToast) window.showToast('Thành công', payload.message || "Đã xử lý.", 'success');
         await loadAllPending();
     } catch (e) {
-        setAlert("Lỗi khi xử lý yêu cầu.", "error");
+        if (window.showToast) window.showToast('Lỗi', 'Lỗi khi xử lý yêu cầu.', 'error');
     }
 }
 
@@ -144,11 +128,10 @@ async function leaveDecision(requestId, approve) {
             body: JSON.stringify({ requestId, reviewNote: "" })
         });
         const payload = await res.json();
-        setAlert(payload.message || "Đã xử lý thành công.", payload.success ? "success" : "error");
         if (payload.success && window.showToast) window.showToast('Thành công', payload.message || "Đã xử lý.", 'success');
         await loadAllPending();
     } catch (e) {
-        setAlert("Lỗi khi xử lý yêu cầu.", "error");
+        if (window.showToast) window.showToast('Lỗi', 'Lỗi khi xử lý yêu cầu.', 'error');
     }
 }
 
@@ -277,16 +260,13 @@ if (typeof signalR !== 'undefined') {
     connection.on("attendanceChanged", () => loadAllPending());
     connection.on("leaveRequestChanged", () => loadAllPending());
     
-    connection.start()
-        .then(() => setAlert("Đã kết nối realtime. Dữ liệu sẽ tự động cập nhật.", "connected"))
-        .catch(() => setAlert("Không kết nối được realtime. Bạn có thể cần tải lại trang.", "error"));
+    connection.start().catch(() => console.warn("LeaveApproval realtime unavailable."));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const filterBtn = document.getElementById("btnApplyFilter");
     if(filterBtn) {
         filterBtn.addEventListener("click", () => {
-            setAlert("Đang lọc dữ liệu...", "connecting");
             loadAllPending();
         });
     }

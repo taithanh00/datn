@@ -618,6 +618,9 @@ namespace datn.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("Capacity")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -643,6 +646,9 @@ namespace datn.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
                     b.Property<string>("DishName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -661,7 +667,7 @@ namespace datn.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Date", "MealType");
+                    b.HasIndex("DayOfWeek", "MealType");
 
                     b.ToTable("Menus");
                 });

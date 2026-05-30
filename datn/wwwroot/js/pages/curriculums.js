@@ -1,16 +1,35 @@
 let currentId = null;
 let showInactiveCurriculums = false;
+let curriculumOverlay = null;
+let curriculumPanel = null;
+let curriculumPanelTitle = null;
+
+function openCurriculumPanel(title = 'Thêm chương trình mới') {
+    if (curriculumPanel) curriculumPanel.classList.add('active');
+    if (curriculumOverlay) curriculumOverlay.classList.add('active');
+    if (curriculumPanelTitle) curriculumPanelTitle.textContent = title;
+}
+
+function closeCurriculumPanel() {
+    if (curriculumPanel) curriculumPanel.classList.remove('active');
+    if (curriculumOverlay) curriculumOverlay.classList.remove('active');
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([loadCurriculums(), loadSubjects()]);
     
+    curriculumOverlay = document.getElementById('curriculumPanelOverlay');
+    curriculumPanel = document.getElementById('curriculumSlidePanel');
+    curriculumPanelTitle = document.getElementById('panelTitle');
+
     const entityForm = document.getElementById('entityForm');
     const resetFormBtn = document.getElementById('resetFormBtn');
     const clearBtn = document.getElementById('clearBtn');
 
     if(entityForm) entityForm.addEventListener('submit', saveEntity);
-    if(resetFormBtn) resetFormBtn.addEventListener('click', resetForm);
+    if(resetFormBtn) resetFormBtn.addEventListener('click', () => { resetForm(); openCurriculumPanel(); });
     if(clearBtn) clearBtn.addEventListener('click', resetForm);
+    if(curriculumOverlay) curriculumOverlay.addEventListener('click', closeCurriculumPanel);
 
     // Status Tabs
     document.querySelectorAll('.status-tab').forEach(tab => {
@@ -117,7 +136,10 @@ async function editEntity(id) {
     if(ageFromElem) ageFromElem.value = item.ageFrom || '';
     if(ageToElem) ageToElem.value = item.ageTo || '';
     if(saveBtn) saveBtn.textContent = 'Cập nhật';
-    if(form) form.scrollIntoView({ behavior: 'smooth' });
+    if(form) {
+        form.scrollIntoView({ behavior: 'smooth' });
+    }
+    openCurriculumPanel('Sửa chương trình');
 }
 
 async function deleteEntity(id) { 
@@ -143,6 +165,7 @@ function resetForm() {
     if(form) form.reset(); 
     if(entityId) entityId.value = ''; 
     if(saveBtn) saveBtn.textContent = 'Lưu chương trình'; 
+    if(curriculumPanelTitle) curriculumPanelTitle.textContent = 'Thêm chương trình mới';
 }
 
 function showAlert(success, message) { 

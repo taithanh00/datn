@@ -3318,11 +3318,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\datn\\datn\\datn\\datn.csproj",
+      "projectUniqueName": "D:\\thanhBinh\\datn\\datn.csproj",
       "projectName": "datn",
-      "projectPath": "D:\\datn\\datn\\datn\\datn.csproj",
+      "projectPath": "D:\\thanhBinh\\datn\\datn.csproj",
       "packagesPath": "C:\\Users\\taith\\.nuget\\packages\\",
-      "outputPath": "D:\\datn\\datn\\datn\\obj\\",
+      "outputPath": "D:\\thanhBinh\\datn\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

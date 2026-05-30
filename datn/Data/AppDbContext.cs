@@ -409,7 +409,7 @@ namespace datn.Data
 
             // ── Menu & MenuOverride ──────────────────────────────
             modelBuilder.Entity<Menu>()
-                .HasIndex(m => new { m.Date, m.MealType });
+                .HasIndex(m => new { m.DayOfWeek, m.MealType });
 
             modelBuilder.Entity<MenuOverride>()
                 .HasOne(mo => mo.Menu)

@@ -1,0 +1,81 @@
+@{
+    ViewData["Title"] = "Đánh giá học tập";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+    var selectedClassId = ViewBag.SelectedClassId as int?;
+    var isLead = true;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Đánh giá học sinh hàng tháng</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Tháng hiện tại: <strong>Tháng @DateTime.Now.Month / @DateTime.Now.Year</strong></p>
+    </div>
+</div>
+
+@if (!isLead)
+{
+    <div style="background:#fff8e1; border:1px solid #ffc107; border-radius:10px; padding:12px 18px; margin-bottom:16px; display:flex; align-items:center; gap:10px;">
+        <span style="font-size:1.4rem;">👁️</span>
+        <div>
+            <strong style="color:#856404;">Chế độ Xem - Giáo viên Bộ môn</strong>
+            <p style="margin:2px 0 0; font-size:0.83rem; color:#856404;">Bạn chỉ được xem đánh giá học tập. Việc xếp hạng và gửi đánh giá thuộc về Giáo viên Chủ nhiệm.</p>
+        </div>
+    </div>
+}
+
+<div class="card mb-4">
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 24px;">
+        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+            <label class="form-label fw-bold">Chọn lớp học</label>
+            <select class="form-select" id="classSelect" onchange="loadStudents()">
+                <option value="">-- Chọn lớp học --</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 0; width: 150px;">
+            <label class="form-label fw-bold">Chọn Tháng</label>
+            <select id="reportMonth" class="form-select" onchange="loadStudents()">
+                @for (int i = 1; i <= 12; i++)
+                {
+                    var isSelMonth = DateTime.Now.Month == i;
+                    <option value="@i" selected="@isSelMonth">Tháng @i</option>
+                }
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 0; width: 120px;">
+            <label class="form-label fw-bold">Chọn Năm</label>
+            <select id="reportYear" class="form-select" onchange="loadStudents()">
+                @for (int i = 2025; i <= 2027; i++)
+                {
+                    var isSelYear = DateTime.Now.Year == i;
+                    <option value="@i" selected="@isSelYear">@i</option>
+                }
+            </select>
+        </div>
+        @if (isLead)
+        {
+            <div>
+                <button class="btn btn-primary" onclick="submitReports()" id="btnSave" style="display: none; height: 42px;">
+                    <i class="fa-solid fa-paper-plane"></i> Gửi đánh giá cho Phụ huynh
+                </button>
+            </div>
+        }
+    </div>
+
+    <div id="reportContent" style="border-top: 1px solid var(--border); padding-top: 24px;">
+        <div class="empty-state">
+            <i class="fa-solid fa-clipboard-check"></i>
+            <p>Vui lòng chọn lớp học để thực hiện đánh giá học sinh</p>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/study-report.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script>
+        window.selectedClassId = '@(selectedClassId ?? 0)';
+    </script>
+    <script src="~/js/pages/study-report.js" asp-append-version="true"></script>
+}

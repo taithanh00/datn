@@ -255,6 +255,30 @@ tr:hover td {
 .badge-warning { background: #FEF9C3; color: #854D0E; }
 .badge-danger { background: #FEE2E2; color: #991B1B; }
 
+.teacher-tags {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 180px;
+}
+
+.teacher-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.teacher-tag-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.teacher-tags-empty {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
 /* --- Shared Status Tabs --- */
 .status-tabs {
     display: flex;

@@ -85,11 +85,14 @@
             });
 
             // Render buttons
-            let pagEl = table.parentElement.querySelector('.pagination');
+            // Pagination phải nằm NGOÀI table-container (tránh bị cuộn ngang)
+            const tableContainer = table.parentElement;
+            const paginationHost = tableContainer.parentElement || tableContainer;
+            let pagEl = paginationHost.querySelector(':scope > .pagination');
             if (!pagEl) {
                 pagEl = document.createElement('div');
                 pagEl.className = 'pagination';
-                table.parentElement.appendChild(pagEl);
+                tableContainer.insertAdjacentElement('afterend', pagEl);
             }
 
             if (totalPages <= 1) {

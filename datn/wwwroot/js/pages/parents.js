@@ -1,9 +1,9 @@
-// ====== PARENT MANAGEMENT PAGE (Synced with Students) ======
-
 let isEditMode = false;
 let currentParentId = null;
 let currentParentGender = true; // Default to Male (Nam)
 let selectedStudentForLink = null;
+let pendingStudentLinks = [];
+let linkModalOpenedFromPanel = false;
 let showInactiveParents = false;
 let allParentsData = [];
 
@@ -49,20 +49,27 @@ function setupEventListeners() {
   // Student search for linking
   let timeout = null;
   const studentSearch = document.getElementById("studentSearchInput");
-  studentSearch.addEventListener("input", function () {
-    clearTimeout(timeout);
-    const q = this.value;
-    if (q.length < 2) {
-      document.getElementById("studentSearchResults").innerHTML = "";
-      return;
-    }
-    timeout = setTimeout(() => searchStudentsForLink(q), 300);
-  });
+  if (studentSearch) {
+    studentSearch.addEventListener("input", function () {
+      clearTimeout(timeout);
+      const q = this.value;
+      if (q.length < 2) {
+        document.getElementById("studentSearchResults").innerHTML = "";
+        return;
+      }
+      timeout = setTimeout(() => searchStudentsForLink(q), 300);
+    });
+  }
 
   // Link modal overlay click
-  document
-    .getElementById("linkModalOverlay")
-    .addEventListener("click", closeLinkStudentModal);
+  // Link panel overlay click (nested slide panel) - handled via inline onclick in HTML
+  // Nested link panel back/close buttons
+  const linkBack = document.getElementById("linkBackBtn");
+  if (linkBack) linkBack.addEventListener("click", closeLinkStudentPanel);
+  const closeLinkBtn = document.getElementById("closeLinkPanelBtn");
+  if (closeLinkBtn) closeLinkBtn.addEventListener("click", closeLinkStudentPanel);
+  const linkPanelCloseBtn = document.getElementById("linkPanelCloseBtn");
+  if (linkPanelCloseBtn) linkPanelCloseBtn.addEventListener("click", closeLinkStudentPanel);
 
   // Password real-time validation
   const passwordInput = document.getElementById("password");
@@ -112,7 +119,8 @@ function updateRequirementUI(id, isValid) {
 // ====== DATA LOADING ======
 async function loadParents() {
   try {
-    const response = await fetch(`/Manager/Api/Parents?showInactive=${showInactiveParents}`);
+    const t = new Date().getTime();
+    const response = await fetch(`/Manager/Api/Parents?showInactive=${showInactiveParents}&_t=${t}`);
     const result = await response.json();
 
     if (!result.success) {
@@ -129,16 +137,27 @@ async function loadParents() {
 }
 
 function setupFilterListeners() {
-  document.getElementById('btnToggleFilter').addEventListener('click', function() {
-    this.classList.toggle('active');
-    document.getElementById('filterPanel').classList.toggle('active');
-  });
-  document.getElementById('btnApplyFilter').addEventListener('click', () => applyParentFilters());
-  document.getElementById('btnResetFilter').addEventListener('click', () => {
-    document.getElementById('filterGender').value = '';
-    document.getElementById('filterHasChildren').value = '';
-    applyParentFilters();
-  });
+  const filterToggle = document.getElementById('btnToggleFilter');
+  if (filterToggle) {
+    filterToggle.addEventListener('click', function() {
+      this.classList.toggle('active');
+      document.getElementById('filterPanel').classList.toggle('active');
+    });
+  }
+
+  const btnApplyFilter = document.getElementById('btnApplyFilter');
+  if (btnApplyFilter) {
+    btnApplyFilter.addEventListener('click', () => applyParentFilters());
+  }
+
+  const btnResetFilter = document.getElementById('btnResetFilter');
+  if (btnResetFilter) {
+    btnResetFilter.addEventListener('click', () => {
+      document.getElementById('filterGender').value = '';
+      document.getElementById('filterHasChildren').value = '';
+      applyParentFilters();
+    });
+  }
 }
 
 function applyParentFilters() {
@@ -160,14 +179,66 @@ function applyParentFilters() {
   renderParentsTable(filtered);
 }
 
-// ====== TABLE RENDERING ======
+function openLinkStudentPanel() {
+  const genderInput = document.querySelector('input[name="Gender"]:checked');
+  if (genderInput) {
+  currentParentGender = genderInput.value === "true";
+  }
+
+  selectedStudentForLink = null;
+  linkModalOpenedFromPanel = true;
+  document.getElementById("studentSearchInput").value = "";
+  document.getElementById("studentSearchResults").innerHTML = "";
+  document.getElementById("linkDetailSection").style.display = "none";
+  
+  const confirmBtn = document.getElementById("linkPanelConfirmBtn");
+  if (confirmBtn) {
+  confirmBtn.disabled = true;
+  confirmBtn.innerHTML = '<i class="fa-solid fa-link"></i> Xác nhận liên kết';
+  }
+
+  // Tự động chọn và ràng buộc mối quan hệ dựa trên giới tính
+  const relInputs = document.querySelectorAll('input[name="relationship"]');
+  relInputs.forEach(input => {
+    if (currentParentGender) { // Nam -> Bố
+      if (input.value === "Bố") {
+        input.checked = true;
+        input.disabled = false;
+      } else {
+        input.disabled = true;
+      }
+    } else { // Nữ -> Mẹ
+      if (input.value === "Mẹ") {
+        input.checked = true;
+        input.disabled = false;
+      } else {
+        input.disabled = true;
+      }
+    }
+      
+    // Cập nhật giao diện (mờ đi các option bị disable)
+    const content = input.nextElementSibling;
+    if (input.disabled) {
+      content.style.opacity = "0.4";
+      content.style.cursor = "not-allowed";
+    } else {
+      content.style.opacity = "1";
+      content.style.cursor = "pointer";
+    }
+  });
+
+  // Open nested link slide panel on top of existing parent slide panel
+  const linkOverlay = document.getElementById("linkPanelOverlay");
+  const linkPanel = document.getElementById("linkSlidePanel");
+  if (linkOverlay) linkOverlay.classList.add("active");
+  if (linkPanel) linkPanel.classList.add("active");
+}
 function renderParentsTable(parents) {
   const tbody = document.getElementById("parentsTableBody");
   tbody.innerHTML = "";
 
-  if (parents.length === 0) {
-    tbody.innerHTML =
-      '<tr><td colspan="11" class="text-center">Không tìm thấy dữ liệu</td></tr>';
+  if (!parents || parents.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="11" class="text-center">Không tìm thấy dữ liệu</td></tr>';
     return;
   }
 
@@ -261,7 +332,11 @@ function openCreatePanel() {
   passwordInput.value = ""; // Clear password field for new parent
   validatePasswordUI(""); // Reset validation hints
   document.getElementById("passwordFieldGroup").style.display = "block"; // Show on create so manager can set initial password
-  document.getElementById("linkedStudentsSection").style.display = "none";
+  document.getElementById("linkedStudentsSection").style.display = "block";
+  const hint = document.getElementById("linkedStudentsHint");
+  if (hint) hint.style.display = "block";
+  pendingStudentLinks = [];
+  renderLinkedStudents([]);
   document.getElementById("deleteParentBtn").style.display = "none";
 
   hideFormAlert();
@@ -322,7 +397,10 @@ async function openEditPanel(id) {
     }
 
     // Show linked children
+    pendingStudentLinks = [];
     document.getElementById("linkedStudentsSection").style.display = "block";
+    const hint = document.getElementById("linkedStudentsHint");
+    if (hint) hint.style.display = "none";
     renderLinkedStudents(p.children);
 
     openPanel();
@@ -336,12 +414,14 @@ function openPanel() {
   document.getElementById("modalOverlay").classList.add("active");
   document.getElementById("slidePanel").classList.add("active");
   document.body.style.overflow = "hidden";
+  document.body.classList.add("panel-open");
 }
 
 function closePanel() {
   document.getElementById("modalOverlay").classList.remove("active");
   document.getElementById("slidePanel").classList.remove("active");
   document.body.style.overflow = "auto";
+  document.body.classList.remove("panel-open");
   isEditMode = false;
   currentParentId = null;
 }
@@ -368,6 +448,13 @@ async function saveParent() {
   const id = document.getElementById("parentId").value;
   const url = isEditMode ? `/Manager/Api/Parent/${id}` : "/Manager/Api/Parent";
   const method = isEditMode ? "PUT" : "POST";
+
+  if (!isEditMode && pendingStudentLinks.length > 0) {
+    pendingStudentLinks.forEach((link, index) => {
+      formData.append(`StudentLinks[${index}].StudentId`, String(link.id));
+      formData.append(`StudentLinks[${index}].Relationship`, link.relationship);
+    });
+  }
 
   const saveBtn = document.getElementById("saveParentBtn");
   saveBtn.disabled = true;
@@ -440,7 +527,7 @@ function renderLinkedStudents(children) {
   const container = document.getElementById("linkedStudentsList");
   if (!children || children.length === 0) {
     container.innerHTML =
-      '<p class="text-muted small text-center" style="padding: 12px 0;">Phụ huynh này chưa được liên kết với học sinh nào.</p>';
+      '<p class="text-muted small text-center" style="padding: 12px 0;">Chưa có học sinh nào được liên kết.</p>';
     return;
   }
 
@@ -462,65 +549,15 @@ function renderLinkedStudents(children) {
 }
 
 // ====== LINK STUDENT MODAL ======
-function showLinkStudentModal() {
-  if (!currentParentId) {
-    alert("Vui lòng mở phụ huynh cần liên kết trước.");
-    return;
-  }
+// (replaced by nested slide panel: openLinkStudentPanel)
 
+function closeLinkStudentPanel() {
+  const linkOverlay = document.getElementById("linkPanelOverlay");
+  const linkPanel = document.getElementById("linkSlidePanel");
+  if (linkOverlay) linkOverlay.classList.remove("active");
+  if (linkPanel) linkPanel.classList.remove("active");
   selectedStudentForLink = null;
-  document.getElementById("studentSearchInput").value = "";
-  document.getElementById("studentSearchResults").innerHTML = "";
-  document.getElementById("linkDetailSection").style.display = "none";
-  
-  const confirmBtn = document.getElementById("confirmLinkBtn");
-  confirmBtn.disabled = true;
-  confirmBtn.innerHTML = '<i class="fa-solid fa-link"></i> Xác nhận liên kết';
-
-  // Tự động chọn và ràng buộc mối quan hệ dựa trên giới tính
-  const relInputs = document.querySelectorAll('input[name="relationship"]');
-  relInputs.forEach(input => {
-      if (currentParentGender) { // Nam -> Bố
-          if (input.value === "Bố") {
-              input.checked = true;
-              input.disabled = false;
-          } else {
-              input.disabled = true;
-          }
-      } else { // Nữ -> Mẹ
-          if (input.value === "Mẹ") {
-              input.checked = true;
-              input.disabled = false;
-          } else {
-              input.disabled = true;
-          }
-      }
-      
-      // Cập nhật giao diện (mờ đi các option bị disable)
-      const content = input.nextElementSibling;
-      if (input.disabled) {
-          content.style.opacity = "0.4";
-          content.style.cursor = "not-allowed";
-      } else {
-          content.style.opacity = "1";
-          content.style.cursor = "pointer";
-      }
-  });
-
-  // Ẩn slide panel nhưng KHÔNG reset currentParentId
-  document.getElementById("slidePanel").classList.remove("active");
-  document.getElementById("modalOverlay").classList.remove("active");
-
-  // Mở modal link
-  document.getElementById("linkModalOverlay").classList.add("active");
-  document.getElementById("linkStudentModal").classList.add("active");
-}
-
-function closeLinkStudentModal() {
-  document.getElementById("linkModalOverlay").classList.remove("active");
-  document.getElementById("linkStudentModal").classList.remove("active");
-  selectedStudentForLink = null;
-  // Không mở lại slide panel
+  linkModalOpenedFromPanel = false;
 }
 
 async function searchStudentsForLink(q) {
@@ -531,12 +568,28 @@ async function searchStudentsForLink(q) {
     const result = await response.json();
     if (result.success) {
       const list = document.getElementById("studentSearchResults");
-      if (result.data.length === 0) {
+
+      // Bug 2: lọc ra những học sinh đã được gán cho phụ huynh này
+      const assignedIds = new Set(pendingStudentLinks.map(l => l.id));
+      // Trong edit mode, lấy id từ danh sách linked students đang hiển thị
+      if (isEditMode) {
+        document.querySelectorAll("#linkedStudentsList .linked-student-item").forEach(item => {
+          const btn = item.querySelector("[onclick^='unlinkStudent']");
+          if (btn) {
+            const match = btn.getAttribute("onclick").match(/unlinkStudent\((\d+)\)/);
+            if (match) assignedIds.add(parseInt(match[1], 10));
+          }
+        });
+      }
+
+      const filtered = result.data.filter(s => !assignedIds.has(s.id));
+
+      if (filtered.length === 0) {
         list.innerHTML =
           '<div style="padding: 12px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">Không tìm thấy học sinh nào</div>';
         return;
       }
-      list.innerHTML = result.data
+      list.innerHTML = filtered
         .map(
           (s) => `
                 <a href="javascript:void(0)" class="list-group-item list-group-item-action"
@@ -570,11 +623,12 @@ function selectStudentForLink(id, name, code) {
   document.getElementById("selectedStudentName").textContent = name;
   document.getElementById("selectedStudentCode").textContent = ` (${code})`;
   document.getElementById("linkDetailSection").style.display = "block";
-  document.getElementById("confirmLinkBtn").disabled = false;
+  const confirmBtn = document.getElementById("linkPanelConfirmBtn");
+  if (confirmBtn) confirmBtn.disabled = false;
 }
 
 async function confirmLinkStudent() {
-  const confirmBtn = document.getElementById("confirmLinkBtn");
+  const confirmBtn = document.getElementById("linkPanelConfirmBtn");
   if (confirmBtn.disabled && confirmBtn.innerHTML.includes("fa-spin")) return; // Chặn click khi đang xử lý
 
   // Lấy giá trị mối quan hệ (hỗ trợ cả radio cards mới và select cũ để tránh lỗi cache)
@@ -583,9 +637,9 @@ async function confirmLinkStudent() {
   const selectEl = document.getElementById("linkRelationship");
   
   if (radioChecked) {
-      relationship = radioChecked.value;
+    relationship = radioChecked.value;
   } else if (selectEl) {
-      relationship = selectEl.value;
+    relationship = selectEl.value;
   } else {
       alert("Không tìm thấy dữ liệu mối quan hệ. Vui lòng nhấn Ctrl + F5 để tải lại trang.");
       return;
@@ -597,19 +651,37 @@ async function confirmLinkStudent() {
   console.log("parentId parsed:", parentId);
   console.log("studentId parsed:", studentId);
 
-  if (
-    !Number.isFinite(parentId) ||
-    parentId <= 0 ||
-    !Number.isFinite(studentId) ||
-    studentId <= 0
-  ) {
-    alert("Vui lòng chọn phụ huynh và học sinh hợp lệ trước khi liên kết.");
+  if (!Number.isFinite(studentId) || studentId <= 0) {
+    alert("Vui lòng chọn học sinh hợp lệ trước khi liên kết.");
     return;
   }
 
-  confirmBtn.disabled = true;
-  confirmBtn.innerHTML =
-    '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang xử lý...';
+  if (!isEditMode) {
+    if (pendingStudentLinks.some((l) => l.id === studentId)) {
+      alert("Học sinh này đã được thêm vào danh sách.");
+      return;
+    }
+    const studentName =
+      document.getElementById("selectedStudentName").textContent || "";
+    pendingStudentLinks.push({
+      id: studentId,
+      fullName: studentName,
+      relationship,
+    });
+    closeLinkStudentPanel();
+    renderLinkedStudents(pendingStudentLinks);
+    return;
+  }
+
+  if (!Number.isFinite(parentId) || parentId <= 0) {
+    alert("Vui lòng mở phụ huynh cần liên kết trước.");
+    return;
+  }
+
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang xử lý...';
+  }
 
   const formData = new URLSearchParams();
   formData.append("parentId", parentId);
@@ -625,27 +697,38 @@ async function confirmLinkStudent() {
 
     const result = await response.json();
     if (result.success) {
-      closeLinkStudentModal();
-      currentParentId = null;
+      const parentIdToRefresh = currentParentId;
+      // close both panels after successful link
+      closeLinkStudentPanel();
+      closePanel();
+      await openEditPanel(parentIdToRefresh);
       refreshData();
-      if (typeof showToast === "function")
-        showToast("Liên kết thành công", "success");
+      if (typeof showToast === "function") showToast("Liên kết thành công", "success");
     } else {
       alert(result.message || "Lỗi khi liên kết");
-      confirmBtn.disabled = false;
-      confirmBtn.innerHTML =
-        '<i class="fa-solid fa-link"></i> Xác nhận liên kết';
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<i class="fa-solid fa-link"></i> Xác nhận liên kết';
+      }
     }
   } catch (error) {
     console.error("Error linking student:", error);
     alert("Lỗi kết nối hoặc lỗi server khi liên kết");
-    confirmBtn.disabled = false;
-    confirmBtn.innerHTML = '<i class="fa-solid fa-link"></i> Xác nhận liên kết';
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '<i class="fa-solid fa-link"></i> Xác nhận liên kết';
+    }
   }
 }
 
 async function unlinkStudent(studentId) {
   if (!confirm("Bạn có chắc chắn muốn hủy liên kết với học sinh này?")) return;
+
+  if (!isEditMode) {
+    pendingStudentLinks = pendingStudentLinks.filter((l) => l.id !== studentId);
+    renderLinkedStudents(pendingStudentLinks);
+    return;
+  }
 
   try {
     const response = await fetch(

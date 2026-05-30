@@ -58,10 +58,26 @@ function bindClassManagementEvents() {
     if (clearSubjectBtn) clearSubjectBtn.addEventListener('click', resetSubjectForm);
 
     const resetClassFormBtn = document.getElementById('resetClassFormBtn');
-    if (resetClassFormBtn) resetClassFormBtn.addEventListener('click', resetClassForm);
+    if (resetClassFormBtn) {
+        resetClassFormBtn.addEventListener('click', () => {
+            resetClassForm();
+            openPanel();
+        });
+    }
 
     const resetSubjectFormBtn = document.getElementById('resetSubjectFormBtn');
-    if (resetSubjectFormBtn) resetSubjectFormBtn.addEventListener('click', resetSubjectForm);
+    if (resetSubjectFormBtn) {
+        resetSubjectFormBtn.addEventListener('click', () => {
+            resetSubjectForm();
+            openPanel();
+        });
+    }
+
+    const closePanelBtn = document.getElementById('closePanelBtn');
+    if (closePanelBtn) closePanelBtn.addEventListener('click', closePanel);
+
+    const modalOverlay = document.getElementById('modalOverlay');
+    if (modalOverlay) modalOverlay.addEventListener('click', closePanel);
 
     const deleteScheduleBtn = document.getElementById('deleteScheduleBtn');
     if (deleteScheduleBtn) deleteScheduleBtn.addEventListener('click', () => {
@@ -301,6 +317,7 @@ async function saveClass(event) {
 
     if (result.success) {
         resetClassForm();
+        closePanel();
         await Promise.all([loadClassesOverview(), refreshDropdowns()]);
     }
 }
@@ -324,6 +341,7 @@ async function saveSubject(event) {
 
     if (result.success) {
         resetSubjectForm();
+        closePanel();
         await Promise.all([loadSubjects(), refreshDropdowns()]);
     }
 }
@@ -377,10 +395,11 @@ async function editClass(classId) {
     }
 
     document.getElementById('maxCapacity').value = result.data.maxCapacity || 25;
-    document.getElementById('saveClassBtn').textContent = 'Cập nhật lớp học';
     
-    // Cuộn lên form để người dùng thấy
-    document.getElementById('classForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const panelTitle = document.getElementById('panelTitle');
+    if (panelTitle) panelTitle.textContent = 'Chỉnh sửa lớp học';
+    document.getElementById('saveClassBtn').textContent = 'Cập nhật lớp học';
+    openPanel();
 }
 
 async function editSubject(subjectId) {
@@ -395,11 +414,13 @@ async function editSubject(subjectId) {
     document.getElementById('subjectCode').value = result.data.code || '';
     document.getElementById('subjectName').value = result.data.name || '';
     document.getElementById('subjectDescription').value = result.data.description || '';
-    document.getElementById('subjectIsActive').checked = !!result.data.isActive;
-    document.getElementById('saveSubjectBtn').textContent = 'Cập nhật môn học';
+    const isActiveCheckbox = document.getElementById('subjectIsActive');
+    if (isActiveCheckbox) isActiveCheckbox.checked = !!result.data.isActive;
     
-    // Cuộn xuống form môn học
-    document.getElementById('subjectForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const panelTitle = document.getElementById('panelTitle');
+    if (panelTitle) panelTitle.textContent = 'Chỉnh sửa môn học';
+    document.getElementById('saveSubjectBtn').textContent = 'Cập nhật môn học';
+    openPanel();
 }
 
 async function editSchedule(scheduleId) {
@@ -542,17 +563,28 @@ function selectScheduleClass(classId) {
 
 function resetClassForm() {
     currentClassId = null;
-    document.getElementById('classForm').reset();
-    document.getElementById('classId').value = '';
-    document.getElementById('saveClassBtn').textContent = 'Lưu lớp học';
+    const form = document.getElementById('classForm');
+    if (form) {
+        form.reset();
+        document.getElementById('classId').value = '';
+        document.getElementById('saveClassBtn').textContent = 'Lưu lớp học';
+        const panelTitle = document.getElementById('panelTitle');
+        if (panelTitle) panelTitle.textContent = 'Thêm lớp học mới';
+    }
 }
 
 function resetSubjectForm() {
     currentSubjectId = null;
-    document.getElementById('subjectForm').reset();
-    document.getElementById('subjectId').value = '';
-    document.getElementById('subjectIsActive').checked = true;
-    document.getElementById('saveSubjectBtn').textContent = 'Lưu môn học';
+    const form = document.getElementById('subjectForm');
+    if (form) {
+        form.reset();
+        document.getElementById('subjectId').value = '';
+        const isActiveCheckbox = document.getElementById('subjectIsActive');
+        if (isActiveCheckbox) isActiveCheckbox.checked = true;
+        document.getElementById('saveSubjectBtn').textContent = 'Lưu môn học';
+        const panelTitle = document.getElementById('panelTitle');
+        if (panelTitle) panelTitle.textContent = 'Thêm môn học mới';
+    }
 }
 
 function resetScheduleForm(classId = null) {
@@ -590,9 +622,20 @@ function showAlert(elementId, success, message) {
 
 function renderTeacherTags(teachers) {
     if (!teachers || teachers.length === 0) {
-        return 'Chưa phân công';
+        return '<div class="teacher-tags-empty">Chưa phân công</div>';
     }
-    return teachers.map(item => `${escapeHtml(item.teacherName)} (${escapeHtml(item.roleInClass)})`).join('<br />');
+
+    return teachers.map(item => {
+        const role = escapeHtml(item.roleInClass || 'Giáo viên');
+        const isLead = /chủ nhiệm/i.test(item.roleInClass || '');
+        const badgeClass = isLead ? 'badge-success' : 'badge-info';
+
+        return `
+            <div class="teacher-tag">
+                <span class="teacher-tag-name">${escapeHtml(item.teacherName)}</span>
+                <span class="badge ${badgeClass}">${role}</span>
+            </div>`;
+    }).join('');
 }
 
 function formatAgeRange(from, to) {
@@ -646,4 +689,24 @@ function escapeHtml(value) {
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#39;');
+}
+
+function openPanel() {
+    const overlay = document.getElementById("modalOverlay");
+    const panel = document.getElementById("slidePanel");
+    if (overlay && panel) {
+        overlay.classList.add("active");
+        panel.classList.add("active");
+        document.body.style.overflow = "hidden";
+    }
+}
+
+function closePanel() {
+    const overlay = document.getElementById("modalOverlay");
+    const panel = document.getElementById("slidePanel");
+    if (overlay && panel) {
+        overlay.classList.remove("active");
+        panel.classList.remove("active");
+        document.body.style.overflow = "auto";
+    }
 }

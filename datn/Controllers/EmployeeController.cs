@@ -197,6 +197,9 @@ namespace datn.Controllers
                     return Json(new { success = false, message = "Bạn không có quyền xem lớp này." });
 
                 var reportDate = new DateOnly(year, month, 1);
+                var isLead = await HasActiveAssignmentAsync(employeeId.Value, classId, today, requireLead: true);
+                var isSubmitted = await _context.StudyReports
+                    .AnyAsync(sr => sr.Date == reportDate && sr.Student.ClassId == classId);
 
                 var students = await _context.Students
                     .Where(s => s.ClassId == classId)
@@ -217,7 +220,7 @@ namespace datn.Controllers
                     })
                     .ToListAsync();
 
-                return Json(new { success = true, data = students });
+                return Json(new { success = true, data = students, isLead, isSubmitted });
             }
             catch (Exception ex)
             {
@@ -232,44 +235,40 @@ namespace datn.Controllers
             {
                 var employeeId = await GetCurrentEmployeeId();
                 if (employeeId == null) return Json(new { success = false, message = "Hết phiên đăng nhập" });
+                if (model == null || model.Records == null || model.Records.Count == 0)
+                    return Json(new { success = false, message = "Không có dữ liệu đánh giá." });
 
                 // Xác nhận vai trò trong lớp: chỉ GVCN mới được gửi đánh giá tháng
                 var reportDate = new DateOnly(model.Year, model.Month, 1);
-                var firstStudentId = model.Records.FirstOrDefault()?.StudentId;
-                if (firstStudentId.HasValue)
-                {
-                    var student = await _context.Students.FindAsync(firstStudentId.Value);
-                    if (student?.ClassId != null)
-                    {
-                        var today = GetTodayVnt();
-                        var isLead = await HasActiveAssignmentAsync(employeeId.Value, student.ClassId.Value, today, requireLead: true);
-                        if (!isLead)
-                            return Json(new { success = false, message = "Chỉ Giáo viên Chủ nhiệm mới có quyền gửi đánh giá học tập tháng." });
-                    }
-                }
+                var today = GetTodayVnt();
+                var isLead = await HasActiveAssignmentAsync(employeeId.Value, model.ClassId, today, requireLead: true);
+                if (!isLead)
+                    return Json(new { success = false, message = "Chỉ Giáo viên Chủ nhiệm mới có quyền gửi đánh giá học tập tháng." });
+
+                var submitted = await _context.StudyReports
+                    .AnyAsync(sr => sr.Date == reportDate && sr.Student.ClassId == model.ClassId);
+                if (submitted)
+                    return Json(new { success = false, message = $"Lớp này đã gửi đánh giá tháng {model.Month}/{model.Year}. Mỗi lớp chỉ được gửi 1 lần trong một tháng." });
+
+                var studentIds = model.Records.Select(r => r.StudentId).Distinct().ToList();
+                if (studentIds.Count != model.Records.Count)
+                    return Json(new { success = false, message = "Dữ liệu đánh giá có học sinh bị trùng." });
+
+                var validStudentCount = await _context.Students
+                    .CountAsync(s => studentIds.Contains(s.Id) && s.ClassId == model.ClassId);
+                if (validStudentCount != studentIds.Count)
+                    return Json(new { success = false, message = "Danh sách học sinh không hợp lệ hoặc không thuộc lớp đang chọn." });
                 
                 foreach (var item in model.Records)
                 {
-                    var existing = await _context.StudyReports
-                        .FirstOrDefaultAsync(sr => sr.StudentId == item.StudentId && sr.Date == reportDate);
-
-                    if (existing != null)
+                    _context.StudyReports.Add(new StudyReport
                     {
-                        existing.RankingId = item.RankingId;
-                        existing.Comment = item.Comment;
-                        existing.TeacherId = employeeId;
-                    }
-                    else
-                    {
-                        _context.StudyReports.Add(new StudyReport
-                        {
-                            StudentId = item.StudentId,
-                            Date = reportDate,
-                            RankingId = item.RankingId,
-                            Comment = item.Comment,
-                            TeacherId = employeeId
-                        });
-                    }
+                        StudentId = item.StudentId,
+                        Date = reportDate,
+                        RankingId = item.RankingId,
+                        Comment = item.Comment,
+                        TeacherId = employeeId
+                    });
                 }
 
                 await _context.SaveChangesAsync();
@@ -706,6 +705,10 @@ namespace datn.Controllers
                 .Select(sa => sa.StudentId)
                 .ToListAsync();
 
+            var activity = await _context.Activities
+                .Include(a => a.Location)
+                .FirstOrDefaultAsync(a => a.Id == activityId);
+
             var data = students.Select(s => new
             {
                 id = s.Id,
@@ -713,7 +716,13 @@ namespace datn.Controllers
                 isParticipating = participants.Contains(s.Id)
             });
 
-            return Json(new { success = true, data });
+            return Json(new
+            {
+                success = true,
+                data,
+                locationCapacity = activity?.Location?.Capacity,
+                currentParticipantCount = participants.Count
+            });
         }
 
         [HttpPost("Api/Activity/{activityId:int}/Participants")]
@@ -732,6 +741,29 @@ namespace datn.Controllers
             // Chỉ cho phép cập nhật học sinh thuộc lớp mình
             var studentsInClass = await _context.Students.Where(s => s.ClassId == classId).Select(s => s.Id).ToListAsync();
             var validStudentIds = studentIds.Intersect(studentsInClass).ToList();
+
+            var activity = await _context.Activities
+                .Include(a => a.Location)
+                .FirstOrDefaultAsync(a => a.Id == activityId);
+
+            if (activity?.Location?.Capacity is int capacity && capacity > 0)
+            {
+                var otherClassParticipantCount = await _context.StudentActivities
+                    .Where(sa => sa.ActivityId == activityId && !studentsInClass.Contains(sa.StudentId))
+                    .CountAsync();
+
+                if (otherClassParticipantCount + validStudentIds.Count > capacity)
+                {
+                    var slotsLeft = Math.Max(0, capacity - otherClassParticipantCount);
+                    return Json(new
+                    {
+                        success = false,
+                        message = slotsLeft == 0
+                            ? $"Địa điểm đã đủ sức chứa ({capacity} người). Không thể thêm học sinh từ lớp của bạn."
+                            : $"Sức chứa địa điểm: {capacity} người. Các lớp khác đã đăng ký {otherClassParticipantCount} HS — lớp của bạn chỉ được chọn tối đa {slotsLeft} HS."
+                    });
+                }
+            }
 
             // Xóa các bản ghi cũ của lớp này trong hoạt động này
             var existingParticipation = await _context.StudentActivities
@@ -818,6 +850,7 @@ namespace datn.Controllers
 
     public class StudyReportSubmissionModel
     {
+        public int ClassId { get; set; }
         public int Month { get; set; }
         public int Year { get; set; }
         public List<StudyReportRecordModel> Records { get; set; } = new();

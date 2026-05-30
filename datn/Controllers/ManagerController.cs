@@ -202,16 +202,31 @@ namespace datn.Controllers
             {
                 if (!ModelState.IsValid) return Json(new { success = false, message = "Dữ liệu không hợp lệ" });
                 var startDate = DateOnly.Parse(model.StartDate);
+                DateOnly? endDate = string.IsNullOrEmpty(model.EndDate) ? null : DateOnly.Parse(model.EndDate);
+
                 var exists = await _context.Assignments.AnyAsync(a =>
                     a.EmployeeId == model.EmployeeId && a.ClassId == model.ClassId && a.StartDate == startDate);
                 if (exists) return Json(new { success = false, message = "Phân công này đã tồn tại" });
+
+                if (IsLeadRole(model.RoleInClass))
+                {
+                    var overlappingLead = await _context.Assignments.AnyAsync(a =>
+                        a.ClassId == model.ClassId &&
+                        EF.Functions.Like(a.RoleInClass, "%Chủ nhiệm%") &&
+                        a.StartDate <= (endDate.HasValue ? endDate.Value : DateOnly.MaxValue) &&
+                        startDate <= (a.EndDate ?? DateOnly.MaxValue));
+                    if (overlappingLead)
+                    {
+                        return Json(new { success = false, message = "Một lớp chỉ được phép có duy nhất một Giáo viên Chủ nhiệm trong cùng thời gian." });
+                    }
+                }
 
                 var assignment = new Assignment
                 {
                     EmployeeId = model.EmployeeId,
                     ClassId = model.ClassId,
                     StartDate = startDate,
-                    EndDate = string.IsNullOrEmpty(model.EndDate) ? null : DateOnly.Parse(model.EndDate),
+                    EndDate = endDate,
                     RoleInClass = model.RoleInClass
                 };
                 _context.Assignments.Add(assignment);
@@ -230,24 +245,84 @@ namespace datn.Controllers
             try
             {
                 if (!ModelState.IsValid) return Json(new { success = false, message = "Dữ liệu không hợp lệ" });
-                var startDate = DateOnly.Parse(model.StartDate);
+                
+                var oldSDate = DateOnly.Parse(model.OldStartDate ?? model.StartDate);
+                var oldEmpId = model.OldEmployeeId ?? model.EmployeeId;
+                var oldClsId = model.OldClassId ?? model.ClassId;
                 
                 var assignment = await _context.Assignments.FirstOrDefaultAsync(a =>
-                    a.EmployeeId == model.EmployeeId && a.ClassId == model.ClassId && a.StartDate == startDate);
+                    a.EmployeeId == oldEmpId && a.ClassId == oldClsId && a.StartDate == oldSDate);
 
                 if (assignment == null) return Json(new { success = false, message = "Không tìm thấy phân công để cập nhật" });
 
-                assignment.EndDate = string.IsNullOrEmpty(model.EndDate) ? null : DateOnly.Parse(model.EndDate);
-                assignment.RoleInClass = model.RoleInClass;
+                var newStartDate = DateOnly.Parse(model.StartDate);
+                DateOnly? newEndDate = string.IsNullOrEmpty(model.EndDate) ? null : DateOnly.Parse(model.EndDate);
+                var isSameIdentity = oldEmpId == model.EmployeeId && oldClsId == model.ClassId && oldSDate == newStartDate;
 
-                _context.Assignments.Update(assignment);
-                await _context.SaveChangesAsync();
+                if (!isSameIdentity)
+                {
+                    var duplicate = await _context.Assignments.AnyAsync(a =>
+                        a.EmployeeId == model.EmployeeId && a.ClassId == model.ClassId && a.StartDate == newStartDate);
+                    if (duplicate) return Json(new { success = false, message = "Phân công mới đã tồn tại" });
+                }
+
+                if (IsLeadRole(model.RoleInClass))
+                {
+                    var overlappingLead = await _context.Assignments.AnyAsync(a =>
+                        a.ClassId == model.ClassId &&
+                        EF.Functions.Like(a.RoleInClass, "%Chủ nhiệm%") &&
+                        !(a.EmployeeId == oldEmpId && a.ClassId == oldClsId && a.StartDate == oldSDate) &&
+                        a.StartDate <= (newEndDate.HasValue ? newEndDate.Value : DateOnly.MaxValue) &&
+                        newStartDate <= (a.EndDate ?? DateOnly.MaxValue));
+                    if (overlappingLead)
+                    {
+                        return Json(new { success = false, message = "Một lớp chỉ được phép có duy nhất một Giáo viên Chủ nhiệm trong cùng thời gian." });
+                    }
+                }
+
+                if (!isSameIdentity)
+                {
+                    _context.Assignments.Remove(assignment);
+                    await _context.SaveChangesAsync();
+
+                    var newAssignment = new Assignment
+                    {
+                        EmployeeId = model.EmployeeId,
+                        ClassId = model.ClassId,
+                        StartDate = newStartDate,
+                        EndDate = newEndDate,
+                        RoleInClass = model.RoleInClass
+                    };
+                    _context.Assignments.Add(newAssignment);
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    assignment.EndDate = newEndDate;
+                    assignment.RoleInClass = model.RoleInClass;
+                    _context.Assignments.Update(assignment);
+                    await _context.SaveChangesAsync();
+                }
+
                 return Json(new { success = true, message = "Cập nhật phân công thành công" });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        private static bool IsLeadRole(string? roleInClass)
+        {
+            return !string.IsNullOrWhiteSpace(roleInClass) &&
+                roleInClass.Contains("Chủ nhiệm", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool DoDateRangesOverlap(DateOnly startA, DateOnly? endA, DateOnly startB, DateOnly? endB)
+        {
+            var actualEndA = endA ?? DateOnly.MaxValue;
+            var actualEndB = endB ?? DateOnly.MaxValue;
+            return startA <= actualEndB && startB <= actualEndA;
         }
 
         [HttpDelete("Api/Assignment")]
@@ -919,6 +994,8 @@ namespace datn.Controllers
                 var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
                 return Json(new { success = false, message = errors });
             }
+            if (!Enum.IsDefined(typeof(TeacherType), model.TeacherType))
+                return Json(new { success = false, message = "Loại giáo viên không hợp lệ." });
             if (await _context.Accounts.AnyAsync(a => a.Username == model.Username))
                 return Json(new { success = false, message = "Tên đăng nhập đã tồn tại." });
 
@@ -981,6 +1058,8 @@ namespace datn.Controllers
                 var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
                 return Json(new { success = false, message = errors });
             }
+            if (!Enum.IsDefined(typeof(TeacherType), model.TeacherType))
+                return Json(new { success = false, message = "Loại giáo viên không hợp lệ." });
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -1669,8 +1748,11 @@ namespace datn.Controllers
         public async Task<IActionResult> GetLocations(bool showInactive = false)
         {
             var query = _context.Locations.AsQueryable();
-            if (!showInactive) query = query.Where(l => l.IsActive);
-            
+            if (showInactive)
+            {
+                query = query.IgnoreQueryFilters().Where(l => !l.IsActive);
+            }
+
             var locations = await query.OrderBy(l => l.Name).ToListAsync();
             return Json(new { success = true, data = locations });
         }
@@ -1683,6 +1765,20 @@ namespace datn.Controllers
             _context.Locations.Add(model);
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Đã thêm địa điểm" });
+        }
+
+        [HttpPut("Api/Location/{id:int}")]
+        public async Task<IActionResult> UpdateLocation(int id, [FromBody] Location model)
+        {
+            var location = await _context.Locations.FindAsync(id);
+            if (location == null) return Json(new { success = false, message = "Không tìm thấy." });
+            if (string.IsNullOrWhiteSpace(model.Name))
+                return Json(new { success = false, message = "Tên địa điểm không được để trống" });
+
+            location.Name = model.Name.Trim();
+            location.Capacity = model.Capacity;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã cập nhật địa điểm" });
         }
 
         [HttpDelete("Api/Location/{id:int}")]
@@ -1725,7 +1821,10 @@ namespace datn.Controllers
                     .ThenInclude(ca => ca.Class)
                 .AsQueryable();
 
-            if (!showInactive) query = query.Where(a => a.IsActive);
+            if (showInactive)
+            {
+                query = query.IgnoreQueryFilters().Where(a => !a.IsActive);
+            }
 
             var activities = await query
                 .OrderByDescending(a => a.Date)
@@ -1737,7 +1836,9 @@ namespace datn.Controllers
                 name = a.Name,
                 description = a.Description,
                 date = a.Date?.ToString("yyyy-MM-dd"),
+                locationId = a.LocationId,
                 locationName = a.Location?.Name,
+                organizerId = a.OrganizerId,
                 organizerName = a.Organizer?.FullName,
                 isActive = a.IsActive,
                 classes = a.ClassActivities.Select(ca => new { id = ca.ClassId, name = ca.Class.Name })
@@ -2015,6 +2116,9 @@ namespace datn.Controllers
         public string StartDate { get; set; } = string.Empty;
         public string? EndDate { get; set; }
         public string? RoleInClass { get; set; }
+        public int? OldEmployeeId { get; set; }
+        public int? OldClassId { get; set; }
+        public string? OldStartDate { get; set; }
     }
 
     public class CreateStudentViewModel

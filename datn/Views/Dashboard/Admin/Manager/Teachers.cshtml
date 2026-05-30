@@ -1,0 +1,212 @@
+@{
+    ViewData["Title"] = "Nhân sự";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/teachers.css" asp-append-version="true" />
+}
+<div class="page-header">
+    <h1 class="page-title">Quản lý Nhân sự</h1>
+    <div class="page-actions">
+        <div class="search-bar">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="searchTeachers" placeholder="Tìm kiếm nhân sự..." />
+        </div>
+        <button class="btn-filter-toggle" id="btnToggleFilter">
+            <i class="fa-solid fa-filter"></i> Bộ lọc
+        </button>
+        <button class="btn btn-primary" id="btnCreateTeacher">
+            <i class="fa-solid fa-plus"></i> Thêm giáo viên
+        </button>
+    </div>
+</div>
+
+<div class="filter-panel" id="filterPanel">
+    <div class="filter-grid">
+        <div class="filter-group">
+            <label>Chức vụ</label>
+            <select id="filterPosition" class="form-control">
+                <option value="">-- Tất cả --</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Giới tính</label>
+            <select id="filterGender" class="form-control">
+                <option value="">-- Tất cả --</option>
+                <option value="true">Nam</option>
+                <option value="false">Nữ</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-primary" id="btnApplyFilter">Áp dụng</button>
+            <button class="btn btn-outline" id="btnResetFilter">Đặt lại</button>
+        </div>
+    </div>
+</div>
+
+<div class="status-tabs">
+    <div class="status-tab active" data-show-inactive="false">
+        <i class="fa-solid fa-user-check"></i> Đang hoạt động
+    </div>
+    <div class="status-tab" data-show-inactive="true">
+        <i class="fa-solid fa-user-slash"></i> Đã ngưng/Khóa
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table id="teachersTable">
+            <thead>
+                <tr>
+                    <th>STT</th> 
+                    <th>Ảnh</th>
+                    <th>Họ và tên</th>
+                    <th>Điện thoại</th>
+                    <th>Chức vụ</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="teachersTableBody">
+                <tr class="loading-row">
+                    <td colspan="7" style="text-align:center; padding:40px;">
+                        <div class="spinner"></div>
+                        <p class="text-muted">Đang tải dữ liệu...</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay"></div>
+
+<div class="slide-panel" id="slidePanel">
+    <div class="slide-panel-header">
+        <h3 id="panelTitle">Thông tin giáo viên</h3>
+        <button class="close-btn" id="closePanelBtn">
+            <i class="fa-solid fa-xmark" style="font-size:1.2rem;"></i>
+        </button>
+    </div>
+    <div class="slide-panel-body">
+        <form id="editTeacherForm">
+            <input type="hidden" id="teacherId" />
+
+            <div class="form-section">
+                <h4>Thông tin tài khoản</h4>
+                <div class="form-group" id="usernameGroup">
+                    <label class="form-label" for="username">Tên đăng nhập <span class="text-danger">*</span></label>
+                    <input type="text" id="username" name="Username" class="form-control" placeholder="Nhập tên đăng nhập" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="email">Email <span class="text-danger">*</span></label>
+                    <input type="email" id="email" name="Email" class="form-control" placeholder="Nhập email" required />
+                </div>
+                <div class="form-group" id="passwordGroup">
+                    <label class="form-label" for="password">Mật khẩu <span class="text-danger">*</span></label>
+                    <input type="password" id="password" name="Password" class="form-control" placeholder="Mật khẩu tài khoản" />
+                    <div class="requirement-list">
+                        <div id="req-length" class="requirement"><i class="fa-solid fa-circle-dot"></i> Ít nhất 9 ký tự</div>
+                        <div id="req-upper" class="requirement"><i class="fa-solid fa-circle-dot"></i> Ít nhất 1 chữ hoa</div>
+                        <div id="req-special" class="requirement"><i class="fa-solid fa-circle-dot"></i> Ít nhất 1 ký tự đặc biệt</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4>Thông tin cá nhân</h4>
+                <div class="form-group" style="text-align:center; margin-bottom:20px;">
+                    <div class="avatar-upload-container">
+                        <img id="avatarPreview" src="/images/lion_blue.png" alt="Avatar" style="width:100px; height:100px; object-fit:cover;" />
+                        <input type="file" id="avatarFile" name="Avatar" class="form-control" accept="image/*" onchange="previewAvatar(this)" style="margin-top:12px;" />
+                    </div>
+                </div>
+                <div class="form-group">
+                <div class="grid grid-2" style="gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label" for="lastName">Họ đệm <span class="text-danger">*</span></label>
+                        <input type="text" id="lastName" name="LastName" class="form-control" placeholder="Họ và tên đệm" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="firstName">Tên <span class="text-danger">*</span></label>
+                        <input type="text" id="firstName" name="FirstName" class="form-control" placeholder="Tên" required />
+                    </div>
+                </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="phone">Điện thoại</label>
+                    <input type="tel" id="phone" name="Phone" class="form-control" placeholder="Nhập SĐT" />
+                </div>
+                <div class="grid grid-2" style="gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label" for="teacherType">Vai trò giảng dạy <span class="text-danger">*</span></label>
+                        <select id="teacherType" name="TeacherType" class="form-control" required>
+                            <option value="Lead">Giáo viên Chủ nhiệm</option>
+                            <option value="Subject">Giáo viên Bộ môn</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="position">Chức danh cụ thể <span class="text-muted" style="font-weight:normal; font-size:0.85em;">(Tùy chọn)</span></label>
+                        <input type="text" id="position" name="Position" class="form-control" placeholder="VD: Tổ trưởng Toán" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Giới tính</label>
+                    <div class="gender-options" style="display: flex; gap: 20px; margin-top: 8px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="Gender" value="true" checked /> Nam
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="Gender" value="false" /> Nữ
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="baseSalary">Lương cơ bản</label>
+                    <input type="number" id="baseSalary" name="BaseSalary" class="form-control" step="0.01" />
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4>Thông tin Landing Page <span class="text-muted" style="font-weight:normal; font-size:0.85em;">(Tùy chọn)</span></h4>
+                <div class="form-group">
+                    <label class="form-label" for="specialty">Chuyên môn chính</label>
+                    <input type="text" id="specialty" name="Specialty" class="form-control" placeholder="VD: Giáo viên Montessori, Kỹ năng sống" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="bio">Giới thiệu ngắn (Bio)</label>
+                    <textarea id="bio" name="Bio" class="form-control" rows="3" placeholder="Một vài dòng giới thiệu về giáo viên..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="qualifications">Bằng cấp & Học vấn</label>
+                    <input type="text" id="qualifications" name="Qualifications" class="form-control" placeholder="VD: ĐH Sư Phạm Hà Nội, Thạc sĩ Giáo dục" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="experience">Kinh nghiệm</label>
+                    <input type="text" id="experience" name="Experience" class="form-control" placeholder="VD: 5 năm kinh nghiệm giảng dạy mầm non" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="philosophy">Triết lý giáo dục</label>
+                    <textarea id="philosophy" name="Philosophy" class="form-control" rows="2" placeholder="VD: Yêu thương là chìa khóa của mọi trái tim..."></textarea>
+                </div>
+                <div class="form-group flex items-center gap-2" style="flex-direction: row; align-items: center; margin-top: 10px;">
+                    <input type="checkbox" id="showOnLanding" name="ShowOnLanding" style="width: 20px; height: 20px;" />
+                    <label class="form-label" for="showOnLanding" style="margin-bottom: 0;">Hiển thị trên Landing Page</label>
+                </div>
+            </div>
+
+            <div id="editFormAlert" class="form-alert" style="display:none;"></div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu</button>
+                <button type="button" class="btn-delete" id="deleteTeacherBtn" style="display:none;">
+                    <i class="fa-solid fa-trash"></i> Xóa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/teachers.js" asp-append-version="true"></script>
+}

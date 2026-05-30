@@ -227,17 +227,17 @@ namespace datn.Controllers
             var query = _context.Tuitions
                 .Include(t => t.Student).ThenInclude(s => s.Class)
                 .Include(t => t.TuitionDetails)
-                .Where(t => t.Month == month && t.Year == year);
+                .Where(t => t.Month == month && t.Year == year && t.Student != null);
 
             if (isPaid.HasValue)
                 query = query.Where(t => t.IsPaid == isPaid.Value);
 
-            var data = await query.OrderBy(t => t.Student.LastName).ThenBy(t => t.Student.FirstName).ToListAsync();
+            var data = await query.OrderBy(t => t.Student!.LastName).ThenBy(t => t.Student!.FirstName).ToListAsync();
             
             var result = data.Select(t => new {
                 id = t.Id,
-                studentName = (t.Student.FirstName + " " + t.Student.LastName).Trim(),
-                className = t.Student.Class?.Name ?? "Chưa phân lớp",
+                studentName = ((t.Student?.FirstName ?? "") + " " + (t.Student?.LastName ?? "")).Trim(),
+                className = t.Student?.Class?.Name ?? "Chưa phân lớp",
                 amount = t.TuitionDetails.Sum(d => d.TotalAmount),
                 extraFee = t.ExtraFee ?? 0,
                 total = t.TuitionDetails.Sum(d => d.TotalAmount) + (t.ExtraFee ?? 0),

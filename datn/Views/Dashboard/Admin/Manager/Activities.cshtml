@@ -1,0 +1,181 @@
+@{
+    ViewData["Title"] = "Hoạt động & Sự kiện";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Hoạt động & Sự kiện</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Quản lý hoạt động ngoại khóa, địa điểm tổ chức và lớp tham gia</p>
+    </div>
+    <button class="btn btn-primary" id="btnCreateActivity" type="button">
+        <i class="fa-solid fa-plus"></i> Tạo hoạt động
+    </button>
+</div>
+
+<div class="activities-page-grid">
+    <!-- Activities list -->
+    <div class="card">
+        <div class="card-section-header">
+            <h3>Danh sách hoạt động</h3>
+            <div class="status-tabs" style="margin-bottom:0;">
+                <div class="status-tab active" id="activityTabActive" data-show-inactive="false">
+                    <i class="fa-solid fa-calendar-star"></i> Đang hoạt động
+                </div>
+                <div class="status-tab" id="activityTabInactive" data-show-inactive="true">
+                    <i class="fa-solid fa-box-archive"></i> Lưu trữ
+                </div>
+            </div>
+        </div>
+        <div id="activityPageAlert" class="page-alert" style="display:none;"></div>
+        <div class="table-container">
+            <table id="activitiesTable">
+                <thead>
+                    <tr>
+                        <th>Tên</th>
+                        <th>Ngày</th>
+                        <th>Địa điểm</th>
+                        <th>Phụ trách</th>
+                        <th>Lớp</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="activitiesTableBody">
+                    <tr>
+                        <td colspan="6" class="text-center text-muted" style="padding:40px;">Đang tải dữ liệu...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Locations list -->
+    <div class="card">
+        <div class="card-section-header">
+            <h3>Địa điểm</h3>
+            <button class="btn btn-primary btn-sm" id="btnCreateLocation" type="button">
+                <i class="fa-solid fa-plus"></i> Thêm địa điểm
+            </button>
+        </div>
+        <div class="status-tabs" style="margin-bottom:12px;">
+            <div class="status-tab active" id="locationTabActive" data-show-inactive="false">
+                <i class="fa-solid fa-location-dot"></i> Đang dùng
+            </div>
+            <div class="status-tab" id="locationTabInactive" data-show-inactive="true">
+                <i class="fa-solid fa-box-archive"></i> Lưu trữ
+            </div>
+        </div>
+        <div id="locationPageAlert" class="page-alert" style="display:none;"></div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên</th>
+                        <th>Sức chứa</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="locationsTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Activity slide panel -->
+<div class="modal-overlay" id="activityModalOverlay"></div>
+<div class="slide-panel" id="activitySlidePanel">
+    <div class="slide-panel-header">
+        <h3 id="activityPanelTitle">Thêm hoạt động mới</h3>
+        <button type="button" class="close-btn" id="closeActivityPanelBtn" aria-label="Đóng">
+            <i class="fa-solid fa-xmark" style="font-size:1.2rem;"></i>
+        </button>
+    </div>
+    <div class="slide-panel-body">
+        <form id="activityForm">
+            <input type="hidden" id="activityId" />
+
+            <div id="activityFormAlert" class="form-alert" style="display:none;"></div>
+
+            <div class="form-section">
+                <h4><i class="fa-solid fa-calendar-check"></i> Thông tin hoạt động</h4>
+                <div class="form-group">
+                    <label class="form-label" for="activityName">Tên hoạt động <span class="text-danger">*</span></label>
+                    <input id="activityName" type="text" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="activityDate">Ngày tổ chức <span class="text-danger">*</span></label>
+                    <input id="activityDate" type="date" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="activityDescription">Mô tả</label>
+                    <textarea id="activityDescription" class="form-input" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4><i class="fa-solid fa-map-location-dot"></i> Tổ chức & tham gia</h4>
+                <div class="form-group">
+                    <label class="form-label" for="locationSelect">Địa điểm <span class="text-danger">*</span></label>
+                    <select id="locationSelect" class="form-select" required></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="organizerSelect">Người phụ trách</label>
+                    <select id="organizerSelect" class="form-select"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Lớp tham gia</label>
+                    <div id="classCheckboxList" class="class-checkbox-grid"></div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save" id="saveActivityBtn">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu hoạt động
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Location slide panel -->
+<div class="modal-overlay" id="locationModalOverlay" style="z-index:1001;"></div>
+<div class="slide-panel" id="locationSlidePanel" style="z-index:1002;">
+    <div class="slide-panel-header">
+        <h3 id="locationPanelTitle">Thêm địa điểm mới</h3>
+        <button type="button" class="close-btn" id="closeLocationPanelBtn" aria-label="Đóng">
+            <i class="fa-solid fa-xmark" style="font-size:1.2rem;"></i>
+        </button>
+    </div>
+    <div class="slide-panel-body">
+        <form id="locationForm">
+            <input type="hidden" id="locationId" />
+            <div id="locationFormAlert" class="form-alert" style="display:none;"></div>
+
+            <div class="form-section">
+                <h4><i class="fa-solid fa-location-dot"></i> Thông tin địa điểm</h4>
+                <div class="form-group">
+                    <label class="form-label" for="locationName">Tên địa điểm <span class="text-danger">*</span></label>
+                    <input id="locationName" type="text" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="locationCapacity">Sức chứa</label>
+                    <input id="locationCapacity" type="number" class="form-input" min="0" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save" id="saveLocationBtn">
+                    <i class="fa-solid fa-floppy-disk"></i> Thêm địa điểm
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/activities-manager.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/pages/activities-manager.js" asp-append-version="true"></script>
+}

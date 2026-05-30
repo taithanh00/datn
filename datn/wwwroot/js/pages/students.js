@@ -123,7 +123,10 @@ function previewAvatar(input) {
 // ====== DATA LOADING ======
 async function loadStudents() {
   try {
-    const response = await fetch(`/Manager/Api/Students?showInactive=${showInactiveStudents}`);
+    const t = new Date().getTime();
+    const response = await fetch(
+      `/Manager/Api/Students?showInactive=${showInactiveStudents}&_t=${t}`,
+    );
     const result = await response.json();
 
     if (!result.success) {

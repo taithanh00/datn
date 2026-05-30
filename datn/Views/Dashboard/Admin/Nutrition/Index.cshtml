@@ -1,0 +1,291 @@
+@{
+    ViewData["Title"] = "Quan ly Dinh duong & Thuc don";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+    var isManager = ViewBag.Role == "Manager";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Thuc don tuan lap</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">
+            Xay dung mau thuc don chung cho toan truong, ap dung lap lai moi tuan.
+        </p>
+    </div>
+</div>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+    <div style="font-size:0.9rem; color:var(--text-muted); font-weight:600;">
+        Mau tuan: Thu 2 den Thu 6
+    </div>
+</div>
+
+<div class="card" style="padding:0; overflow:hidden;">
+    <div style="overflow-x:auto;">
+        <table id="menuGrid" style="width:100%; border-collapse:collapse; min-width:700px;">
+            <thead>
+                <tr id="gridHeader">
+                    <th style="width:110px; padding:12px 16px; text-align:left; background:var(--bg-body); border-bottom:2px solid var(--border); font-size:0.8rem; color:var(--text-muted); text-transform:uppercase;">Bua an</th>
+                </tr>
+            </thead>
+            <tbody id="gridBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card" id="editCard" style="margin-top:20px; display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+        <h3 id="editCardTitle">Cap nhat thuc don</h3>
+        <button class="btn btn-outline" onclick="resetForm()" style="font-size:0.8rem; padding:5px 14px;">Dong</button>
+    </div>
+    <form id="menuForm">
+        <input type="hidden" id="menuId" value="0" />
+        <input type="hidden" id="menuDayOfWeek" />
+        <input type="hidden" id="menuType" />
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label class="form-label">Ten mon an <span style="color:var(--danger);">*</span></label>
+                <input type="text" id="dishName" class="form-input" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Calo uoc tinh</label>
+                <input type="number" id="calories" class="form-input" min="0" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Ghi chu</label>
+            <textarea id="menuNote" class="form-input" rows="2"></textarea>
+        </div>
+
+        @if (isManager)
+        {
+            <div style="display:flex; gap:10px;">
+                <button type="submit" class="btn btn-primary">Luu thuc don</button>
+                <button type="button" class="btn btn-outline" id="deleteBtn" onclick="deleteMenu()" style="display:none; color:var(--danger); border-color:var(--danger);">Xoa mon</button>
+            </div>
+        }
+        else
+        {
+            <div class="alert-info-soft"><i class="fa-solid fa-info-circle"></i> Ban dang xem o che do chi doc.</div>
+        }
+    </form>
+</div>
+
+@section Styles {
+<style>
+    .meal-row-label {
+        padding: 14px 16px;
+        background: var(--bg-body);
+        border-bottom: 1px solid var(--border);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .menu-cell {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        border-left: 1px solid var(--border);
+        height: 72px;
+        cursor: pointer;
+        transition: background 0.2s;
+        position: relative;
+        vertical-align: top;
+    }
+
+    .menu-cell:hover { background: var(--primary-soft); }
+    .menu-cell.empty {
+        color: var(--text-muted);
+        text-align: center;
+        vertical-align: middle;
+        font-size: 1.2rem;
+    }
+
+    .menu-cell.has-data .dish-name {
+        font-weight: 600;
+        font-size: 0.88rem;
+        color: var(--text-main);
+        margin-bottom: 4px;
+    }
+
+    .menu-cell.has-data .menu-note {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+    }
+
+    .day-header-cell {
+        padding: 12px 10px;
+        text-align: center;
+        background: var(--bg-body);
+        border-bottom: 2px solid var(--border);
+        border-left: 1px solid var(--border);
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .alert-info-soft {
+        padding: 12px;
+        background: var(--primary-soft);
+        border-radius: 6px;
+        color: var(--primary);
+        font-size: 0.85rem;
+    }
+</style>
+}
+
+@section Scripts {
+<script>
+    const DAYS = [
+        { value: 1, label: 'Thu 2' },
+        { value: 2, label: 'Thu 3' },
+        { value: 3, label: 'Thu 4' },
+        { value: 4, label: 'Thu 5' },
+        { value: 5, label: 'Thu 6' }
+    ];
+    const MEALS = [
+        { type: 0, label: 'Sang' },
+        { type: 1, label: 'Trua' },
+        { type: 2, label: 'Xe' }
+    ];
+    const IS_MANAGER = @(isManager.ToString().ToLower());
+    let weeklyMenuData = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        buildGridHeader();
+        loadWeeklyMenu();
+        document.getElementById('menuForm').addEventListener('submit', saveMenu);
+    });
+
+    function buildGridHeader() {
+        const header = document.getElementById('gridHeader');
+        DAYS.forEach(day => {
+            const th = document.createElement('th');
+            th.className = 'day-header-cell';
+            th.textContent = day.label;
+            header.appendChild(th);
+        });
+    }
+
+    async function loadWeeklyMenu() {
+        try {
+            const resp = await fetch('/Manager/Nutrition/GetWeeklyMenu');
+            weeklyMenuData = await resp.json();
+            renderGrid();
+        } catch (e) {
+            window.showToast?.('Loi', 'Khong the tai thuc don tuan', 'error');
+        }
+    }
+
+    function renderGrid() {
+        const body = document.getElementById('gridBody');
+        body.innerHTML = '';
+
+        MEALS.forEach(meal => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td class="meal-row-label">${meal.label}</td>`;
+
+            DAYS.forEach(day => {
+                const item = weeklyMenuData.find(m => m.dayOfWeek === day.value && m.mealType === meal.type);
+                const td = document.createElement('td');
+                td.className = item ? 'menu-cell has-data' : 'menu-cell empty';
+
+                if (item) {
+                    td.innerHTML = `
+                        <div class="dish-name">${escapeHtml(item.dishName)}</div>
+                        <div class="menu-note">${escapeHtml(item.note || '')}</div>
+                    `;
+                } else {
+                    td.textContent = IS_MANAGER ? '+' : '-';
+                }
+
+                if (IS_MANAGER || item) {
+                    td.onclick = () => openWeeklyEditor(day.value, meal.type, item);
+                }
+
+                tr.appendChild(td);
+            });
+
+            body.appendChild(tr);
+        });
+    }
+
+    function openWeeklyEditor(dayOfWeek, mealType, item) {
+        const day = DAYS.find(d => d.value === dayOfWeek);
+        const meal = MEALS.find(m => m.type === mealType);
+
+        document.getElementById('editCard').style.display = 'block';
+        document.getElementById('editCardTitle').textContent = `${meal.label} - ${day.label}`;
+        document.getElementById('menuId').value = item ? item.id : 0;
+        document.getElementById('menuDayOfWeek').value = dayOfWeek;
+        document.getElementById('menuType').value = mealType;
+        document.getElementById('dishName').value = item ? item.dishName : '';
+        document.getElementById('calories').value = item ? (item.calories || '') : '';
+        document.getElementById('menuNote').value = item ? (item.note || '') : '';
+        document.getElementById('deleteBtn').style.display = (item && IS_MANAGER) ? 'block' : 'none';
+
+        document.querySelectorAll('#menuForm input, #menuForm textarea')
+            .forEach(input => input.readOnly = !IS_MANAGER);
+
+        document.getElementById('editCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function saveMenu(e) {
+        e.preventDefault();
+
+        const payload = {
+            id: parseInt(document.getElementById('menuId').value),
+            dayOfWeek: parseInt(document.getElementById('menuDayOfWeek').value),
+            mealType: parseInt(document.getElementById('menuType').value),
+            dishName: document.getElementById('dishName').value.trim(),
+            calories: parseInt(document.getElementById('calories').value) || null,
+            note: document.getElementById('menuNote').value.trim(),
+            isActive: true
+        };
+
+        if (!payload.dishName) {
+            window.showToast?.('Loi', 'Vui long nhap ten mon an', 'error');
+            return;
+        }
+
+        const resp = await fetch('/Manager/Nutrition/SaveMenu', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await resp.json();
+        if (result.success) {
+            window.showToast?.('Thanh cong', 'Da luu thuc don', 'success');
+            resetForm();
+            loadWeeklyMenu();
+        } else {
+            window.showToast?.('Loi', 'Khong the luu thuc don', 'error');
+        }
+    }
+
+    async function deleteMenu() {
+        const id = parseInt(document.getElementById('menuId').value);
+        if (!id) return;
+
+        const resp = await fetch(`/Manager/Nutrition/DeleteMenu?id=${id}`, { method: 'POST' });
+        const result = await resp.json();
+        if (result.success) {
+            window.showToast?.('Thanh cong', 'Da xoa mon an', 'success');
+            resetForm();
+            loadWeeklyMenu();
+        } else {
+            window.showToast?.('Loi', 'Khong the xoa mon an', 'error');
+        }
+    }
+
+    function resetForm() {
+        document.getElementById('editCard').style.display = 'none';
+        document.getElementById('menuForm').reset();
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+}

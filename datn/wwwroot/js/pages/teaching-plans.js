@@ -1,14 +1,19 @@
 let allPlans = [];
 let showInactivePlans = false;
+let planPanelOverlay = null;
+let planSlidePanel = null;
+let planPanelTitle = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    planPanelOverlay = document.getElementById('planPanelOverlay');
+    planSlidePanel = document.getElementById('planSlidePanel');
+    planPanelTitle = document.getElementById('planPanelTitle');
+    if (planPanelOverlay) planPanelOverlay.addEventListener('click', closePlanPanel);
+
     await Promise.all([loadClasses(), loadCurriculums()]);
     loadPlans();
     const planForm = document.getElementById('planForm');
     if(planForm) planForm.addEventListener('submit', savePlan);
-    
-    const resetPlanBtn = document.getElementById('resetPlanBtn');
-    if(resetPlanBtn) resetPlanBtn.addEventListener('click', resetEditMode);
 
     // Status Tabs
     document.querySelectorAll('.status-tab').forEach(tab => {
@@ -35,10 +40,17 @@ async function fetchJson(url, options={}) {
 
 async function loadClasses() { 
     const r = await fetchJson('/Manager/Api/Classes'); 
-    const s = document.getElementById('classId'); 
-    if(!s) return;
-    s.innerHTML = '<option value="">-- Tất cả --</option>'; 
-    if(r.success) r.data.forEach(c => { s.innerHTML += `<option value="${c.id}">${c.name}</option>`; }); 
+    const select = document.getElementById('classId'); 
+    const filter = document.getElementById('filterClassId'); 
+    if(select) select.innerHTML = '<option value="">-- Chọn --</option>'; 
+    if(filter) filter.innerHTML = '<option value="">Tất cả lớp</option>'; 
+    if(r.success) {
+        r.data.forEach(c => {
+            const option = `<option value="${c.id}">${c.name}</option>`;
+            if(select) select.innerHTML += option;
+            if(filter) filter.innerHTML += option;
+        });
+    }
 }
 
 async function loadCurriculums() { 
@@ -50,9 +62,8 @@ async function loadCurriculums() {
 }
 
 async function loadPlans() {
-    const classIdElem = document.getElementById('classId');
-    if(!classIdElem) return;
-    const classId = classIdElem.value;
+    const filterClassElem = document.getElementById('filterClassId');
+    const classId = filterClassElem?.value;
     let url = classId ? `/Manager/Api/TeachingPlans?classId=${classId}` : '/Manager/Api/TeachingPlans';
     url += (classId ? '&' : '?') + `showInactive=${showInactivePlans}`;
     const r = await fetchJson(url);
@@ -100,6 +111,32 @@ function applyFilters() {
     renderPlans(filtered);
 }
 
+function openPlanPanel(title = 'Thêm kế hoạch mới') {
+    if (planSlidePanel) planSlidePanel.classList.add('active');
+    if (planPanelOverlay) planPanelOverlay.classList.add('active');
+    if (planPanelTitle) planPanelTitle.textContent = title;
+}
+
+function closePlanPanel() {
+    if (planSlidePanel) planSlidePanel.classList.remove('active');
+    if (planPanelOverlay) planPanelOverlay.classList.remove('active');
+    resetEditMode();
+}
+
+function prepareCreate() {
+    const form = document.getElementById('planForm');
+    if (form) form.reset();
+    document.getElementById('isEdit').value = 'false';
+    document.getElementById('classId').disabled = false;
+    document.getElementById('curriculumId').disabled = false;
+    document.getElementById('startDate').disabled = false;
+    const submitBtn = document.querySelector('#planForm button[type="submit"]');
+    if (submitBtn) submitBtn.textContent = 'Lưu kế hoạch';
+    const resetBtn = document.getElementById('resetPlanBtn');
+    if (resetBtn) resetBtn.style.display = 'none';
+    openPlanPanel('Thêm kế hoạch mới');
+}
+
 async function savePlan(e) {
     e.preventDefault();
     const isEdit = document.getElementById('isEdit').value === 'true';
@@ -115,9 +152,9 @@ async function savePlan(e) {
     const method = isEdit ? 'PUT' : 'POST';
     
     const r = await fetchJson(url, { method: method, body: JSON.stringify(data) });
-    showAlert(r.success, r.message); 
+    showAlert(r.success, r.message);
     if(r.success) {
-        if(isEdit) resetEditMode();
+        closePlanPanel();
         loadPlans();
     }
 }
@@ -132,26 +169,30 @@ function editPlan(cId, cuId, sd) {
     document.getElementById('endDate').value = plan.endDate || '';
     document.getElementById('status').value = plan.status;
     
-    // Khóa các trường khóa chính khi sửa
-    document.getElementById('classId').disabled = true;
-    document.getElementById('curriculumId').disabled = true;
+    // Cho phép sửa lớp và chương trình khi cần
+    document.getElementById('classId').disabled = false;
+    document.getElementById('curriculumId').disabled = false;
     document.getElementById('startDate').disabled = true;
     
     document.getElementById('isEdit').value = 'true';
-    document.getElementById('resetPlanBtn').style.display = 'block';
-    document.querySelector('#planForm button[type="submit"]').textContent = 'Cập nhật kế hoạch';
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (planPanelTitle) planPanelTitle.textContent = 'Chỉnh sửa kế hoạch';
+    const submitBtn = document.querySelector('#planForm button[type="submit"]');
+    if (submitBtn) submitBtn.textContent = 'Cập nhật kế hoạch';
+    openPlanPanel('Chỉnh sửa kế hoạch');
 }
 
 function resetEditMode() {
     document.getElementById('isEdit').value = 'false';
-    document.getElementById('classId').disabled = false;
-    document.getElementById('curriculumId').disabled = false;
-    document.getElementById('startDate').disabled = false;
-    document.getElementById('resetPlanBtn').style.display = 'none';
-    document.querySelector('#planForm button[type="submit"]').textContent = 'Lưu kế hoạch';
-    document.getElementById('planForm').reset();
+    const classSelect = document.getElementById('classId');
+    const curriculumSelect = document.getElementById('curriculumId');
+    const startDate = document.getElementById('startDate');
+    if (classSelect) classSelect.disabled = false;
+    if (curriculumSelect) curriculumSelect.disabled = false;
+    if (startDate) startDate.disabled = false;
+    const submitBtn = document.querySelector('#planForm button[type="submit"]');
+    if (submitBtn) submitBtn.textContent = 'Lưu kế hoạch';
+    const form = document.getElementById('planForm');
+    if (form) form.reset();
 }
 
 async function deletePlan(cId, cuId, sd) { 
@@ -169,7 +210,7 @@ async function reactivatePlan(cId, cuId, sd) {
 }
 
 function showAlert(success, msg) { 
-    const a = document.getElementById('alert'); 
+    const a = document.getElementById('planPanelAlert') || document.getElementById('alert'); 
     if(!a) return;
     a.textContent = msg; 
     a.className = `page-alert ${success ? 'success' : 'error'}`; 
@@ -185,3 +226,6 @@ window.savePlan = savePlan;
 window.editPlan = editPlan;
 window.applyFilters = applyFilters;
 window.resetEditMode = resetEditMode;
+window.prepareCreate = prepareCreate;
+window.closePlanPanel = closePlanPanel;
+window.openPlanPanel = openPlanPanel;

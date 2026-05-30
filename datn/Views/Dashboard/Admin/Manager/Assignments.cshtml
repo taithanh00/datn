@@ -1,0 +1,113 @@
+@{
+    ViewData["Title"] = "Phân công Giảng dạy";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Phân công Giảng dạy</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Quản lý giáo viên phụ trách các lớp học.</p>
+    </div>
+    <div class="page-actions" style="gap:12px; flex-wrap:wrap;">
+        <select class="form-select" id="filterClass" onchange="applyFilters()" style="width:auto; min-width:180px;">
+            <option value="">Tất cả các lớp</option>
+        </select>
+        <div class="search-bar" style="min-width:280px;">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="searchTeacher" placeholder="Tìm theo tên giáo viên..." onkeyup="applyFilters()" />
+        </div>
+        <button class="btn btn-primary" type="button" onclick="prepareCreate(); openAssignmentPanel();">
+            <i class="fa-solid fa-plus"></i> Thêm Phân công
+        </button>
+    </div>
+</div>
+
+<div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="card stat-card">
+        <div class="stat-title">Tổng phân công</div>
+        <div class="stat-value" id="statTotalAssignments">0</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-title">Lớp đã có GV</div>
+        <div class="stat-value" id="statClassesAssigned">0</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-title">Đang thực hiện</div>
+        <div class="stat-value" id="statCurrentAssignments">0</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table id="assignmentTable">
+            <thead>
+                <tr>
+                    <th>Giáo viên</th>
+                    <th>Lớp</th>
+                    <th>Vai trò</th>
+                    <th>Thời gian</th>
+                    <th style="text-align:right;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="assignmentTableBody">
+                <tr><td colspan="5" style="text-align:center; padding:40px;">
+                    <div class="spinner"></div><p class="text-muted">Đang tải...</p>
+                </td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal-overlay" id="assignmentPanelOverlay"></div>
+<div class="slide-panel" id="assignmentSlidePanel">
+    <div class="slide-panel-header">
+        <h3 id="assignmentPanelTitle">Thêm Phân công mới</h3>
+        <button class="close-btn" type="button" onclick="closeAssignmentPanel()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="slide-panel-body">
+        <form id="assignmentForm">
+            <input type="hidden" id="isEdit" value="false" />
+            <input type="hidden" id="oldEmployeeId" />
+            <input type="hidden" id="oldClassId" />
+            <input type="hidden" id="oldStartDate" />
+            <div id="assignmentFormAlert" class="form-alert" style="display:none; margin-bottom:16px;"></div>
+            <div class="form-group">
+                <label class="form-label">Giáo viên <span class="text-danger">*</span></label>
+                <select class="form-select" id="employeeSelect" required>
+                    <option value="">-- Chọn giáo viên --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Lớp học <span class="text-danger">*</span></label>
+                <select class="form-select" id="classSelect" required>
+                    <option value="">-- Chọn lớp --</option>
+                </select>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                    <input type="date" class="form-input" id="startDate" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ngày kết thúc</label>
+                    <input type="date" class="form-input" id="endDate" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Vai trò giảng dạy <span class="text-danger">*</span></label>
+                <select class="form-select" id="roleInClass" required>
+                    <option value="Giáo viên Chủ nhiệm">Giáo viên Chủ nhiệm</option>
+                    <option value="Giáo viên Bộ môn">Giáo viên Bộ môn</option>
+                </select>
+            </div>
+            <div class="d-flex gap-1 mt-2">
+                <button type="button" class="btn btn-primary" onclick="saveAssignment()">Xác nhận</button>
+                <button type="button" class="btn btn-outline" onclick="closeAssignmentPanel()">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/assignments.js" asp-append-version="true"></script>
+}

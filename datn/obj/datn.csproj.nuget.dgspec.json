@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\datn\\datn\\datn\\datn.csproj": {}
+    "D:\\thanhBinh\\datn\\datn.csproj": {}
   },
   "projects": {
-    "d:\\datn\\datn\\datn\\datn.csproj": {
+    "D:\\thanhBinh\\datn\\datn.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\datn\\datn\\datn\\datn.csproj",
+        "projectUniqueName": "D:\\thanhBinh\\datn\\datn.csproj",
         "projectName": "datn",
-        "projectPath": "d:\\datn\\datn\\datn\\datn.csproj",
+        "projectPath": "D:\\thanhBinh\\datn\\datn.csproj",
         "packagesPath": "C:\\Users\\taith\\.nuget\\packages\\",
-        "outputPath": "d:\\datn\\datn\\datn\\obj\\",
+        "outputPath": "D:\\thanhBinh\\datn\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

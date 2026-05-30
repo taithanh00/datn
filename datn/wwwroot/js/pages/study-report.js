@@ -1,6 +1,13 @@
 var currentClassId = window.selectedClassId || 0;
 var rankings = [];
 
+function setSaveButtonVisible(isVisible) {
+    const btnSave = document.getElementById('btnSave');
+    if (btnSave) {
+        btnSave.style.display = isVisible ? 'inline-flex' : 'none';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function () {
     await loadRankings();
     loadMyClasses();
@@ -41,12 +48,12 @@ async function loadStudents() {
 
     if (!classId) {
         document.getElementById('reportContent').innerHTML = '<div class="empty-state"><i class="fa-solid fa-clipboard-check"></i><p>Vui lòng chọn một lớp học</p></div>';
-        document.getElementById('btnSave').style.display = 'none';
+        setSaveButtonVisible(false);
         return;
     }
 
     document.getElementById('reportContent').innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner"></div><p class="text-muted mt-2">Đang tải danh sách học sinh...</p></div>';
-    document.getElementById('btnSave').style.display = 'none';
+    setSaveButtonVisible(false);
 
     try {
         const response = await fetch(`/Employee/Api/ManagedStudentsForReport/${classId}?month=${month}&year=${year}`);
@@ -58,7 +65,16 @@ async function loadStudents() {
                 return;
             }
 
+            const isLocked = result.isSubmitted || !result.isLead;
+            let statusHtml = '';
+            if (result.isSubmitted) {
+                statusHtml = '<div class="page-alert info" style="margin-bottom:16px;">Lớp này đã gửi đánh giá cho tháng đã chọn. Mỗi lớp chỉ được gửi 1 lần trong một tháng.</div>';
+            } else if (!result.isLead) {
+                statusHtml = '<div class="page-alert warning" style="margin-bottom:16px;">Bạn chỉ được xem đánh giá. Chỉ Giáo viên Chủ nhiệm mới được gửi đánh giá học tập tháng.</div>';
+            }
+
             let html = `
+                ${statusHtml}
                 <div class="table-container">
                     <table class="report-table" id="reportTable">
                         <thead>
@@ -92,14 +108,14 @@ async function loadStudents() {
                             <div class="text-muted" style="font-size: 0.8rem;">ID: #${student.id}</div>
                         </td>
                         <td>
-                            <select class="form-select ranking-select report-ranking" data-student-id="${student.id}">
+                            <select class="form-select ranking-select report-ranking" data-student-id="${student.id}" ${isLocked ? 'disabled' : ''}>
                                 ${rankingOptions}
                             </select>
                         </td>
                         <td>
                             <textarea class="form-input comment-area report-comment" 
                                       data-student-id="${student.id}" 
-                                      rows="2" placeholder="Nhập nhận xét...">${comment}</textarea>
+                                      rows="2" placeholder="Nhập nhận xét..." ${isLocked ? 'disabled' : ''}>${comment}</textarea>
                         </td>
                     </tr>
                 `;
@@ -107,7 +123,7 @@ async function loadStudents() {
 
             html += '</tbody></table></div>';
             document.getElementById('reportContent').innerHTML = html;
-            document.getElementById('btnSave').style.display = 'inline-flex';
+            setSaveButtonVisible(!isLocked);
             initPagination('reportTable', 15);
         } else {
             document.getElementById('reportContent').innerHTML = `<div class="page-alert error">${result.message}</div>`;
@@ -118,6 +134,7 @@ async function loadStudents() {
 }
 
 async function submitReports() {
+    const classId = parseInt(document.getElementById('classSelect').value);
     const month = parseInt(document.getElementById('reportMonth').value);
     const year = parseInt(document.getElementById('reportYear').value);
     const records = [];
@@ -150,13 +167,14 @@ async function submitReports() {
         const response = await fetch('/Employee/Api/SubmitStudyReport', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ month, year, records })
+            body: JSON.stringify({ classId, month, year, records })
         });
         
         const result = await response.json();
         if (result.success) {
             if (window.showToast) window.showToast('Thành công', result.message, 'success');
             else alert(result.message);
+            await loadStudents();
         } else {
             alert('Lỗi: ' + result.message);
         }

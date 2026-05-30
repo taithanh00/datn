@@ -595,6 +595,42 @@ textarea.form-input {
     padding-bottom: 20px !important;
 }
 
+/* Đẩy content body sang trái khi slide panel mở, tránh bị che khuất */
+body.panel-open .content-body {
+    padding-right: calc(460px + 24px);
+    transition: padding-right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.content-body {
+    transition: padding-right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Nested slide panel (appears on top of another slide panel) */
+.slide-panel-nested {
+    right: -460px;
+    width: 460px;
+    max-width: 86vw;
+    z-index: 1165; /* higher than parent slide panel */
+    box-shadow: -8px 0 40px rgba(0,0,0,0.2);
+}
+.slide-panel-nested.active {
+    right: 0;
+}
+.slide-panel-nested .back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 6px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+}
+.slide-panel-nested .back-btn:hover{
+    background: var(--sidebar-active);
+    color: var(--text-main);
+}
+
 .slide-panel-header {
     display: flex;
     align-items: center;
@@ -635,12 +671,33 @@ textarea.form-input {
 .modal-overlay#modalOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: transparent; /* Không cần dim khi dùng padding push */
     z-index: 1050;
     display: none;
+    /* Chỉ chặn click ở vùng content để đóng panel */
+    pointer-events: auto;
 }
 
 .modal-overlay#modalOverlay.active {
+    display: block;
+}
+
+/* Khi panel-open: overlay chỉ phủ phần bên trái (không phủ lên panel) */
+body.panel-open .modal-overlay#modalOverlay {
+    right: 460px; /* chừa chỗ cho panel */
+    background: rgba(0, 0, 0, 0.15);
+}
+
+/* Link panel overlay (nested) */
+.modal-overlay#linkPanelOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1160;
+    display: none;
+}
+
+.modal-overlay#linkPanelOverlay.active {
     display: block;
 }
 

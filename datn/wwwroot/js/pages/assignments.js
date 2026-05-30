@@ -1,6 +1,87 @@
 let allAssignments = [];
+let assignmentPanelOverlay = null;
+let assignmentSlidePanel = null;
+let assignmentPanelTitle = null;
+
+function showAssignmentAlert(message) {
+    const alertEl = document.getElementById('assignmentFormAlert');
+    if (alertEl) {
+        alertEl.textContent = message;
+        alertEl.className = 'form-alert error';
+        alertEl.style.display = 'block';
+    } else {
+        alert(message);
+    }
+}
+
+function clearAssignmentAlert() {
+    const alertEl = document.getElementById('assignmentFormAlert');
+    if (alertEl) {
+        alertEl.style.display = 'none';
+        alertEl.textContent = '';
+    }
+}
+
+function parseAssignmentDate(value) {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function dateRangesOverlap(startA, endA, startB, endB) {
+    if (!startA || !startB) return false;
+    const aStart = startA.getTime();
+    const aEnd = endA ? endA.getTime() : Infinity;
+    const bStart = startB.getTime();
+    const bEnd = endB ? endB.getTime() : Infinity;
+    return aStart <= bEnd && bStart <= aEnd;
+}
+
+function validateAssignmentPayload(data, isEdit) {
+    if (!data.employeeId || !data.classId || !data.startDate) {
+        return 'Vui lòng điền đầy đủ thông tin';
+    }
+
+    if (data.roleInClass && data.roleInClass.toLowerCase().includes('chủ nhiệm')) {
+        const currentStart = parseAssignmentDate(data.startDate);
+        const currentEnd = parseAssignmentDate(data.endDate);
+
+        const hasOtherLead = allAssignments.some(a => {
+            if (a.classId !== data.classId) return false;
+            if (!a.roleInClass || !a.roleInClass.toLowerCase().includes('chủ nhiệm')) return false;
+            if (isEdit && data.oldEmployeeId === a.employeeId && data.oldClassId === a.classId && data.oldStartDate === a.startDate) {
+                return false;
+            }
+            const existingStart = parseAssignmentDate(a.startDate);
+            const existingEnd = parseAssignmentDate(a.endDate);
+            return dateRangesOverlap(currentStart, currentEnd, existingStart, existingEnd);
+        });
+
+        if (hasOtherLead) {
+            return 'Lớp này đã có Giáo viên Chủ nhiệm trong thời gian bạn chọn.';
+        }
+    }
+
+    return null;
+}
+
+function openAssignmentPanel(title = 'Thêm Phân công mới') {
+    if (assignmentSlidePanel) assignmentSlidePanel.classList.add('active');
+    if (assignmentPanelOverlay) assignmentPanelOverlay.classList.add('active');
+    if (assignmentPanelTitle) assignmentPanelTitle.textContent = title;
+}
+
+function closeAssignmentPanel() {
+    if (assignmentSlidePanel) assignmentSlidePanel.classList.remove('active');
+    if (assignmentPanelOverlay) assignmentPanelOverlay.classList.remove('active');
+}
 
 document.addEventListener('DOMContentLoaded', function() {
+    assignmentPanelOverlay = document.getElementById('assignmentPanelOverlay');
+    assignmentSlidePanel = document.getElementById('assignmentSlidePanel');
+    assignmentPanelTitle = document.getElementById('assignmentPanelTitle');
+    if (assignmentPanelOverlay) assignmentPanelOverlay.addEventListener('click', closeAssignmentPanel);
+
     loadAssignments();
     loadDropdowns();
 });
@@ -97,18 +178,23 @@ async function loadDropdowns() {
 function prepareCreate() { 
     const form = document.getElementById('assignmentForm');
     const startDate = document.getElementById('startDate');
-    const modalTitle = document.getElementById('modalTitle');
     const isEdit = document.getElementById('isEdit');
 
     if(form) form.reset(); 
     if(startDate) startDate.value = new Date().toISOString().split('T')[0]; 
-    if(modalTitle) modalTitle.textContent = 'Thêm Phân công mới';
     if(isEdit) isEdit.value = 'false';
+
+    document.getElementById('oldEmployeeId').value = '';
+    document.getElementById('oldClassId').value = '';
+    document.getElementById('oldStartDate').value = '';
+
+    clearAssignmentAlert();
 
     // Mở lại các trường nếu trước đó bị khóa
     document.getElementById('employeeSelect').disabled = false;
     document.getElementById('classSelect').disabled = false;
     document.getElementById('startDate').disabled = false;
+    openAssignmentPanel('Thêm Phân công mới');
 }
 
 function editAssignment(empId, clsId, start) {
@@ -119,17 +205,23 @@ function editAssignment(empId, clsId, start) {
     document.getElementById('classSelect').value = assignment.classId;
     document.getElementById('startDate').value = assignment.startDate;
     document.getElementById('endDate').value = assignment.endDate || '';
-    document.getElementById('roleInClass').value = assignment.roleInClass || '';
+    document.getElementById('roleInClass').value = assignment.roleInClass || 'Giáo viên Chủ nhiệm';
 
-    // Khóa các trường khóa chính
-    document.getElementById('employeeSelect').disabled = true;
-    document.getElementById('classSelect').disabled = true;
-    document.getElementById('startDate').disabled = true;
+    document.getElementById('oldEmployeeId').value = assignment.employeeId;
+    document.getElementById('oldClassId').value = assignment.classId;
+    document.getElementById('oldStartDate').value = assignment.startDate;
 
-    document.getElementById('modalTitle').textContent = 'Chỉnh sửa Phân công';
+    clearAssignmentAlert();
+
+    // Không khóa trường để có thể đổi lớp
+    document.getElementById('employeeSelect').disabled = false;
+    document.getElementById('classSelect').disabled = false;
+    document.getElementById('startDate').disabled = false;
+
+    document.getElementById('assignmentPanelTitle').textContent = 'Chỉnh sửa Phân công';
     document.getElementById('isEdit').value = 'true';
 
-    if(typeof openModal === 'function') openModal('assignmentModal');
+    openAssignmentPanel('Chỉnh sửa Phân công');
 }
 
 async function saveAssignment() {
@@ -141,7 +233,18 @@ async function saveAssignment() {
         endDate: document.getElementById('endDate')?.value || null,
         roleInClass: document.getElementById('roleInClass')?.value
     };
-    if (!data.employeeId || !data.classId || !data.startDate) { alert('Vui lòng điền đầy đủ'); return; }
+    
+    if (isEdit) {
+        data.oldEmployeeId = parseInt(document.getElementById('oldEmployeeId')?.value) || null;
+        data.oldClassId = parseInt(document.getElementById('oldClassId')?.value) || null;
+        data.oldStartDate = document.getElementById('oldStartDate')?.value || null;
+    }
+
+    const validationError = validateAssignmentPayload(data, isEdit);
+    if (validationError) {
+        showAssignmentAlert(validationError);
+        return;
+    }
     
     const url = '/Manager/Api/Assignment';
     const method = isEdit ? 'PUT' : 'POST';
@@ -154,11 +257,13 @@ async function saveAssignment() {
         });
         const result = await r.json();
         if (result.success) { 
-            if(typeof closeModal === 'function') closeModal('assignmentModal'); 
+            closeAssignmentPanel(); 
             loadAssignments(); 
             if(window.showToast) window.showToast('Thành công', result.message, 'success'); 
         }
-        else alert('Lỗi: ' + result.message);
+        else {
+            showAssignmentAlert('Lỗi: ' + result.message);
+        }
     } catch(e) { console.error(e); }
 }
 

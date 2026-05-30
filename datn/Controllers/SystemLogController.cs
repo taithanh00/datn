@@ -20,7 +20,7 @@ namespace datn.Controllers
         public IActionResult Index()
         {
             ViewData["Title"] = "Nhật ký hệ thống";
-            return View("~/Views/Dashboard/Manager/SystemLogs.cshtml");
+            return View("~/Views/Dashboard/Admin/Manager/SystemLogs.cshtml");
         }
 
         [HttpGet("GetData")]
