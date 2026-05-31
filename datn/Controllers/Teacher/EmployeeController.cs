@@ -1,4 +1,4 @@
-using datn.Data;
+﻿using datn.Data;
 using datn.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using datn.Services;
 using System.Security.Claims;
 
-namespace datn.Controllers
+namespace datn.Controllers.Teacher
 {
     [Authorize(Roles = "Employee")]
     [Route("[controller]")]
@@ -45,7 +45,7 @@ namespace datn.Controllers
         public IActionResult Index()
         {
             ViewData["Title"] = "Bảng điều khiển Giáo viên";
-            return View();
+            return View("~/Views/Dashboard/Teacher/Employee/Index.cshtml");
         }
 
         [HttpGet("Api/DashboardStats")]
@@ -144,7 +144,7 @@ namespace datn.Controllers
         public IActionResult Classes()
         {
             ViewData["Title"] = "Lớp của tôi";
-            return View();
+            return View("~/Views/Dashboard/Teacher/Employee/Classes.cshtml");
         }
 
         [HttpGet("Attendance")]
@@ -152,7 +152,7 @@ namespace datn.Controllers
         {
             ViewData["Title"] = "Điểm danh";
             ViewBag.SelectedClassId = classId;
-            return View();
+            return View("~/Views/Dashboard/Teacher/Employee/Attendance.cshtml");
         }
 
         [HttpGet("WorkSchedule")]
@@ -160,7 +160,7 @@ namespace datn.Controllers
         {
             ViewData["Title"] = "Lịch làm việc";
             ViewBag.SelectedClassId = classId;
-            return View();
+            return View("~/Views/Dashboard/Teacher/Employee/WorkSchedule.cshtml");
         }
 
         // ============ API ENDPOINTS ============
@@ -170,7 +170,7 @@ namespace datn.Controllers
         {
             ViewData["Title"] = "Đánh giá học tập";
             ViewBag.SelectedClassId = classId;
-            return View();
+            return View("~/Views/Dashboard/Teacher/Employee/StudyReport.cshtml");
         }
 
         // ============ API ENDPOINTS ============
@@ -197,7 +197,7 @@ namespace datn.Controllers
                     return Json(new { success = false, message = "Bạn không có quyền xem lớp này." });
 
                 var reportDate = new DateOnly(year, month, 1);
-                var isLead = await HasActiveAssignmentAsync(employeeId.Value, classId, today, requireLead: true);
+                var isLead = await HasActiveAssignmentAsync(employeeId.Value, classId, today);
                 var isSubmitted = await _context.StudyReports
                     .AnyAsync(sr => sr.Date == reportDate && sr.Student.ClassId == classId);
 
@@ -238,12 +238,12 @@ namespace datn.Controllers
                 if (model == null || model.Records == null || model.Records.Count == 0)
                     return Json(new { success = false, message = "Không có dữ liệu đánh giá." });
 
-                // Xác nhận vai trò trong lớp: chỉ GVCN mới được gửi đánh giá tháng
+                // Xác nhận giáo viên đang phụ trách lớp.
                 var reportDate = new DateOnly(model.Year, model.Month, 1);
                 var today = GetTodayVnt();
-                var isLead = await HasActiveAssignmentAsync(employeeId.Value, model.ClassId, today, requireLead: true);
+                var isLead = await HasActiveAssignmentAsync(employeeId.Value, model.ClassId, today);
                 if (!isLead)
-                    return Json(new { success = false, message = "Chỉ Giáo viên Chủ nhiệm mới có quyền gửi đánh giá học tập tháng." });
+                    return Json(new { success = false, message = "Chỉ giáo viên phụ trách mới có quyền gửi đánh giá học tập tháng." });
 
                 var submitted = await _context.StudyReports
                     .AnyAsync(sr => sr.Date == reportDate && sr.Student.ClassId == model.ClassId);
@@ -332,7 +332,7 @@ namespace datn.Controllers
                     {
                         classId = a.ClassId,
                         className = a.Class.Name,
-                        role = a.RoleInClass ?? "Giáo viên",
+                        role = TeacherRoleDisplay.ToDisplayName(a.RoleInClass),
                         studentCount = a.Class.Students.Count
                     })
                     .ToListAsync();
@@ -539,10 +539,9 @@ namespace datn.Controllers
                 var classIds = students.Select(s => s.ClassId!.Value).Distinct().ToList();
                 foreach (var classId in classIds)
                 {
-                    // Chỉ GVCN (RoleInClass == "Lead") mới được điểm danh buổi sáng
-                    var isLeadAssigned = await HasActiveAssignmentAsync(employeeId.Value, classId, today, requireLead: true);
+                    var isLeadAssigned = await HasActiveAssignmentAsync(employeeId.Value, classId, today);
                     if (!isLeadAssigned)
-                        return Json(new { success = false, message = "Chỉ Giáo viên Chủ nhiệm mới có quyền điểm danh học sinh." });
+                        return Json(new { success = false, message = "Chỉ giáo viên phụ trách mới có quyền điểm danh học sinh." });
                 }
 
                 foreach (var item in model.Records)
@@ -576,66 +575,14 @@ namespace datn.Controllers
             }
         }
 
-        /// <summary>
-        /// Kiểm tra xem vai trò có phải GVCN không.
-        /// Xử lý cả NFD/NFC Unicode (tiếng Việt có dấu) và ASCII không dấu.
-        /// </summary>
-        private static bool IsLeadRole(string role)
+        private async Task<bool> HasActiveAssignmentAsync(int employeeId, int classId, DateOnly onDate)
         {
-            if (string.IsNullOrWhiteSpace(role)) return false;
-
-            // Loại bỏ dấu tiếng Việt để so sánh (giải quyết lỗi NFD vs NFC)
-            var normalized = RemoveDiacritics(role).Trim().ToLower();
-            
-            // Các keyword không dấu tương ứng với: Lead, Chủ Nhiệm, GVCN, Homeroom
-            var leadKeywords = new[] { "lead", "chu nhiem", "gvcn", "homeroom", "chuNhiem" };
-            
-            return leadKeywords.Any(k => normalized.Contains(k));
-        }
-
-        /// <summary>
-        /// Loại bỏ dấu tiếng Việt khỏi chuỗi Unicode (hỗ trợ cả NFD và NFC).
-        /// </summary>
-        private static string RemoveDiacritics(string text)
-        {
-            var normalized = text.Normalize(System.Text.NormalizationForm.FormD);
-            var sb = new System.Text.StringBuilder();
-            foreach (var c in normalized)
-            {
-                var category = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
-                if (category != System.Globalization.UnicodeCategory.NonSpacingMark)
-                    sb.Append(c);
-            }
-            return sb.ToString().Normalize(System.Text.NormalizationForm.FormC);
-        }
-
-        private async Task<bool> HasActiveAssignmentAsync(int employeeId, int classId, DateOnly onDate, bool requireLead = false)
-        {
-            // 1. Kiểm tra nếu là GVCN chính thức trong bảng Class
-            if (requireLead)
-            {
-                var isOfficialLead = await _context.Classes.AnyAsync(c => c.Id == classId && c.LeadTeacherId == employeeId);
-                if (isOfficialLead) return true;
-            }
-
-            // 2. Kiểm tra trong bảng Phân công (Hỗ trợ tiếng Anh, tiếng Việt có dấu/không dấu, không phân biệt hoa thường)
-            var assignments = await _context.Assignments
-                .Where(a => a.EmployeeId == employeeId && a.ClassId == classId && a.IsActive)
-                .ToListAsync();
-
-            var activeAssignments = assignments.Where(a => 
-                a.StartDate <= onDate && (a.EndDate == null || a.EndDate >= onDate))
-                .ToList();
-
-            if (!activeAssignments.Any()) return false;
-            if (!requireLead) return true;
-
-            // Hỗ trợ cả NFD/NFC Unicode và không dấu (chu nhiem) do DB có thể lưu theo các chuẩn khác nhau
-            var leadKeywords = new[] { "lead", "chu nhiem", "gvcn", "homeroom" };
-            
-            return activeAssignments.Any(a => 
-                !string.IsNullOrEmpty(a.RoleInClass) && 
-                IsLeadRole(a.RoleInClass));
+            return await _context.Assignments.AnyAsync(a =>
+                a.EmployeeId == employeeId &&
+                a.ClassId == classId &&
+                a.IsActive &&
+                a.StartDate <= onDate &&
+                (a.EndDate == null || a.EndDate >= onDate));
         }
 
         // ============ ACTIVITY PARTICIPATION API ============
@@ -643,7 +590,7 @@ namespace datn.Controllers
         [HttpGet("Activities")]
         public IActionResult Activities()
         {
-            return View();
+            return View("~/Views/Dashboard/Teacher/Employee/Activities.cshtml");
         }
 
         [HttpGet("Api/Activities")]
@@ -786,7 +733,7 @@ namespace datn.Controllers
         [HttpGet("TeachingPlan")]
         public IActionResult TeachingPlan()
         {
-            return View();
+            return View("~/Views/Dashboard/Teacher/Employee/TeachingPlan.cshtml");
         }
 
         [HttpGet("Api/TeachingPlans")]
@@ -863,3 +810,4 @@ namespace datn.Controllers
         public string? Comment { get; set; }
     }
 }
+

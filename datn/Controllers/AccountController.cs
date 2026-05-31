@@ -402,6 +402,6 @@ namespace datn.Controllers
         public string ConfirmPassword { get; set; }
 
         public Employee Employee { get; set; }
-        public Parent Parent { get; set; }
+        public datn.Models.Parent Parent { get; set; }
     }
 }

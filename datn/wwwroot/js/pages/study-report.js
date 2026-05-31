@@ -1,4 +1,4 @@
-var currentClassId = window.selectedClassId || 0;
+﻿var currentClassId = window.selectedClassId || 0;
 var rankings = [];
 
 function setSaveButtonVisible(isVisible) {
@@ -70,7 +70,7 @@ async function loadStudents() {
             if (result.isSubmitted) {
                 statusHtml = '<div class="page-alert info" style="margin-bottom:16px;">Lớp này đã gửi đánh giá cho tháng đã chọn. Mỗi lớp chỉ được gửi 1 lần trong một tháng.</div>';
             } else if (!result.isLead) {
-                statusHtml = '<div class="page-alert warning" style="margin-bottom:16px;">Bạn chỉ được xem đánh giá. Chỉ Giáo viên Chủ nhiệm mới được gửi đánh giá học tập tháng.</div>';
+                statusHtml = '<div class="page-alert warning" style="margin-bottom:16px;">Bạn chỉ được xem đánh giá. Chỉ Giáo viên phụ trách mới được gửi đánh giá học tập tháng.</div>';
             }
 
             let html = `
@@ -187,3 +187,4 @@ async function submitReports() {
         btnSave.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi đánh giá cho Phụ huynh';
     }
 }
+

@@ -1,4 +1,4 @@
-using datn.Data;
+﻿using datn.Data;
 using datn.Hubs;
 using datn.Models;
 using datn.Services;
@@ -7,26 +7,35 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
-namespace datn.Controllers
+namespace datn.Controllers.Manager
 {
     [Authorize(Roles = "Manager")]
     [Route("[controller]")]
     public class LeaveApprovalController : BaseController
     {
         private readonly INotificationService _notificationService;
+        private readonly IClassCoverageService _classCoverageService;
+        private readonly ILogger<LeaveApprovalController> _logger;
 
-        public LeaveApprovalController(AppDbContext context, INotificationService notificationService) : base(context)
+        public LeaveApprovalController(
+            AppDbContext context,
+            INotificationService notificationService,
+            IClassCoverageService classCoverageService,
+            ILogger<LeaveApprovalController> logger) : base(context)
         {
             _notificationService = notificationService;
+            _classCoverageService = classCoverageService;
+            _logger = logger;
         }
 
         [HttpGet("")]
         public IActionResult Index()
         {
             ViewData["Title"] = "Duyệt nghỉ phép";
-            return View();
+            return View("~/Views/Dashboard/Admin/LeaveApproval/Index.cshtml");
         }
 
         [HttpGet("Api/PendingAttendance")]
@@ -86,6 +95,18 @@ namespace datn.Controllers
                 "Chấm công đã được duyệt", 
                 $"Ngày công {record.Date:dd/MM/yyyy} của bạn đã được quản lý phê duyệt.",
                 "success", "/TimeAttendance");
+
+            if (record.CheckInAtUtc != null)
+            {
+                try
+                {
+                    await _classCoverageService.ProcessEmployeeAttendanceApprovedAsync(record.EmployeeId, record.Date);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Class coverage bonus check failed after attendance approval");
+                }
+            }
 
             return Json(new { success = true, message = "Đã duyệt chấm công." });
         }
@@ -205,6 +226,18 @@ namespace datn.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            try
+            {
+                var coverage = await _classCoverageService.ProcessLeaveApprovalAsync(record);
+                _logger.LogInformation(
+                    "Leave approval coverage: request {RequestId}, parentsNotified={Parents}, bonusesGranted={Bonuses}",
+                    record.Id, coverage.ParentsNotified, coverage.BonusesGranted);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Class coverage processing failed for leave request {RequestId}", record.Id);
+            }
 
             // Thông báo cho Giáo viên
             await _notificationService.SendToUserAsync(record.Employee.AccountId, 
@@ -381,6 +414,15 @@ namespace datn.Controllers
 
             await _context.SaveChangesAsync();
 
+            try
+            {
+                await _classCoverageService.ProcessClassDateAsync(schedule.ClassId, date);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Class coverage re-evaluation failed after substitute assignment");
+            }
+
             // ── SIGNALR NOTIFICATION: Gửi thông báo cho GV được phân công ──
             var substituteEmployee = await _context.Employees
                 .Include(e => e.Account)
@@ -502,3 +544,4 @@ namespace datn.Controllers
         }
     }
 }
+

@@ -40,7 +40,7 @@ namespace datn.Controllers
                         : "/images/lion_blue.png";
                 }
 
-                // Nếu là Employee, tải TeacherType để phân biệt GVCN / GVBM trong View
+                // Nếu là Employee, xác định đúng kiểu giáo viên để UI áp dụng quyền truy cập theo vai trò.
                 if (User.FindFirst(ClaimTypes.Role)?.Value == "Employee")
                 {
                     var accountIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -51,7 +51,7 @@ namespace datn.Controllers
 
                         if (employee != null)
                         {
-                            ViewBag.TeacherType = employee.TeacherType.ToString(); // "Lead" hoặc "Subject"
+                            ViewBag.TeacherType = employee.TeacherType.ToString();
                             ViewBag.IsLead = employee.TeacherType == TeacherType.Lead;
                         }
                         else
@@ -60,6 +60,16 @@ namespace datn.Controllers
                             ViewBag.IsLead = false;
                         }
                     }
+                    else
+                    {
+                        ViewBag.TeacherType = "Subject";
+                        ViewBag.IsLead = false;
+                    }
+                }
+                else
+                {
+                    ViewBag.TeacherType = "Subject";
+                    ViewBag.IsLead = false;
                 }
             }
             else

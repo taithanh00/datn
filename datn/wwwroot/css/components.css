@@ -859,6 +859,18 @@ body.panel-open .modal-overlay#modalOverlay {
     margin-bottom: 16px;
 }
 
+.page-alert.success {
+    background: rgba(52, 211, 153, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+.page-alert.error {
+    background: rgba(248, 113, 113, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
 
 /* ===== ACTION BUTTONS - DÙNG CHUNG ===== */
 .btn-action {
@@ -1097,4 +1109,79 @@ body.panel-open .modal-overlay#modalOverlay {
 
 @media (max-width: 600px) {
     .filter-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== GLOBAL ALERT STYLES (form-alert & page-alert) ===== */
+/* Used by all JS pages that call showAlert() / showFormAlert()   */
+.form-alert,
+.page-alert {
+    display: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 12px;
+    border: 1px solid transparent;
+    animation: fadeIn 0.2s ease;
+    line-height: 1.5;
+}
+
+/* success variants */
+.form-alert.success,
+.form-alert.alert-success,
+.page-alert.success {
+    background: #ecfdf5;
+    color: #065f46;
+    border-color: #a7f3d0;
+}
+
+/* error variants */
+.form-alert.error,
+.form-alert.alert-error,
+.page-alert.error {
+    background: #fef2f2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+/* warning */
+.form-alert.warning,
+.page-alert.warning {
+    background: #fffbeb;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+/* info */
+.form-alert.info,
+.page-alert.info {
+    background: #eff6ff;
+    color: #1e40af;
+    border-color: #bfdbfe;
+}
+
+/* dark mode overrides */
+[data-theme="dark"] .form-alert.success,
+[data-theme="dark"] .page-alert.success {
+    background: #064e3b;
+    color: #6ee7b7;
+    border-color: #065f46;
+}
+[data-theme="dark"] .form-alert.error,
+[data-theme="dark"] .page-alert.error {
+    background: #7f1d1d;
+    color: #fca5a5;
+    border-color: #991b1b;
+}
+[data-theme="dark"] .form-alert.warning,
+[data-theme="dark"] .page-alert.warning {
+    background: #78350f;
+    color: #fcd34d;
+    border-color: #92400e;
+}
+[data-theme="dark"] .form-alert.info,
+[data-theme="dark"] .page-alert.info {
+    background: #1e3a5f;
+    color: #93c5fd;
+    border-color: #1e40af;
 }

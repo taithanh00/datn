@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 
-namespace datn.Controllers
+namespace datn.Controllers.Manager
 {
     [Authorize(Roles = "Manager")]
     [Route("[controller]")]
@@ -23,7 +23,7 @@ namespace datn.Controllers
         public IActionResult Index()
         {
             ViewData["Title"] = "Quản lý Ngày lễ";
-            return View();
+            return View("~/Views/Dashboard/Admin/HolidayManagement/Index.cshtml");
         }
 
         [HttpGet("Api/List")]

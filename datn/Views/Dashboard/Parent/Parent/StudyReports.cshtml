@@ -1,4 +1,4 @@
-@model IEnumerable<datn.Models.StudyReport>
+﻿@model IEnumerable<datn.Models.StudyReport>
 @{
     Layout = "_DashboardLayout";
     var children = ViewBag.Children as List<datn.Models.Student> ?? new List<datn.Models.Student>();
@@ -185,7 +185,7 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">Kết quả học tập</h1>
-        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Đánh giá định kỳ từ giáo viên chủ nhiệm</p>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Đánh giá định kỳ từ giáo viên phụ trách</p>
     </div>
     <div class="d-flex gap-3">
         @if (children.Count > 1)
@@ -291,7 +291,7 @@ else
                                 </div>
                                 <div>
                                     <div style="font-weight: 700; color: var(--text-main);">@(report.Teacher?.FullName ?? "Hệ thống")</div>
-                                    <div style="font-size: 0.75rem; color: var(--text-muted);">Giáo viên chủ nhiệm</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">Giáo viên phụ trách</div>
                                 </div>
                             </div>
                         </div>
@@ -327,3 +327,4 @@ else
         }
     </script>
 }
+

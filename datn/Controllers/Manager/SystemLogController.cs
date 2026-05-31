@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace datn.Controllers
+namespace datn.Controllers.Manager
 {
     [Authorize(Roles = "Manager")]
     [Route("Manager/[controller]")]

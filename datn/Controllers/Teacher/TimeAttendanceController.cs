@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace datn.Controllers
+namespace datn.Controllers.Teacher
 {
     [Authorize(Roles = "Employee")]
     [Route("[controller]")]
@@ -31,7 +31,7 @@ namespace datn.Controllers
         public IActionResult Index()
         {
             ViewData["Title"] = "Chấm công";
-            return View();
+            return View("~/Views/Dashboard/Teacher/TimeAttendance/Index.cshtml");
         }
 
         [HttpGet("Api/Today")]

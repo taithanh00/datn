@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Lớp của tôi";
     Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
 }
@@ -52,7 +52,7 @@
                         <div class="card class-card animate-card" style="animation-delay: ${index * 0.1}s">
                             <div class="class-header">
                                 <div>
-                                    <span class="role-badge ${item.role === 'Chủ nhiệm' ? 'role-chu-nhiem' : 'role-giao-vien'}">
+                                    <span class="role-badge ${item.role === 'Phụ trách' ? 'role-chu-nhiem' : 'role-giao-vien'}">
                                         ${item.role}
                                     </span>
                                     <h3 class="class-title">${item.className}</h3>
@@ -94,3 +94,4 @@
         }
     </script>
 }
+

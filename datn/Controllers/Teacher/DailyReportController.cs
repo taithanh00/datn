@@ -1,4 +1,4 @@
-using datn.Data;
+﻿using datn.Data;
 using datn.Models;
 using datn.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace datn.Controllers
+namespace datn.Controllers.Teacher
 {
     [Authorize]
     public class DailyReportController : BaseController
@@ -32,7 +32,7 @@ namespace datn.Controllers
         public IActionResult ClassReports()
         {
             ViewData["Title"] = "Nhật ký lớp học";
-            return View();
+            return View("~/Views/Dashboard/Teacher/DailyReport/ClassReports.cshtml");
         }
 
         [Authorize(Policy = "EmployeeOnly")]
@@ -90,7 +90,7 @@ namespace datn.Controllers
 
             // GVBM chỉ được xem, không được sửa nhật ký ăn ngủ
             if (!await CanEditClass(dto.ClassId))
-                return Json(new { success = false, message = "Chỉ Giáo viên Chủ nhiệm mới có quyền ghi nhật ký lớp học." });
+                return Json(new { success = false, message = "Chỉ giáo viên phụ trách mới có quyền ghi nhật ký lớp học." });
 
             if (!DateOnly.TryParse(dto.Date, out var d)) d = DateOnly.FromDateTime(DateTime.Now);
 
@@ -140,7 +140,7 @@ namespace datn.Controllers
             return emp?.Id ?? 0;
         }
 
-        // GVCN và GVBM đều có thể XEM nhật ký lớp
+        // Giáo viên phụ trách có thể xem nhật ký lớp.
         private async Task<bool> CanViewClass(int classId)
         {
             var employeeId = await GetCurrentEmployeeId();
@@ -150,54 +150,23 @@ namespace datn.Controllers
                 a.EmployeeId == employeeId &&
                 a.ClassId == classId &&
                 a.IsActive &&
+                a.StartDate <= today &&
                 (a.EndDate == null || a.EndDate >= today));
         }
 
-        // Chỉ GVCN mới được CHỈNH SỬA nhật ký lớp
+        // Giáo viên phụ trách có thể chỉnh sửa nhật ký lớp.
         private async Task<bool> CanEditClass(int classId)
         {
             var employeeId = await GetCurrentEmployeeId();
             if (employeeId == 0) return false;
-            
+
             var today = GetTodayVnt();
-
-            // 1. Kiểm tra nếu là GVCN chính thức trong bảng Class
-            var isOfficialLead = await _context.Classes.AnyAsync(c => c.Id == classId && c.LeadTeacherId == employeeId);
-            if (isOfficialLead) return true;
-
-            // 2. Kiểm tra trong bảng Phân công (xử lý cả NFD/NFC Unicode và không dấu)
-            var assignments = await _context.Assignments
-                .Where(a => a.EmployeeId == employeeId && a.ClassId == classId && a.IsActive)
-                .ToListAsync();
-
-            var activeAssignments = assignments.Where(a => 
-                a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
-                .ToList();
-
-            if (!activeAssignments.Any()) return false;
-
-            return activeAssignments.Any(a => IsLeadRole(a.RoleInClass));
-        }
-
-        private static bool IsLeadRole(string? role)
-        {
-            if (string.IsNullOrWhiteSpace(role)) return false;
-            var normalized = RemoveDiacritics(role).Trim().ToLower();
-            var leadKeywords = new[] { "lead", "chu nhiem", "gvcn", "homeroom" };
-            return leadKeywords.Any(k => normalized.Contains(k));
-        }
-
-        private static string RemoveDiacritics(string text)
-        {
-            var nfd = text.Normalize(System.Text.NormalizationForm.FormD);
-            var sb = new System.Text.StringBuilder();
-            foreach (var c in nfd)
-            {
-                var cat = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
-                if (cat != System.Globalization.UnicodeCategory.NonSpacingMark)
-                    sb.Append(c);
-            }
-            return sb.ToString().Normalize(System.Text.NormalizationForm.FormC);
+            return await _context.Assignments.AnyAsync(a =>
+                a.EmployeeId == employeeId &&
+                a.ClassId == classId &&
+                a.IsActive &&
+                a.StartDate <= today &&
+                (a.EndDate == null || a.EndDate >= today));
         }
 
         // Giữ lại cho tương thích ngược
@@ -209,7 +178,7 @@ namespace datn.Controllers
         public async Task<IActionResult> MyChild()
         {
             var accountIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(accountIdStr)) return View();
+            if (string.IsNullOrEmpty(accountIdStr)) return View("~/Views/Dashboard/Parent/DailyReport/MyChild.cshtml");
             var accountId = int.Parse(accountIdStr);
             
             var parent = await _context.Parents.FirstOrDefaultAsync(p => p.AccountId == accountId);
@@ -225,7 +194,7 @@ namespace datn.Controllers
             }
 
             ViewData["Title"] = "Nhật ký của bé";
-            return View();
+            return View("~/Views/Dashboard/Parent/DailyReport/MyChild.cshtml");
         }
 
         [Authorize(Policy = "ParentOnly")]
@@ -267,3 +236,4 @@ namespace datn.Controllers
         public double? Temperature { get; set; }
     }
 }
+

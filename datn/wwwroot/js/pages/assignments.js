@@ -1,4 +1,4 @@
-let allAssignments = [];
+﻿let allAssignments = [];
 let assignmentPanelOverlay = null;
 let assignmentSlidePanel = null;
 let assignmentPanelTitle = null;
@@ -42,24 +42,18 @@ function validateAssignmentPayload(data, isEdit) {
         return 'Vui lòng điền đầy đủ thông tin';
     }
 
-    if (data.roleInClass && data.roleInClass.toLowerCase().includes('chủ nhiệm')) {
-        const currentStart = parseAssignmentDate(data.startDate);
-        const currentEnd = parseAssignmentDate(data.endDate);
-
-        const hasOtherLead = allAssignments.some(a => {
-            if (a.classId !== data.classId) return false;
-            if (!a.roleInClass || !a.roleInClass.toLowerCase().includes('chủ nhiệm')) return false;
-            if (isEdit && data.oldEmployeeId === a.employeeId && data.oldClassId === a.classId && data.oldStartDate === a.startDate) {
-                return false;
-            }
-            const existingStart = parseAssignmentDate(a.startDate);
-            const existingEnd = parseAssignmentDate(a.endDate);
-            return dateRangesOverlap(currentStart, currentEnd, existingStart, existingEnd);
-        });
-
-        if (hasOtherLead) {
-            return 'Lớp này đã có Giáo viên Chủ nhiệm trong thời gian bạn chọn.';
+    const currentStart = parseAssignmentDate(data.startDate);
+    const currentEnd = parseAssignmentDate(data.endDate);
+    const overlappingAssignments = allAssignments.filter(a => {
+        if (a.classId !== data.classId) return false;
+        if (isEdit && data.oldEmployeeId === a.employeeId && data.oldClassId === a.classId && data.oldStartDate === a.startDate) {
+            return false;
         }
+        return dateRangesOverlap(currentStart, currentEnd, parseAssignmentDate(a.startDate), parseAssignmentDate(a.endDate));
+    });
+
+    if (overlappingAssignments.length >= 2) {
+        return 'Một lớp chỉ được phân công tối đa 2 giáo viên phụ trách trong cùng thời gian.';
     }
 
     return null;
@@ -127,11 +121,11 @@ function renderAssignments(data) {
     }
     tbody.innerHTML = data.map(item => {
         const initial = item.employeeName.charAt(0).toUpperCase();
-        const isPrimary = item.roleInClass?.toLowerCase().includes('chủ nhiệm');
+        const isPrimary = true;
         return `<tr>
             <td><div class="d-flex align-center gap-1"><div class="avatar" style="background:${isPrimary?'var(--primary)':'#64748B'}">${initial}</div><div><div style="font-weight:600;">${item.employeeName}</div></div></div></td>
             <td><strong>${item.className}</strong></td>
-            <td><span class="badge ${isPrimary?'badge-info':'badge-success'}">${item.roleInClass||'Giáo viên'}</span></td>
+            <td><span class="badge ${isPrimary?'badge-info':'badge-success'}">${item.roleInClass || 'Giáo viên phụ trách'}</span></td>
             <td>${formatDate(item.startDate)} ${item.endDate ? '- '+formatDate(item.endDate) : '<span class="text-success">Hiện tại</span>'}</td>
             <td style="text-align:right;">
                 <button class="btn-table" onclick="editAssignment(${item.employeeId},${item.classId},'${item.startDate}')">Sửa</button>
@@ -205,7 +199,7 @@ function editAssignment(empId, clsId, start) {
     document.getElementById('classSelect').value = assignment.classId;
     document.getElementById('startDate').value = assignment.startDate;
     document.getElementById('endDate').value = assignment.endDate || '';
-    document.getElementById('roleInClass').value = assignment.roleInClass || 'Giáo viên Chủ nhiệm';
+    document.getElementById('roleInClass').value = assignment.roleInClass || 'Giáo viên phụ trách';
 
     document.getElementById('oldEmployeeId').value = assignment.employeeId;
     document.getElementById('oldClassId').value = assignment.classId;
@@ -288,3 +282,4 @@ window.saveAssignment = saveAssignment;
 window.editAssignment = editAssignment;
 window.deleteAssignment = deleteAssignment;
 window.applyFilters = applyFilters;
+

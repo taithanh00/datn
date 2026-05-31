@@ -118,15 +118,20 @@ namespace datn.Services
 
                 var workingDaysCount = approvedRecords.Sum(w => (decimal?)w.WorkUnit) ?? 0m;
                 var totalPenalty = approvedRecords.Sum(w => w.PenaltyAmount);
+                var totalBonus = await db.ClassCoverageBonuses
+                    .Where(b => b.EmployeeId == employee.Id
+                                && b.Status == "Active"
+                                && b.Date.Month == month
+                                && b.Date.Year == year)
+                    .SumAsync(b => b.Amount, cancellationToken);
 
-                // Nếu không đi làm ngày nào và không có tiền phạt, bỏ qua để không làm rác bảng lương
-                if (workingDaysCount == 0 && totalPenalty == 0) continue;
+                if (workingDaysCount == 0 && totalPenalty == 0 && totalBonus == 0) continue;
 
                 var baseSalary = employee.BaseSalary ?? 0m;
                 
                 // Lương mỗi ngày dựa trên số ngày công thực tế của tháng đó
                 var dailyRate = baseSalary / totalWorkingDaysInMonth;
-                var calculatedSalary = Math.Max(0, (workingDaysCount * dailyRate) - totalPenalty);
+                var calculatedSalary = Math.Max(0, (workingDaysCount * dailyRate) - totalPenalty + totalBonus);
 
                 var salary = await db.Salaries.FirstOrDefaultAsync(
                     s => s.EmployeeId == employee.Id && s.PayrollPeriodId == period.Id,

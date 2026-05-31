@@ -1,4 +1,4 @@
-let currentClassId = null;
+﻿let currentClassId = null;
 let currentSubjectId = null;
 let currentScheduleId = null;
 let showInactiveClasses = false;
@@ -313,12 +313,14 @@ async function saveClass(event) {
     const method = isEdit ? 'PUT' : 'POST';
 
     const result = await sendJson(url, method, payload);
-    showAlert('classAlert', result.success, result.message || 'Không thể lưu lớp học.');
 
     if (result.success) {
         resetClassForm();
         closePanel();
+        showAlert('classAlert', true, result.message || 'Lưu lớp học thành công.');
         await Promise.all([loadClassesOverview(), refreshDropdowns()]);
+    } else {
+        showAlert('classFormAlert', false, result.message || 'Không thể lưu lớp học.');
     }
 }
 
@@ -337,12 +339,14 @@ async function saveSubject(event) {
     const method = isEdit ? 'PUT' : 'POST';
 
     const result = await sendJson(url, method, payload);
-    showAlert('subjectAlert', result.success, result.message || 'Không thể lưu môn học.');
 
     if (result.success) {
         resetSubjectForm();
         closePanel();
+        showAlert('subjectAlert', true, result.message || 'Lưu môn học thành công.');
         await Promise.all([loadSubjects(), refreshDropdowns()]);
+    } else {
+        showAlert('subjectFormAlert', false, result.message || 'Không thể lưu môn học.');
     }
 }
 
@@ -369,14 +373,18 @@ async function saveSchedule(event) {
     const result = await sendJson(url, method, payload);
     if (result.success) {
         closeScheduleModal();
+        showAlert('scheduleAlert', true, result.message || 'Lưu thời khóa biểu thành công.');
         const selectedClassId = parseInt(document.getElementById('scheduleClassFilter').value, 10);
         await loadSchedules(selectedClassId);
     } else {
-        alert(result.message || 'Không thể lưu thời khóa biểu.');
+        showAlert('scheduleFormAlert', false, result.message || 'Không thể lưu thời khóa biểu.');
     }
 }
 
 async function editClass(classId) {
+    const formAlert = document.getElementById('classFormAlert');
+    if (formAlert) formAlert.style.display = 'none';
+
     const result = await fetchJson(`/Manager/Api/Class/${classId}`);
     if (!result.success) {
         showAlert('classAlert', false, result.message || 'Không tải được lớp học.');
@@ -403,6 +411,9 @@ async function editClass(classId) {
 }
 
 async function editSubject(subjectId) {
+    const formAlert = document.getElementById('subjectFormAlert');
+    if (formAlert) formAlert.style.display = 'none';
+
     const result = await fetchJson(`/Manager/Api/Subject/${subjectId}`);
     if (!result.success) {
         showAlert('subjectAlert', false, result.message || 'Không tải được môn học.');
@@ -424,6 +435,9 @@ async function editSubject(subjectId) {
 }
 
 async function editSchedule(scheduleId) {
+    const formAlert = document.getElementById('scheduleFormAlert');
+    if (formAlert) formAlert.style.display = 'none';
+
     const result = await fetchJson(`/Manager/Api/ClassSchedule/${scheduleId}`);
     if (!result.success) {
         alert(result.message || 'Không tải được thời khóa biểu.');
@@ -571,6 +585,8 @@ function resetClassForm() {
         const panelTitle = document.getElementById('panelTitle');
         if (panelTitle) panelTitle.textContent = 'Thêm lớp học mới';
     }
+    const formAlert = document.getElementById('classFormAlert');
+    if (formAlert) formAlert.style.display = 'none';
 }
 
 function resetSubjectForm() {
@@ -585,6 +601,8 @@ function resetSubjectForm() {
         const panelTitle = document.getElementById('panelTitle');
         if (panelTitle) panelTitle.textContent = 'Thêm môn học mới';
     }
+    const formAlert = document.getElementById('subjectFormAlert');
+    if (formAlert) formAlert.style.display = 'none';
 }
 
 function resetScheduleForm(classId = null) {
@@ -601,6 +619,9 @@ function resetScheduleForm(classId = null) {
     if (selectedClassId) {
         document.getElementById('scheduleClassId').value = selectedClassId;
     }
+
+    const formAlert = document.getElementById('scheduleFormAlert');
+    if (formAlert) formAlert.style.display = 'none';
 }
 
 function fillSelect(selectElement, data, placeholder, valueKey = 'id', textResolver = item => item.name) {
@@ -615,7 +636,10 @@ function fillSelect(selectElement, data, placeholder, valueKey = 'id', textResol
 
 function showAlert(elementId, success, message) {
     const alert = document.getElementById(elementId);
-    alert.className = `page-alert ${success ? 'success' : 'error'}`;
+    if (!alert) return;
+    const isFormAlert = elementId.toLowerCase().includes('form');
+    const baseClass = isFormAlert ? 'form-alert' : 'page-alert';
+    alert.className = `${baseClass} ${success ? 'success' : 'error'}`;
     alert.textContent = message;
     alert.style.display = 'block';
 }
@@ -627,7 +651,7 @@ function renderTeacherTags(teachers) {
 
     return teachers.map(item => {
         const role = escapeHtml(item.roleInClass || 'Giáo viên');
-        const isLead = /chủ nhiệm/i.test(item.roleInClass || '');
+        const isLead = /phụ trách/i.test(item.roleInClass || '');
         const badgeClass = isLead ? 'badge-success' : 'badge-info';
 
         return `
@@ -710,3 +734,4 @@ function closePanel() {
         document.body.style.overflow = "auto";
     }
 }
+

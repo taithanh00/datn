@@ -53,6 +53,7 @@ namespace datn.Data
         public DbSet<Menu> Menus { get; set; }
         public DbSet<MenuOverride> MenuOverrides { get; set; }
         public DbSet<DailyReport> DailyReports { get; set; }
+        public DbSet<ClassCoverageBonus> ClassCoverageBonuses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -218,6 +219,28 @@ namespace datn.Data
                 .HasOne(wa => wa.Employee)
                 .WithMany(e => e.WorkAttendances)
                 .HasForeignKey(wa => wa.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ── ClassCoverageBonus ────────────────────────────────
+            modelBuilder.Entity<ClassCoverageBonus>()
+                .HasIndex(b => new { b.EmployeeId, b.ClassId, b.Date, b.AbsentEmployeeId, b.Status });
+
+            modelBuilder.Entity<ClassCoverageBonus>()
+                .HasOne(b => b.Employee)
+                .WithMany()
+                .HasForeignKey(b => b.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ClassCoverageBonus>()
+                .HasOne(b => b.Class)
+                .WithMany()
+                .HasForeignKey(b => b.ClassId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ClassCoverageBonus>()
+                .HasOne(b => b.AbsentEmployee)
+                .WithMany()
+                .HasForeignKey(b => b.AbsentEmployeeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // ── EmployeeLeaveRequest ───────────────────────────────

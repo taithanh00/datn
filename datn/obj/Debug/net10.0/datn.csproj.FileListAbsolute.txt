@@ -604,9 +604,7 @@ D:\thanhBinh\datn\obj\Debug\net10.0\compressed\3mwdkhtd7m-{0}-20b4fax1wx-20b4fax
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\8c1m8bx186-{0}-abzji43mun-abzji43mun.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\3z65dftx3d-{0}-hhnxmzhiy1-hhnxmzhiy1.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\zbexzdh1l8-{0}-qzxowu2lfj-qzxowu2lfj.gz
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\dfjcawpatl-{0}-c5d0smjuug-c5d0smjuug.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\pr1f74isvz-{0}-dd5huchfr4-dd5huchfr4.gz
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\jmwzi72gfx-{0}-17b5ikm5xn-17b5ikm5xn.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\cucn15btmh-{0}-8nwf6v0bga-8nwf6v0bga.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\7b2dbz06z1-{0}-zlg5xfn1nu-zlg5xfn1nu.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\9mf4cn6mds-{0}-kbfbo29pmn-kbfbo29pmn.gz
@@ -628,7 +626,6 @@ D:\thanhBinh\datn\obj\Debug\net10.0\compressed\7eauzdonqg-{0}-830gbgmzul-830gbgm
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\8d2vjo5utd-{0}-egq86kzr0c-egq86kzr0c.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\hpt50xn2ve-{0}-p8kr4o1tpw-p8kr4o1tpw.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\juyn6la0tv-{0}-o6446u6mco-o6446u6mco.gz
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\gnj500cxoh-{0}-zpehhij23c-zpehhij23c.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\echjsyqgcn-{0}-d9uxuo7hc6-d9uxuo7hc6.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\krlt17updv-{0}-bsb2gh0js2-bsb2gh0js2.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\ojb2nd90sw-{0}-ce8earcijq-ce8earcijq.gz
@@ -845,7 +842,11 @@ D:\thanhBinh\datn\scratch\verify-build\runtimes\win\lib\net9.0\Microsoft.Data.Sq
 D:\thanhBinh\datn\scratch\verify-build\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
 D:\thanhBinh\datn\scratch\verify-build\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
 D:\thanhBinh\datn\scratch\verify-build\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\9u7xyiibsk-{0}-qv64qxsclj-qv64qxsclj.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\8bq9t1oz7n-{0}-mbakebgsx8-mbakebgsx8.gz
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\bvy462mwqh-{0}-hj12jsqjwu-hj12jsqjwu.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\7zyttg4qzf-{0}-1791fni9ui-1791fni9ui.gz
+D:\thanhBinh\datn\obj\Debug\net10.0\compressed\bvy462mwqh-{0}-q2jiolnuss-q2jiolnuss.gz
+D:\thanhBinh\datn\obj\Debug\net10.0\compressed\dfjcawpatl-{0}-vtlf63ueqg-vtlf63ueqg.gz
+D:\thanhBinh\datn\obj\Debug\net10.0\compressed\jmwzi72gfx-{0}-xkg64znfca-xkg64znfca.gz
+D:\thanhBinh\datn\obj\Debug\net10.0\compressed\9u7xyiibsk-{0}-f3s0c5w67c-f3s0c5w67c.gz
+D:\thanhBinh\datn\obj\Debug\net10.0\compressed\gnj500cxoh-{0}-rae1r1kten-rae1r1kten.gz
+D:\thanhBinh\datn\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

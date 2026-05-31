@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace datn.Controllers
+namespace datn.Controllers.Teacher
 {
     [Authorize]
     [Route("[controller]")]
@@ -25,7 +25,7 @@ namespace datn.Controllers
         public IActionResult Index()
         {
             ViewData["Title"] = "Tính lương Giáo viên";
-            return View();
+            return View("~/Views/Dashboard/Admin/TeacherSalary/Index.cshtml");
         }
 
         [Authorize(Roles = "Employee")]
@@ -47,7 +47,7 @@ namespace datn.Controllers
                 .ThenByDescending(s => s.PayrollPeriod.Month)
                 .ToListAsync();
 
-            return View(salaries);
+            return View("~/Views/Dashboard/Teacher/TeacherSalary/MySalary.cshtml", salaries);
         }
 
         [Authorize]
@@ -81,8 +81,18 @@ namespace datn.Controllers
                 .OrderBy(w => w.Date)
                 .ToListAsync();
 
+            var coverageBonuses = await _context.ClassCoverageBonuses
+                .Include(b => b.Class)
+                .Where(b => b.EmployeeId == employeeId
+                            && b.Status == "Active"
+                            && b.Date.Month == salary.PayrollPeriod.Month
+                            && b.Date.Year == salary.PayrollPeriod.Year)
+                .OrderBy(b => b.Date)
+                .ToListAsync();
+
             ViewBag.Penalties = penalties;
-            return View(salary);
+            ViewBag.CoverageBonuses = coverageBonuses;
+            return View("~/Views/Dashboard/Teacher/TeacherSalary/SalarySlip.cshtml", salary);
         }
 
         [Authorize(Roles = "Manager")]
@@ -185,18 +195,19 @@ namespace datn.Controllers
 
                 var workingDays = approvedRecords.Sum(w => (decimal?)w.WorkUnit) ?? 0m;
                 var totalPenalty = approvedRecords.Sum(w => w.PenaltyAmount);
+                var totalBonus = await _context.ClassCoverageBonuses
+                    .Where(b => b.EmployeeId == teacher.Id
+                                && b.Status == "Active"
+                                && b.Date.Month == month
+                                && b.Date.Year == year)
+                    .SumAsync(b => b.Amount);
 
-                // Nếu không đi làm ngày nào và không có tiền phạt, bỏ qua để không làm rác bảng lương
-                if (workingDays == 0 && totalPenalty == 0)
-                {
-                    // Nếu đã có bản ghi lương trước đó (ví dụ từ tháng trước), có thể cân nhắc xóa hoặc để nguyên tùy nghiệp vụ
-                    // Ở đây chọn để nguyên hoặc bỏ qua việc cập nhật
+                if (workingDays == 0 && totalPenalty == 0 && totalBonus == 0)
                     continue;
-                }
 
                 var baseSalary = teacher.BaseSalary ?? 0m;
                 var dailyRate = baseSalary / workingDaysInMonth;
-                var netSalary = Math.Max(0, (workingDays * dailyRate) - totalPenalty);
+                var netSalary = Math.Max(0, (workingDays * dailyRate) - totalPenalty + totalBonus);
 
                 var salary = await _context.Salaries
                     .FirstOrDefaultAsync(s => s.EmployeeId == teacher.Id && s.PayrollPeriodId == period.Id);

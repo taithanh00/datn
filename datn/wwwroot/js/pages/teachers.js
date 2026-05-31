@@ -1,4 +1,4 @@
-// ====== TEACHER MANAGEMENT PAGE ======
+﻿// ====== TEACHER MANAGEMENT PAGE ======
 // Xử lý tất cả tương tác: tải dữ liệu, render table, quản lý form
 const TEACHERS_PAGE_SIZE = 10;
 const TEACHERS_TABLE_COLS = 7;
@@ -193,9 +193,7 @@ function renderTeachersTable(teachers) {
 
     const row = document.createElement("tr");
     const actionBtn = `<button class="btn-table" onclick="openEditPanel(${teacher.id})">Sửa</button>`;
-    const roleBadge = teacher.teacherType === 0 || teacher.teacherType === 'Lead' 
-      ? '<span class="badge" style="background:#e3f2fd; color:#1976d2;">GV Chủ nhiệm</span>' 
-      : '<span class="badge" style="background:#f3e5f5; color:#7b1fa2;">GV Bộ môn</span>';
+    const roleBadge = '<span class="badge" style="background:#e3f2fd; color:#1976d2;">GV phụ trách</span>';
 
     row.innerHTML = `
     <td>${index + 1}</td>
@@ -269,7 +267,7 @@ async function openEditPanel(teacherId) {
     document.getElementById("username").value = data.username || "";
     document.getElementById("phone").value = data.phone || "";
     document.getElementById("position").value = data.position || "";
-    document.getElementById("teacherType").value = (data.teacherType === 0 || data.teacherType === 'Lead') ? "Lead" : "Subject";
+    document.getElementById("teacherType").value = "Lead";
     document.getElementById("baseSalary").value = data.baseSalary || "";
     document.getElementById("avatarPreview").src =
       data.avatarPath || "/images/lion_blue.png";
@@ -531,3 +529,4 @@ function applyTeacherFilters() {
 
   renderTeachersTable(filtered);
 }
+

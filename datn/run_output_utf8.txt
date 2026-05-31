@@ -1,0 +1,246 @@
+﻿Using launch settings from D:\thanhBinh\datn\Properties\launchSettings.json...
+Building...
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Class' has a global query filter defined and is the required end of a relationship with the entity 'Assignment'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Student' has a global query filter defined and is the required end of a relationship with the entity 'Attendance'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Activity' has a global query filter defined and is the required end of a relationship with the entity 'ClassActivity'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Class' has a global query filter defined and is the required end of a relationship with the entity 'ClassSchedule'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Student' has a global query filter defined and is the required end of a relationship with the entity 'DailyReport'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Employee' has a global query filter defined and is the required end of a relationship with the entity 'EmployeeLeaveRequest'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Student' has a global query filter defined and is the required end of a relationship with the entity 'HealthRecord'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Parent' has a global query filter defined and is the required end of a relationship with the entity 'ParentStudent'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Account' has a global query filter defined and is the required end of a relationship with the entity 'RefreshToken'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Employee' has a global query filter defined and is the required end of a relationship with the entity 'Salary'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Activity' has a global query filter defined and is the required end of a relationship with the entity 'StudentActivity'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'FeeItem' has a global query filter defined and is the required end of a relationship with the entity 'StudentFeeConfig'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Student' has a global query filter defined and is the required end of a relationship with the entity 'StudyReport'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Employee' has a global query filter defined and is the required end of a relationship with the entity 'Substitution'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Employee' has a global query filter defined and is the required end of a relationship with the entity 'WorkAttendance'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'BaseSalary' on entity type 'Employee'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'DefaultAmount' on entity type 'FeeItem'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'Height' on entity type 'HealthRecord'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'Temperature' on entity type 'HealthRecord'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'Weight' on entity type 'HealthRecord'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'SalaryAmount' on entity type 'Salary'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'WorkingDays' on entity type 'Salary'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'CustomAmount' on entity type 'StudentFeeConfig'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'DiscountAmount' on entity type 'StudentFeeConfig'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'DiscountPercentage' on entity type 'StudentFeeConfig'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'FeeAmount' on entity type 'Subject'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'ExtraFee' on entity type 'Tuition'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'Amount' on entity type 'TuitionDetail'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'DiscountAmount' on entity type 'TuitionDetail'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'TotalAmount' on entity type 'TuitionDetail'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'PenaltyAmount' on entity type 'WorkAttendance'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[30000]
+      No store type was specified for the decimal property 'WorkUnit' on entity type 'WorkAttendance'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (29ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT CASE
+          WHEN EXISTS (
+              SELECT 1
+              FROM [Accounts] AS [a]
+              WHERE [a].[IsActive] = CAST(1 AS bit) AND [a].[RoleId] = 1) THEN CAST(1 AS bit)
+          ELSE CAST(0 AS bit)
+      END
+info: datn.Services.PayrollAutoCalculationService[0]
+      Payroll Auto Calculation Service is starting.
+info: datn.Services.PayrollAutoCalculationService[0]
+      Calculating payroll for 4/2026
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5097
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: D:\thanhBinh\datn
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (16ms) [Parameters=[@cutoff='?' (DbType = DateTime2)], CommandType='Text', CommandTimeout='30']
+      SELECT [r].[Id], [r].[AccountId], [r].[CreatedAt], [r].[ExpiresAt], [r].[IsRevoked], [r].[RevokedAtUtc], [r].[Token]
+      FROM [RefreshTokens] AS [r]
+      WHERE [r].[ExpiresAt] < GETUTCDATE() OR ([r].[IsRevoked] = CAST(1 AS bit) AND [r].[CreatedAt] < @cutoff)
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (21ms) [Parameters=[@month='?' (DbType = Int32), @year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [p].[Id], [p].[IsLocked], [p].[LockedAtUtc], [p].[Month], [p].[Year]
+      FROM [PayrollPeriods] AS [p]
+      WHERE [p].[Month] = @month AND [p].[Year] = @year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (8ms) [Parameters=[@month='?' (DbType = Int32), @year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [e].[Id], [e].[AccountId], [e].[AvatarPath], [e].[BaseSalary], [e].[Bio], [e].[Experience], [e].[FirstName], [e].[Gender], [e].[IsActive], [e].[LastName], [e].[Philosophy], [e].[Phone], [e].[Position], [e].[Qualifications], [e].[ShowOnLanding], [e].[SpecializedSubjects], [e].[Specialty], [e].[TeacherType], [a0].[Id], [a0].[CreatedAt], [a0].[Email], [a0].[IsActive], [a0].[PasswordHash], [a0].[PasswordResetToken], [a0].[PasswordSalt], [a0].[ResetTokenExpires], [a0].[RoleId], [a0].[UpdatedAt], [a0].[Username]
+      FROM [Employees] AS [e]
+      INNER JOIN (
+          SELECT [a].[Id], [a].[CreatedAt], [a].[Email], [a].[IsActive], [a].[PasswordHash], [a].[PasswordResetToken], [a].[PasswordSalt], [a].[ResetTokenExpires], [a].[RoleId], [a].[UpdatedAt], [a].[Username]
+          FROM [Accounts] AS [a]
+          WHERE [a].[IsActive] = CAST(1 AS bit)
+      ) AS [a0] ON [e].[AccountId] = [a0].[Id]
+      INNER JOIN [Roles] AS [r] ON [a0].[RoleId] = [r].[Id]
+      WHERE [e].[IsActive] = CAST(1 AS bit) AND [r].[Name] = N'Employee' AND ([a0].[IsActive] = CAST(1 AS bit) OR EXISTS (
+          SELECT 1
+          FROM [WorkAttendances] AS [w]
+          WHERE [w].[EmployeeId] = [e].[Id] AND DATEPART(month, [w].[Date]) = @month AND DATEPART(year, [w].[Date]) = @year))
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (1ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: datn.Services.PayrollAutoCalculationService[0]
+      Successfully updated payroll for 4/2026
+info: datn.Services.PayrollAutoCalculationService[0]
+      Calculating payroll for 5/2026
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@month='?' (DbType = Int32), @year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT TOP(1) [p].[Id], [p].[IsLocked], [p].[LockedAtUtc], [p].[Month], [p].[Year]
+      FROM [PayrollPeriods] AS [p]
+      WHERE [p].[Month] = @month AND [p].[Year] = @year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@month='?' (DbType = Int32), @year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [e].[Id], [e].[AccountId], [e].[AvatarPath], [e].[BaseSalary], [e].[Bio], [e].[Experience], [e].[FirstName], [e].[Gender], [e].[IsActive], [e].[LastName], [e].[Philosophy], [e].[Phone], [e].[Position], [e].[Qualifications], [e].[ShowOnLanding], [e].[SpecializedSubjects], [e].[Specialty], [e].[TeacherType], [a0].[Id], [a0].[CreatedAt], [a0].[Email], [a0].[IsActive], [a0].[PasswordHash], [a0].[PasswordResetToken], [a0].[PasswordSalt], [a0].[ResetTokenExpires], [a0].[RoleId], [a0].[UpdatedAt], [a0].[Username]
+      FROM [Employees] AS [e]
+      INNER JOIN (
+          SELECT [a].[Id], [a].[CreatedAt], [a].[Email], [a].[IsActive], [a].[PasswordHash], [a].[PasswordResetToken], [a].[PasswordSalt], [a].[ResetTokenExpires], [a].[RoleId], [a].[UpdatedAt], [a].[Username]
+          FROM [Accounts] AS [a]
+          WHERE [a].[IsActive] = CAST(1 AS bit)
+      ) AS [a0] ON [e].[AccountId] = [a0].[Id]
+      INNER JOIN [Roles] AS [r] ON [a0].[RoleId] = [r].[Id]
+      WHERE [e].[IsActive] = CAST(1 AS bit) AND [r].[Name] = N'Employee' AND ([a0].[IsActive] = CAST(1 AS bit) OR EXISTS (
+          SELECT 1
+          FROM [WorkAttendances] AS [w]
+          WHERE [w].[EmployeeId] = [e].[Id] AND DATEPART(month, [w].[Date]) = @month AND DATEPART(year, [w].[Date]) = @year))
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[@employee_Id='?' (DbType = Int32), @8__locals1_month='?' (DbType = Int32), @8__locals1_year='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+      SELECT [w].[EmployeeId], [w].[Date], [w].[CheckInAtUtc], [w].[CheckOutAtUtc], [w].[IsLate], [w].[Note], [w].[PenaltyAmount], [w].[ReviewNote], [w].[ReviewedAtUtc], [w].[ReviewedByEmployeeId], [w].[Status], [w].[WorkUnit], [w].[WorkedMinutes]
+      FROM [WorkAttendances] AS [w]
+      WHERE [w].[EmployeeId] = @employee_Id AND [w].[Status] = N'Approved' AND DATEPART(month, [w].[Date]) = @8__locals1_month AND DATEPART(year, [w].[Date]) = @8__locals1_year
+info: datn.Services.PayrollAutoCalculationService[0]
+      Successfully updated payroll for 5/2026

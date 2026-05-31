@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Nhân sự";
     Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
 }
@@ -140,10 +140,7 @@
                 <div class="grid grid-2" style="gap: 15px;">
                     <div class="form-group">
                         <label class="form-label" for="teacherType">Vai trò giảng dạy <span class="text-danger">*</span></label>
-                        <select id="teacherType" name="TeacherType" class="form-control" required>
-                            <option value="Lead">Giáo viên Chủ nhiệm</option>
-                            <option value="Subject">Giáo viên Bộ môn</option>
-                        </select>
+                        <select id="teacherType" name="TeacherType" class="form-control" required><option value="Lead">Giáo viên phụ trách</option></select>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="position">Chức danh cụ thể <span class="text-muted" style="font-weight:normal; font-size:0.85em;">(Tùy chọn)</span></label>
@@ -210,3 +207,5 @@
 @section Scripts {
     <script src="~/js/pages/teachers.js" asp-append-version="true"></script>
 }
+
+

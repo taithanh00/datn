@@ -4,7 +4,7 @@ using datn.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace datn.Controllers
+namespace datn.Controllers.Manager
 {
     [Authorize]
     [Route("Manager/[controller]")]
@@ -21,7 +21,7 @@ namespace datn.Controllers
         public IActionResult Index()
         {
             ViewData["Title"] = "Quan ly Dinh duong & Thuc don";
-            return View();
+            return View("~/Views/Dashboard/Admin/Nutrition/Index.cshtml");
         }
 
         [HttpGet("GetWeeklyMenu")]

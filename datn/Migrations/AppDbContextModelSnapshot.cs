@@ -260,6 +260,53 @@ namespace datn.Migrations
                     b.ToTable("ClassActivities");
                 });
 
+            modelBuilder.Entity("datn.Models.ClassCoverageBonus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AbsentEmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ClassId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LeaveRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AbsentEmployeeId");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("EmployeeId", "ClassId", "Date", "AbsentEmployeeId", "Status");
+
+                    b.ToTable("ClassCoverageBonuses");
+                });
+
             modelBuilder.Entity("datn.Models.ClassSchedule", b =>
                 {
                     b.Property<int>("Id")
@@ -1426,6 +1473,33 @@ namespace datn.Migrations
                     b.Navigation("Activity");
 
                     b.Navigation("Class");
+                });
+
+            modelBuilder.Entity("datn.Models.ClassCoverageBonus", b =>
+                {
+                    b.HasOne("datn.Models.Employee", "AbsentEmployee")
+                        .WithMany()
+                        .HasForeignKey("AbsentEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("datn.Models.Class", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("datn.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AbsentEmployee");
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("datn.Models.ClassSchedule", b =>

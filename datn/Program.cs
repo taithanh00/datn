@@ -106,6 +106,9 @@ builder.Services.AddSignalR()
 builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, CustomUserIdProvider>();
 builder.Services.AddScoped<JwtService>();                               // Dịch vụ tạo JWT
 builder.Services.AddScoped<INotificationService, NotificationService>();   // Dịch vụ thông báo
+builder.Services.Configure<ClassCoverageOptions>(
+    builder.Configuration.GetSection(ClassCoverageOptions.SectionName));
+builder.Services.AddScoped<IClassCoverageService, ClassCoverageService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IParentService, ParentService>();           // Dịch vụ quản lý học sinh
 builder.Services.AddHttpClient<IMoMoService, MoMoService>();            // Dịch vụ MoMo Payment

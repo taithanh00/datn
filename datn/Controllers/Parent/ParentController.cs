@@ -5,9 +5,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using datn.Controllers;
 using System.Security.Claims;
 
-namespace datn.Controllers
+namespace datn.Controllers.Parent
 {
     [Authorize(Roles = "Parent")]
     [Route("[controller]")]
@@ -81,7 +82,7 @@ namespace datn.Controllers
                 });
             }
 
-            return View(result);
+            return View("~/Views/Dashboard/Parent/Parent/Children.cshtml", result);
         }
 
         [HttpGet("StudyReports")]
@@ -100,7 +101,7 @@ namespace datn.Controllers
 
             ViewBag.Children = children;
 
-            if (children.Count == 0) return View(new List<StudyReport>());
+            if (children.Count == 0) return View("~/Views/Dashboard/Parent/Parent/StudyReports.cshtml", new List<StudyReport>());
 
             // Mặc định chọn đứa con đầu tiên nếu không chỉ định
             var targetStudentId = studentId ?? children.First().Id;
@@ -119,7 +120,7 @@ namespace datn.Controllers
             ViewBag.SelectedStudentId = targetStudentId;
             ViewBag.SelectedYear = targetYear;
 
-            return View(reports);
+            return View("~/Views/Dashboard/Parent/Parent/StudyReports.cshtml", reports);
         }
 
         [HttpGet("AttendanceReport")]
@@ -137,7 +138,7 @@ namespace datn.Controllers
 
             ViewBag.Children = children;
 
-            if (children.Count == 0) return View(new List<Attendance>());
+            if (children.Count == 0) return View("~/Views/Dashboard/Parent/Parent/AttendanceReport.cshtml", new List<Attendance>());
 
             var targetStudentId = studentId ?? children.First().Id;
             var targetMonth = month ?? DateTime.Now.Month;
@@ -154,7 +155,7 @@ namespace datn.Controllers
             ViewBag.SelectedMonth = targetMonth;
             ViewBag.SelectedYear = targetYear;
 
-            return View(attendances);
+            return View("~/Views/Dashboard/Parent/Parent/AttendanceReport.cshtml", attendances);
         }
 
         [HttpGet("Activities")]
@@ -172,7 +173,7 @@ namespace datn.Controllers
 
             ViewBag.Children = children;
 
-            if (children.Count == 0) return View(new List<StudentActivity>());
+            if (children.Count == 0) return View("~/Views/Dashboard/Parent/Parent/Activities.cshtml", new List<StudentActivity>());
 
             var targetStudentId = studentId ?? children.First().Id;
             if (!children.Any(c => c.Id == targetStudentId)) return Forbid();
@@ -185,7 +186,7 @@ namespace datn.Controllers
                 .ToListAsync();
 
             ViewBag.SelectedStudentId = targetStudentId;
-            return View(activities);
+            return View("~/Views/Dashboard/Parent/Parent/Activities.cshtml", activities);
         }
 
         [HttpGet("TeachingPlan")]
@@ -203,13 +204,13 @@ namespace datn.Controllers
 
             ViewBag.Children = children;
 
-            if (children.Count == 0) return View(new List<TeachingPlan>());
+            if (children.Count == 0) return View("~/Views/Dashboard/Parent/Parent/TeachingPlan.cshtml", new List<TeachingPlan>());
 
             var targetStudentId = studentId ?? children.First().Id;
             if (!children.Any(c => c.Id == targetStudentId)) return Forbid();
 
             var student = children.First(c => c.Id == targetStudentId);
-            if (student.ClassId == null) return View(new List<TeachingPlan>());
+            if (student.ClassId == null) return View("~/Views/Dashboard/Parent/Parent/TeachingPlan.cshtml", new List<TeachingPlan>());
 
             var plans = await _context.TeachingPlans
                 .Include(tp => tp.Curriculum).ThenInclude(c => c.Subject)
@@ -218,7 +219,7 @@ namespace datn.Controllers
                 .ToListAsync();
 
             ViewBag.SelectedStudentId = targetStudentId;
-            return View(plans);
+            return View("~/Views/Dashboard/Parent/Parent/TeachingPlan.cshtml", plans);
         }
 
         [HttpGet("Api/DashboardStats")]

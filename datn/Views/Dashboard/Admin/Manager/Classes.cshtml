@@ -17,10 +17,10 @@
     <div class="d-flex align-center justify-between mb-2">
         <h3>Danh sách lớp học</h3>
         <div class="status-tabs" style="margin-bottom: 12px;">
-            <div class="status-tab active" data-show-inactive="false">
+            <div class="status-tab active" data-show-inactive="false" data-scope="classes">
                 <i class="fa-solid fa-school"></i> Lớp hiện tại
             </div>
-            <div class="status-tab" data-show-inactive="true">
+            <div class="status-tab" data-show-inactive="true" data-scope="classes">
                 <i class="fa-solid fa-box-archive"></i> Lớp đã đóng
             </div>
         </div>
@@ -55,6 +55,7 @@
         </button>
     </div>
     <div class="slide-panel-body">
+        <div id="classFormAlert" class="form-alert" style="display:none;"></div>
         <form id="classForm">
             <input type="hidden" id="classId" />
             
