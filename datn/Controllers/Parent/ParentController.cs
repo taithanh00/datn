@@ -14,11 +14,8 @@ namespace datn.Controllers.Parent
     [Route("[controller]")]
     public class ParentController : BaseController
     {
-        private readonly IEducationService _educationService;
-
-        public ParentController(AppDbContext context, IEducationService educationService) : base(context)
+        public ParentController(AppDbContext context) : base(context)
         {
-            _educationService = educationService;
         }
 
         private async Task<int?> GetCurrentParentId()
@@ -64,15 +61,10 @@ namespace datn.Controllers.Parent
 
                     foreach (var s in schedules)
                     {
-                        var lesson = await _educationService.GetCurrentLessonAsync(student.ClassId.Value, s.SubjectId, todayDate);
-                        if (lesson != null)
-                        {
-                            todayLessons.Add(new TodayLessonViewModel {
-                                SubjectName = s.Subject?.Name ?? "N/A",
-                                TopicName = lesson.Title ?? "Chưa có tên bài",
-                                Time = $"{s.StartTime:HH:mm}"
-                            });
-                        }
+                        todayLessons.Add(new TodayLessonViewModel {
+                            SubjectName = s.Subject?.Name ?? "N/A",
+                            Time = $"{s.StartTime:HH:mm}"
+                        });
                     }
                 }
 
@@ -187,39 +179,6 @@ namespace datn.Controllers.Parent
 
             ViewBag.SelectedStudentId = targetStudentId;
             return View("~/Views/Dashboard/Parent/Parent/Activities.cshtml", activities);
-        }
-
-        [HttpGet("TeachingPlan")]
-        public async Task<IActionResult> TeachingPlan(int? studentId)
-        {
-            ViewData["Title"] = "Kế hoạch học tập";
-            var parentId = await GetCurrentParentId();
-            if (parentId == null) return RedirectToAction("Login", "Auth");
-
-            var children = await _context.ParentStudents
-                .Include(ps => ps.Student).ThenInclude(s => s.Class)
-                .Where(ps => ps.ParentId == parentId)
-                .Select(ps => ps.Student)
-                .ToListAsync();
-
-            ViewBag.Children = children;
-
-            if (children.Count == 0) return View("~/Views/Dashboard/Parent/Parent/TeachingPlan.cshtml", new List<TeachingPlan>());
-
-            var targetStudentId = studentId ?? children.First().Id;
-            if (!children.Any(c => c.Id == targetStudentId)) return Forbid();
-
-            var student = children.First(c => c.Id == targetStudentId);
-            if (student.ClassId == null) return View("~/Views/Dashboard/Parent/Parent/TeachingPlan.cshtml", new List<TeachingPlan>());
-
-            var plans = await _context.TeachingPlans
-                .Include(tp => tp.Curriculum).ThenInclude(c => c.Subject)
-                .Where(tp => tp.ClassId == student.ClassId)
-                .OrderByDescending(tp => tp.StartDate)
-                .ToListAsync();
-
-            ViewBag.SelectedStudentId = targetStudentId;
-            return View("~/Views/Dashboard/Parent/Parent/TeachingPlan.cshtml", plans);
         }
 
         [HttpGet("Api/DashboardStats")]

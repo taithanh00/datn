@@ -5,7 +5,7 @@ namespace datn.Models
         public int Id { get; set; }
         public int ClassId { get; set; }
         public int SubjectId { get; set; }
-        public int EmployeeId { get; set; }
+        public int? EmployeeId { get; set; }
         public int DayOfWeek { get; set; }
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }

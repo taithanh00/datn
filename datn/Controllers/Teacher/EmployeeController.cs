@@ -14,12 +14,10 @@ namespace datn.Controllers.Teacher
     public class EmployeeController : BaseController
     {
         private readonly INotificationService _notificationService;
-        private readonly IEducationService _educationService;
 
-        public EmployeeController(AppDbContext context, INotificationService notificationService, IEducationService educationService) : base(context)
+        public EmployeeController(AppDbContext context, INotificationService notificationService) : base(context)
         {
             _notificationService = notificationService;
-            _educationService = educationService;
         }
 
         private async Task<int?> GetCurrentEmployeeId()
@@ -103,24 +101,27 @@ namespace datn.Controllers.Teacher
             var todaySchedule = new List<object>();
             if (dayOfWeek.HasValue)
             {
+                var assignedClassIdsForStats = await _context.Assignments
+                    .Where(a => a.EmployeeId == employeeId && a.IsActive && a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
+                    .Select(a => a.ClassId)
+                    .Distinct()
+                    .ToListAsync();
+
                 var schedules = await _context.ClassSchedules
-                    .Where(cs => cs.EmployeeId == employeeId && cs.DayOfWeek == dayOfWeek.Value && cs.IsActive)
+                    .Where(cs => assignedClassIdsForStats.Contains(cs.ClassId) && cs.DayOfWeek == dayOfWeek.Value && cs.IsActive)
                     .Include(cs => cs.Class)
                     .Include(cs => cs.Subject)
                     .OrderBy(cs => cs.StartTime)
                     .ToListAsync();
 
-                var todayDate = today;
                 var scheduleList = new List<object>();
                 foreach (var cs in schedules)
                 {
-                    var currentLesson = await _educationService.GetCurrentLessonAsync(cs.ClassId, cs.SubjectId, todayDate);
                     scheduleList.Add(new
                     {
                         time = $"{cs.StartTime:HH:mm} - {cs.EndTime:HH:mm}",
                         className = cs.Class.Name,
-                        subject = cs.Subject.Name,
-                        topic = currentLesson?.Title ?? "Theo kế hoạch lớp"
+                        subject = cs.Subject.Name
                     });
                 }
                 todaySchedule = scheduleList;
@@ -376,9 +377,15 @@ namespace datn.Controllers.Teacher
                 return Json(new { success = true, data = Array.Empty<object>(), date = today.ToString("dd/MM/yyyy") });
             }
 
-            // 1. Tiết dạy bình thường (trừ những tiết đã có người dạy thay)
+            // 1. Tiết dạy bình thường của các lớp đang phụ trách
+            var assignedClassIds = await _context.Assignments
+                .Where(a => a.EmployeeId == employeeId && a.IsActive && a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
+                .Select(a => a.ClassId)
+                .Distinct()
+                .ToListAsync();
+
             var normalSchedules = await _context.ClassSchedules
-                .Where(cs => cs.EmployeeId == employeeId
+                .Where(cs => assignedClassIds.Contains(cs.ClassId)
                     && cs.IsActive
                     && cs.DayOfWeek == dayOfWeek.Value
                     && cs.EffectiveFrom <= today
@@ -387,7 +394,9 @@ namespace datn.Controllers.Teacher
                 .Include(cs => cs.Subject)
                 .ToListAsync();
 
-            // Lọc bỏ những tiết đã được phân công dạy thay (do giáo viên này nghỉ)
+            // Lọc bỏ những tiết đã được phân công dạy thay (nếu GV này nghỉ - logic này có thể cần điều chỉnh nếu TKB theo lớp)
+            // Tuy nhiên, nếu một GV nghỉ, họ sẽ nghỉ toàn bộ các tiết của lớp đó.
+            // Để đơn giản, ta vẫn giữ logic lọc theo ClassScheduleId đã được sub.
             var substitutedOutIds = await _context.Substitutions
                 .Where(s => s.OriginalEmployeeId == employeeId && s.Date == today && s.Status == "Confirmed")
                 .Select(s => s.ClassScheduleId)
@@ -435,6 +444,48 @@ namespace datn.Controllers.Teacher
                 date = today.ToString("dd/MM/yyyy"),
                 data = finalSchedules.OrderBy(s => s.startTime)
             });
+        }
+
+        [HttpGet("Api/WeeklyTimetable")]
+        public async Task<IActionResult> GetWeeklyTimetable()
+        {
+            var employeeId = await GetCurrentEmployeeId();
+            if (employeeId == null)
+                return Json(new { success = false, message = "Không tìm thấy thông tin giáo viên." });
+
+            var today = GetTodayVnt();
+            
+            // Lấy các lớp đang phụ trách
+            var assignedClassIds = await _context.Assignments
+                .Where(a => a.EmployeeId == employeeId && a.IsActive && a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
+                .Select(a => a.ClassId)
+                .Distinct()
+                .ToListAsync();
+
+            // Lấy toàn bộ TKB của các lớp đó
+            var schedules = await _context.ClassSchedules
+                .Where(cs => assignedClassIds.Contains(cs.ClassId) && cs.IsActive)
+                .Include(cs => cs.Class)
+                .Include(cs => cs.Subject)
+                .Include(cs => cs.Location)
+                .OrderBy(cs => cs.DayOfWeek)
+                .ThenBy(cs => cs.StartTime)
+                .ToListAsync();
+
+            var result = schedules.Select(cs => new
+            {
+                id = cs.Id,
+                classId = cs.ClassId,
+                className = cs.Class.Name,
+                subjectName = cs.Subject.Name,
+                dayOfWeek = cs.DayOfWeek,
+                startTime = cs.StartTime.ToString("HH:mm"),
+                endTime = cs.EndTime.ToString("HH:mm"),
+                locationName = cs.Location?.Name,
+                note = cs.Note
+            });
+
+            return Json(new { success = true, data = result });
         }
 
         [HttpGet("Api/ManagedStudents/{classId:int}")]
@@ -727,48 +778,6 @@ namespace datn.Controllers.Teacher
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Đã cập nhật danh sách tham gia" });
         }
-
-        // ============ TEACHING PLAN API ============
-
-        [HttpGet("TeachingPlan")]
-        public IActionResult TeachingPlan()
-        {
-            return View("~/Views/Dashboard/Teacher/Employee/TeachingPlan.cshtml");
-        }
-
-        [HttpGet("Api/TeachingPlans")]
-        public async Task<IActionResult> GetMyTeachingPlans()
-        {
-            var employeeId = int.Parse(User.FindFirst("EmployeeId")?.Value ?? "0");
-            var today = GetTodayVnt();
-
-            // Lấy các lớp đang phụ trách
-            var assignedClassIds = await _context.Assignments
-                .Where(a => a.EmployeeId == employeeId && a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
-                .Select(a => a.ClassId)
-                .ToListAsync();
-
-            var plans = await _context.TeachingPlans
-                .Include(tp => tp.Class)
-                .Include(tp => tp.Curriculum)
-                .Where(tp => assignedClassIds.Contains(tp.ClassId))
-                .OrderByDescending(tp => tp.StartDate)
-                .ToListAsync();
-
-            var data = plans.Select(tp => new
-            {
-                className = tp.Class.Name,
-                title = tp.Curriculum.Title,
-                description = tp.Curriculum.Description,
-                content = tp.Curriculum.Content,
-                startDate = tp.StartDate.ToString("yyyy-MM-dd"),
-                endDate = tp.EndDate?.ToString("yyyy-MM-dd"),
-                status = tp.Status
-            });
-
-            return Json(new { success = true, data });
-        }
-
 
         private static int? GetSchoolDayOfWeek(DateOnly date)
         {

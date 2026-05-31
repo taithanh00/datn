@@ -4,11 +4,24 @@ document.addEventListener('DOMContentLoaded', function() { loadMyClasses(); });
 function loadMyClasses() {
     fetch('/Employee/Api/MyClasses').then(r=>r.json()).then(response => {
         if (response.success) {
-            let html = '<option value="">-- Chọn lớp --</option>';
+            if (response.data.length === 0) {
+                document.getElementById('classSelect').innerHTML = '<option value="">-- Không có lớp --</option>';
+                document.getElementById('attendanceContent').innerHTML = '<div class="empty-state"><i class="fa-solid fa-user-slash"></i><p>Bạn chưa được phân công phụ trách lớp nào.</p></div>';
+                return;
+            }
+
+            let html = '';
+            // Nếu không có classId từ URL, mặc định chọn lớp đầu tiên
+            if (currentClassId == 0 && response.data.length > 0) {
+                currentClassId = response.data[0].classId;
+            }
+
             response.data.forEach(item => {
-                html += `<option value="${item.classId}" ${item.classId==currentClassId?'selected':''}>${item.className}</option>`;
+                html += `<option value="${item.classId}" ${item.classId == currentClassId ? 'selected' : ''}>${item.className}</option>`;
             });
             document.getElementById('classSelect').innerHTML = html;
+            
+            // Tự động tải danh sách học sinh
             if (currentClassId > 0) loadStudents(currentClassId);
         }
     });

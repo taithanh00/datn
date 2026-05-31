@@ -115,7 +115,6 @@ builder.Services.AddHttpClient<IMoMoService, MoMoService>();            // Dịc
 builder.Services.AddHostedService<TokenCleanupService>();               // Dịch vụ dọn dẹp token hết hạn
 builder.Services.AddHostedService<PayrollAutoCalculationService>();     // Tự động tính lương ngày 5 hàng tháng
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
-builder.Services.AddScoped<IEducationService, EducationService>();
 builder.Services.AddScoped<INutritionService, NutritionService>();
 builder.Services.AddScoped<IHealthService, HealthService>();
 builder.Services.AddScoped<IDailyReportService, DailyReportService>();

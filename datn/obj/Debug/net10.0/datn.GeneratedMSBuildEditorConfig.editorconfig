@@ -110,10 +110,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEFkbWluXE1hbmFnZXJcQ2xhc3Nlcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/thanhBinh/datn/Views/Dashboard/Admin/Manager/Curriculums.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEFkbWluXE1hbmFnZXJcQ3VycmljdWx1bXMuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
 [D:/thanhBinh/datn/Views/Dashboard/Admin/Manager/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEFkbWluXE1hbmFnZXJcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -152,10 +148,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/thanhBinh/datn/Views/Dashboard/Admin/Manager/Teachers.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEFkbWluXE1hbmFnZXJcVGVhY2hlcnMuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[D:/thanhBinh/datn/Views/Dashboard/Admin/Manager/TeachingPlans.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEFkbWluXE1hbmFnZXJcVGVhY2hpbmdQbGFucy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/thanhBinh/datn/Views/Dashboard/Admin/Nutrition/Index.cshtml]
@@ -198,10 +190,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFBhcmVudFxQYXJlbnRcU3R1ZHlSZXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/thanhBinh/datn/Views/Dashboard/Parent/Parent/TeachingPlan.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFBhcmVudFxQYXJlbnRcVGVhY2hpbmdQbGFuLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
 [D:/thanhBinh/datn/Views/Dashboard/Parent/Tuition/MoMoReturn.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFBhcmVudFxUdWl0aW9uXE1vTW9SZXR1cm4uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -232,10 +220,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/thanhBinh/datn/Views/Dashboard/Teacher/Employee/StudyReport.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFRlYWNoZXJcRW1wbG95ZWVcU3R1ZHlSZXBvcnQuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[D:/thanhBinh/datn/Views/Dashboard/Teacher/Employee/TeachingPlan.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFRlYWNoZXJcRW1wbG95ZWVcVGVhY2hpbmdQbGFuLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/thanhBinh/datn/Views/Dashboard/Teacher/Employee/WorkSchedule.cshtml]

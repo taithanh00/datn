@@ -18,7 +18,10 @@
 
 <div class="card">
     <div id="attendanceContent">
-        <div class="empty-state"><i class="fa-solid fa-arrow-up"></i><p>Vui lòng chọn một lớp học để bắt đầu điểm danh</p></div>
+        <div class="empty-state">
+            <div class="spinner"></div>
+            <p>Đang tải danh sách lớp và học sinh...</p>
+        </div>
     </div>
     <div id="footerActions" style="display:none; border-top:1px solid var(--border); padding-top:20px; margin-top:20px;" class="d-flex gap-1 justify-between">
         <button class="btn btn-outline" onclick="loadStudents(document.getElementById('classSelect').value)"><i class="fa-solid fa-rotate"></i> Làm mới</button>

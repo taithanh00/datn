@@ -40,8 +40,6 @@ namespace datn.Data
         public DbSet<Location> Locations { get; set; }
         public DbSet<Activity> Activities { get; set; }
         public DbSet<ClassActivity> ClassActivities { get; set; }
-        public DbSet<Curriculum> Curriculums { get; set; }
-        public DbSet<TeachingPlan> TeachingPlans { get; set; }
         public DbSet<EmployeeLeaveRequest> EmployeeLeaveRequests { get; set; }
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<ClassSchedule> ClassSchedules { get; set; }
@@ -295,29 +293,6 @@ namespace datn.Data
                 .HasForeignKey(ca => ca.ActivityId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ── Curriculum ────────────────────────────────────────
-            modelBuilder.Entity<Curriculum>()
-                .HasOne(c => c.Subject)
-                .WithMany()
-                .HasForeignKey(c => c.SubjectId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            // ── TeachingPlan (composite PK) ───────────────────────
-            modelBuilder.Entity<TeachingPlan>()
-                .HasKey(tp => new { tp.ClassId, tp.CurriculumId, tp.StartDate });
-
-            modelBuilder.Entity<TeachingPlan>()
-                .HasOne(tp => tp.Class)
-                .WithMany(c => c.TeachingPlans)
-                .HasForeignKey(tp => tp.ClassId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<TeachingPlan>()
-                .HasOne(tp => tp.Curriculum)
-                .WithMany(c => c.TeachingPlans)
-                .HasForeignKey(tp => tp.CurriculumId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             // ── Subject ───────────────────────────────────────────
             modelBuilder.Entity<Subject>()
                 .HasIndex(s => s.Code)
@@ -486,10 +461,9 @@ namespace datn.Data
             modelBuilder.Entity<Holiday>().HasQueryFilter(h => h.IsActive);
             modelBuilder.Entity<Location>().HasQueryFilter(l => l.IsActive);
             modelBuilder.Entity<Activity>().HasQueryFilter(a => a.IsActive);
-            modelBuilder.Entity<Curriculum>().HasQueryFilter(c => c.IsActive);
-            modelBuilder.Entity<TeachingPlan>().HasQueryFilter(tp => tp.IsActive);
             modelBuilder.Entity<Menu>().HasQueryFilter(m => m.IsActive);
             modelBuilder.Entity<MenuOverride>().HasQueryFilter(mo => mo.IsActive);
+            modelBuilder.Entity<ClassSchedule>().HasQueryFilter(cs => cs.IsActive);
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

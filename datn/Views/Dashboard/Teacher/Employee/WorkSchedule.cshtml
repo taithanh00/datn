@@ -6,6 +6,34 @@
 
 <input type="hidden" id="initialClassId" value="@(selectedClassId ?? 0)" />
 
+<div class="card mb-4">
+    <div class="d-flex align-center justify-between mb-3">
+        <h3 style="margin: 0;">Thời khóa biểu tuần</h3>
+        <div class="d-flex align-center gap-3">
+            <span class="text-muted" style="font-size: 0.85rem;"><i class="fa-solid fa-circle-info"></i> Lịch dạy các lớp bạn đang phụ trách</span>
+            <button class="btn btn-primary btn-sm" onclick="loadWeeklyTimetable()"><i class="fa-solid fa-sync"></i> Làm mới</button>
+        </div>
+    </div>
+    
+    <div class="table-container" style="overflow-x: auto;">
+        <table class="timetable-grid">
+            <thead>
+                <tr>
+                    <th style="width: 100px;">Khung giờ</th>
+                    <th>Thứ 2</th>
+                    <th>Thứ 3</th>
+                    <th>Thứ 4</th>
+                    <th>Thứ 5</th>
+                    <th>Thứ 6</th>
+                </tr>
+            </thead>
+            <tbody id="weeklyTimetableBody">
+                <!-- Grid will be injected here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-top: 24px;">
     <!-- Today's Schedule -->
     <div class="card">
@@ -55,6 +83,22 @@
 
 @section Styles {
     <style>
+        /* Timetable Grid */
+        .timetable-grid { width: 100%; border-collapse: collapse; border: 1px solid var(--border); table-layout: fixed; }
+        .timetable-grid th, .timetable-grid td { border: 1px solid var(--border); padding: 12px; vertical-align: top; text-align: left; }
+        .timetable-grid th { background: var(--bg-body); color: var(--text-main); font-weight: 700; text-align: center; }
+        .timetable-grid .time-col { background: var(--bg-body); font-weight: 600; color: var(--primary); text-align: center; font-size: 0.85rem; }
+        
+        .grid-lesson { 
+            background: rgba(13, 110, 253, 0.05); 
+            border-left: 3px solid var(--primary); 
+            padding: 8px; border-radius: 4px; margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+        .grid-lesson-subject { font-weight: 700; color: var(--text-main); margin-bottom: 2px; }
+        .grid-lesson-class { font-size: 0.75rem; color: var(--text-muted); }
+        .grid-lesson-location { font-size: 0.75rem; color: var(--primary); font-weight: 600; margin-top: 2px; }
+
         /* Timeline specific to schedule */
         .schedule-item { 
             display: flex; gap: 16px; padding: 16px; 
@@ -88,6 +132,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await Promise.all([
                 loadTodaySchedule(),
+                loadWeeklyTimetable(),
                 loadManagedClasses()
             ]);
 
@@ -166,6 +211,47 @@
             }
         }
 
+        async function loadWeeklyTimetable() {
+            const tbody = document.getElementById('weeklyTimetableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;"><div class="spinner"></div></td></tr>';
+
+            const result = await fetchJson('/Employee/Api/WeeklyTimetable');
+            if (result.success) {
+                if (result.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding: 40px;">Bạn chưa có lịch dạy nào trong tuần này.</td></tr>';
+                    return;
+                }
+
+                // Nhóm theo khung giờ
+                const timeSlots = [...new Set(result.data.map(s => s.startTime + ' - ' + s.endTime))].sort();
+                
+                let html = '';
+                timeSlots.forEach(slot => {
+                    const [start, end] = slot.split(' - ');
+                    html += `<tr><td class="time-col">${slot}</td>`;
+                    
+                    for (let day = 1; day <= 5; day++) {
+                        const lessons = result.data.filter(s => s.dayOfWeek === day && s.startTime === start && s.endTime === end);
+                        html += '<td>';
+                        lessons.forEach(l => {
+                            html += `
+                                <div class="grid-lesson">
+                                    <div class="grid-lesson-subject">${l.subjectName}</div>
+                                    <div class="grid-lesson-class">Lớp: ${l.className}</div>
+                                    ${l.locationName ? `<div class="grid-lesson-location"><i class="fa-solid fa-location-dot"></i> ${l.locationName}</div>` : ''}
+                                </div>
+                            `;
+                        });
+                        html += '</td>';
+                    }
+                    html += '</tr>';
+                });
+                tbody.innerHTML = html;
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${result.message}</td></tr>`;
+            }
+        }
+
         async function loadManagedClasses() {
             const result = await fetchJson('/Employee/Api/MyClasses');
             const select = document.getElementById('managedClassSelect');
@@ -228,8 +314,6 @@
                         </tr>
                     `;
                 }).join('');
-                
-                initPagination('managedStudentsTable', 10);
             } else {
                 tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${result.message}</td></tr>`;
             }

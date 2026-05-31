@@ -114,7 +114,7 @@ namespace datn.Controllers.Manager
     {
         public int ClassId { get; set; }
         public int SubjectId { get; set; }
-        public int EmployeeId { get; set; }
+        public int? EmployeeId { get; set; }
         public int DayOfWeek { get; set; }
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;

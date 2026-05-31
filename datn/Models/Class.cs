@@ -14,7 +14,6 @@ namespace datn.Models
         public ICollection<Student> Students { get; set; } = new List<Student>();
         public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
         public ICollection<ClassActivity> ClassActivities { get; set; } = new List<ClassActivity>();
-        public ICollection<TeachingPlan> TeachingPlans { get; set; } = new List<TeachingPlan>();
         public ICollection<ClassSchedule> ClassSchedules { get; set; } = new List<ClassSchedule>();
         public Employee? LeadTeacher { get; set; }
     }

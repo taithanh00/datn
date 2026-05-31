@@ -380,7 +380,7 @@ namespace datn.Controllers.Manager
             {
                 ClassScheduleId = model.ClassScheduleId,
                 Date = date,
-                OriginalEmployeeId = schedule.EmployeeId,
+                OriginalEmployeeId = model.OriginalEmployeeId,
                 SubstituteEmployeeId = model.SubstituteEmployeeId,
                 Note = model.Note,
                 Status = "Confirmed"
@@ -524,6 +524,7 @@ namespace datn.Controllers.Manager
         {
             public int ClassScheduleId { get; set; }
             public string Date { get; set; } = string.Empty;
+            public int OriginalEmployeeId { get; set; }
             public int SubstituteEmployeeId { get; set; }
             public string? Note { get; set; }
         }

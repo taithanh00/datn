@@ -209,14 +209,12 @@ async function loadSubjects() {
 }
 
 async function refreshDropdowns() {
-    const [classesResult, teachersResult, subjectsResult] = await Promise.all([
+    const [classesResult, subjectsResult] = await Promise.all([
         fetchJson('/Manager/Api/Classes'),
-        fetchJson('/Manager/Api/Teachers'),
         fetchJson('/Manager/Api/Subjects')
     ]);
 
     fillSelect(document.getElementById('scheduleClassFilter'), classesResult.data || [], 'Chọn lớp');
-    fillSelect(document.getElementById('scheduleTeacherId'), teachersResult.data || [], 'Chọn giáo viên', 'id', item => item.fullName);
     fillSelect(
         document.getElementById('scheduleSubjectId'),
         (subjectsResult.data || []).filter(item => item.isActive),
@@ -356,7 +354,6 @@ async function saveSchedule(event) {
     const payload = {
         classId: parseInt(document.getElementById('scheduleClassId').value, 10),
         subjectId: parseInt(document.getElementById('scheduleSubjectId').value, 10),
-        employeeId: parseInt(document.getElementById('scheduleTeacherId').value, 10),
         dayOfWeek: parseInt(document.getElementById('scheduleDayOfWeek').value, 10),
         startTime: document.getElementById('scheduleStartTime').value,
         endTime: document.getElementById('scheduleEndTime').value,
@@ -452,7 +449,6 @@ async function editSchedule(scheduleId) {
     document.getElementById('scheduleId').value = scheduleId;
     document.getElementById('scheduleClassId').value = data.classId;
     document.getElementById('scheduleSubjectId').value = data.subjectId;
-    document.getElementById('scheduleTeacherId').value = data.employeeId;
     document.getElementById('scheduleDayOfWeek').value = data.dayOfWeek;
     document.getElementById('scheduleStartTime').value = data.startTime;
     document.getElementById('scheduleEndTime').value = data.endTime;
@@ -607,7 +603,9 @@ function resetSubjectForm() {
 
 function resetScheduleForm(classId = null) {
     currentScheduleId = null;
-    document.getElementById('scheduleForm').reset();
+    const form = document.getElementById('scheduleForm');
+    if (form) form.reset();
+    
     document.getElementById('scheduleId').value = '';
     document.getElementById('scheduleEffectiveFrom').value = new Date().toISOString().split('T')[0];
     document.getElementById('scheduleStartTime').value = '07:00';

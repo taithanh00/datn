@@ -11,7 +11,6 @@ namespace datn.Controllers
     public class TodayLessonViewModel
     {
         public string SubjectName { get; set; } = "";
-        public string TopicName { get; set; } = "";
         public string Time { get; set; } = "";
     }
 }

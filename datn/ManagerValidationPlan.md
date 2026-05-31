@@ -112,50 +112,7 @@ Fields cần validate:
   - Giới hạn trên hợp lý, ví dụ <= 100
 - Optional: kiểm tra unique `Name` nếu cần
 
-## 6. Curriculum
-Endpoint: `CreateCurriculum`, `UpdateCurriculum`
-
-Fields cần validate:
-- `Title`
-  - Required
-  - Trim().Length >= 2
-- `SubjectId`
-  - Required, > 0
-  - Subject tồn tại
-- `AgeFrom`, `AgeTo`
-  - Required
-  - `AgeFrom < AgeTo`
-  - Phạm vi hợp lý, ví dụ 2..6
-- `Description`, `Content`
-  - Optional
-  - Trim nếu không null
-- `IsActive`
-  - Set true khi tạo
-
-## 7. TeachingPlan
-Endpoint: `CreateTeachingPlan`, `UpdateTeachingPlan`
-
-Fields cần validate:
-- `ClassId`
-  - Required, > 0
-  - Class tồn tại
-- `CurriculumId`
-  - Required, > 0
-  - Curriculum tồn tại
-- `StartDate`
-  - Required
-  - Parse được thành `DateOnly`
-- `EndDate`
-  - Optional
-  - Nếu có, parse được
-  - `EndDate >= StartDate`
-- `Status`
-  - Required nếu dùng enum/các giá trị giới hạn
-  - Nếu là string/enum, kiểm tra giá trị hợp lệ
-- Unique
-  - Không tạo trùng `ClassId + CurriculumId + StartDate`
-
-## 8. Parent
+## 6. Parent
 Endpoint: `CreateParent`, `UpdateParent`
 
 Fields cần validate (đã có nhiều nhưng cần rà soát lại):
@@ -257,13 +214,13 @@ Fields cần validate:
 - Mọi endpoint `Create` / `Update` trong `ManagerController` cần thêm validation server-side, không chỉ dựa vào HTML/JS client-side.
 - Nên dùng `ModelState.IsValid` cho các view model được trang bị attribute metadata.
 - Với data nhận từ `FromBody`, cần parse an toàn bằng `TryParse` thay vì `Parse` trực tiếp.
-- Với field liên quan FK (`ClassId`, `SubjectId`, `EmployeeId`, `LocationId`, `CurriculumId`), hãy kiểm tra sự tồn tại của bản ghi tương ứng trong DB.
+- Với field liên quan FK (`ClassId`, `SubjectId`, `EmployeeId`, `LocationId`), hãy kiểm tra sự tồn tại của bản ghi tương ứng trong DB.
 - Nếu có trường date/time, validate cả format và giá trị logic trước khi lưu.
 
 ---
 
 ### Gợi ý triến khai nhanh
-1. Bổ sung validation logic cho `Activity`, `Curriculum`, `TeachingPlan`, `Location`.
+1. Bổ sung validation logic cho `Activity`, `Location`.
 2. Cập nhật `Class` và `Subject` để thêm kiểm tra độ dài và định dạng.
 3. Bổ sung `ModelState.IsValid` cho `UpdateStudent`.
 4. Đảm bảo `CreateClassSchedule`/`UpdateClassSchedule` dùng chính xác `TryParse` và kiểm tra FK.

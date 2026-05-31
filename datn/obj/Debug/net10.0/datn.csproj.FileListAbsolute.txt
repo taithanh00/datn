@@ -582,7 +582,6 @@ D:\thanhBinh\datn\obj\Debug\net10.0\compressed\8px13jh810-{0}-wxc8fqjpxt-wxc8fqj
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\jxct952tu5-{0}-rm02o9tp2s-rm02o9tp2s.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\cr4874su11-{0}-jkl3je674s-jkl3je674s.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\l7p3uk2007-{0}-ukn0ixylsl-ukn0ixylsl.gz
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\fn340qhe60-{0}-kpadmiwp2p-kpadmiwp2p.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\xddx4hyc0o-{0}-qme7d804uk-qme7d804uk.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\r5yd36ebae-{0}-ba88zlt1i0-ba88zlt1i0.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\znrdv8k3qn-{0}-rgbh2d6uqp-rgbh2d6uqp.gz
@@ -604,8 +603,6 @@ D:\thanhBinh\datn\obj\Debug\net10.0\compressed\3mwdkhtd7m-{0}-20b4fax1wx-20b4fax
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\8c1m8bx186-{0}-abzji43mun-abzji43mun.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\3z65dftx3d-{0}-hhnxmzhiy1-hhnxmzhiy1.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\zbexzdh1l8-{0}-qzxowu2lfj-qzxowu2lfj.gz
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\pr1f74isvz-{0}-dd5huchfr4-dd5huchfr4.gz
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\cucn15btmh-{0}-8nwf6v0bga-8nwf6v0bga.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\7b2dbz06z1-{0}-zlg5xfn1nu-zlg5xfn1nu.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\9mf4cn6mds-{0}-kbfbo29pmn-kbfbo29pmn.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\acvmzaf8vk-{0}-t5zzs1u3hy-t5zzs1u3hy.gz
@@ -846,7 +843,8 @@ D:\thanhBinh\datn\obj\Debug\net10.0\compressed\8bq9t1oz7n-{0}-mbakebgsx8-mbakebg
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\7zyttg4qzf-{0}-1791fni9ui-1791fni9ui.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\bvy462mwqh-{0}-q2jiolnuss-q2jiolnuss.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\dfjcawpatl-{0}-vtlf63ueqg-vtlf63ueqg.gz
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\jmwzi72gfx-{0}-xkg64znfca-xkg64znfca.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\9u7xyiibsk-{0}-f3s0c5w67c-f3s0c5w67c.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\gnj500cxoh-{0}-rae1r1kten-rae1r1kten.gz
+D:\thanhBinh\datn\obj\Debug\net10.0\compressed\jmwzi72gfx-{0}-36bfm2twq9-36bfm2twq9.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
+D:\thanhBinh\datn\obj\Debug\net10.0\compressed\pr1f74isvz-{0}-b8jiorawqs-b8jiorawqs.gz
