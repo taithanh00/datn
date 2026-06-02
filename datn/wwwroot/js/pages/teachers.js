@@ -166,7 +166,7 @@ async function loadTeachers() {
     }
 
     allTeachersData = result.data;
-    populateFilterPositions();
+    populateFilterRoles();
     applyTeacherFilters();
   } catch (error) {
     console.error("Error loading teachers:", error);
@@ -193,7 +193,8 @@ function renderTeachersTable(teachers) {
 
     const row = document.createElement("tr");
     const actionBtn = `<button class="btn-table" onclick="openEditPanel(${teacher.id})">Sửa</button>`;
-    const roleBadge = '<span class="badge" style="background:#e3f2fd; color:#1976d2;">GV phụ trách</span>';
+    const roleText = teacher.teacherType === "Lead" ? "Giáo viên phụ trách" : teacher.teacherType;
+    const roleBadge = `<span class="badge" style="background:#e3f2fd; color:#1976d2;">${roleText}</span>`;
 
     row.innerHTML = `
     <td>${index + 1}</td>
@@ -266,8 +267,7 @@ async function openEditPanel(teacherId) {
     document.getElementById("email").value = data.email || "";
     document.getElementById("username").value = data.username || "";
     document.getElementById("phone").value = data.phone || "";
-    document.getElementById("position").value = data.position || "";
-    document.getElementById("teacherType").value = "Lead";
+    document.getElementById("teacherType").value = data.teacherType || "Lead";
     document.getElementById("baseSalary").value = data.baseSalary || "";
     document.getElementById("avatarPreview").src =
       data.avatarPath || "/images/lion_blue.png";
@@ -379,7 +379,6 @@ async function handleFormSubmit(e) {
   formData.append("LastName", lastName);
   formData.append("Email", document.getElementById("email").value);
   formData.append("Phone", document.getElementById("phone").value);
-  formData.append("Position", document.getElementById("position").value);
   formData.append("TeacherType", document.getElementById("teacherType").value);
   formData.append("BaseSalary", document.getElementById("baseSalary").value);
 
@@ -489,7 +488,7 @@ function setupFilterListeners() {
   const btnReset = document.getElementById('btnResetFilter');
   if (btnReset) {
     btnReset.addEventListener('click', () => {
-      document.getElementById('filterPosition').value = '';
+      document.getElementById('filterTeacherType').value = '';
       document.getElementById('filterGender').value = '';
       applyTeacherFilters();
       refreshTeachersTablePagination(true);
@@ -497,30 +496,37 @@ function setupFilterListeners() {
   }
 }
 
-function populateFilterPositions() {
-  const select = document.getElementById('filterPosition');
+function populateFilterRoles() {
+  const select = document.getElementById('filterTeacherType');
   if (!select) return;
   const currentVal = select.value;
   select.innerHTML = '<option value="">-- Tất cả --</option>';
-  const positions = [...new Set(allTeachersData.map(t => t.position).filter(Boolean))];
-  positions.sort().forEach(pos => {
-    select.innerHTML += `<option value="${pos}">${pos}</option>`;
+  const roles = [...new Set(allTeachersData.map(t => t.teacherType).filter(Boolean))];
+  roles.sort().forEach(role => {
+    const option = document.createElement('option');
+    option.value = role;
+    option.textContent = role === 'Lead'
+      ? 'Giáo viên phụ trách'
+      : role === 'Subject'
+        ? 'Giáo viên bộ môn'
+        : role;
+    select.appendChild(option);
   });
   select.value = currentVal;
 }
 
 function applyTeacherFilters() {
-  const positionEl = document.getElementById('filterPosition');
+  const teacherTypeEl = document.getElementById('filterTeacherType');
   const genderEl = document.getElementById('filterGender');
-  if (!positionEl || !genderEl) return;
+  if (!teacherTypeEl || !genderEl) return;
 
-  const position = positionEl.value;
+  const teacherType = teacherTypeEl.value;
   const gender = genderEl.value;
 
   let filtered = allTeachersData;
 
-  if (position) {
-    filtered = filtered.filter(t => t.position === position);
+  if (teacherType) {
+    filtered = filtered.filter(t => t.teacherType === teacherType);
   }
   if (gender !== '') {
     const genderBool = gender === 'true';

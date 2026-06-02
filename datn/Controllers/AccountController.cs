@@ -50,7 +50,6 @@ namespace datn.Controllers
                 Role = account.Role?.Name,
                 FullName = account.Employee?.FullName ?? account.Parent?.FullName,
                 Phone = account.Employee?.Phone ?? account.Parent?.Phone,
-                Position = account.Employee?.Position,
                 FirstName = account.Employee?.FirstName ?? account.Parent?.FirstName,
                 LastName = account.Employee?.LastName ?? account.Parent?.LastName,
                 Address = account.Parent?.Address,
@@ -133,8 +132,6 @@ namespace datn.Controllers
                     account.Employee.LastName = model.LastName;
                 if (!string.IsNullOrWhiteSpace(model.Phone))
                     account.Employee.Phone = model.Phone;
-                if (!string.IsNullOrWhiteSpace(model.Position))
-                    account.Employee.Position = model.Position;
             }
             else if (account.Role?.Name == "Parent" && account.Parent != null)
             {
@@ -391,7 +388,6 @@ namespace datn.Controllers
 
         public string FullName { get; set; }
         public string Phone { get; set; }
-        public string Position { get; set; }
 
         public string FirstName { get; set; }
         public string LastName { get; set; }

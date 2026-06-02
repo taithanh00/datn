@@ -11,10 +11,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Mobile Menu Toggle (Basic for now)
-    if (mobileMenuBtn) {
+    // Mobile Menu Toggle
+    const mobileNav = document.getElementById('mobileNav');
+    if (mobileMenuBtn && mobileNav) {
         mobileMenuBtn.addEventListener('click', function() {
-            alert('Chức năng Menu Mobile sẽ được hoàn thiện trong bước tiếp theo!');
+            const isActive = mobileNav.classList.toggle('active');
+            mobileMenuBtn.innerHTML = isActive
+                ? '<i class="fa-solid fa-xmark"></i>'
+                : '<i class="fa-solid fa-bars"></i>';
+        });
+
+        mobileNav.querySelectorAll('a').forEach((link) => {
+            link.addEventListener('click', function () {
+                mobileNav.classList.remove('active');
+                mobileMenuBtn.innerHTML = '<i class="fa-solid fa-bars"></i>';
+            });
+        });
+
+        document.addEventListener('click', function (event) {
+            if (
+                mobileNav.classList.contains('active') &&
+                !mobileNav.contains(event.target) &&
+                !mobileMenuBtn.contains(event.target)
+            ) {
+                mobileNav.classList.remove('active');
+                mobileMenuBtn.innerHTML = '<i class="fa-solid fa-bars"></i>';
+            }
         });
     }
 
@@ -36,6 +58,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.innerHTML = originalText;
                 consultForm.reset();
             }, 1500);
+        });
+    }
+
+    const consultSection = document.getElementById('consultationFormSection');
+    const consultToggle = document.getElementById('consultToggle');
+    if (consultSection && consultToggle) {
+        consultToggle.addEventListener('click', function() {
+            const isCollapsed = consultSection.classList.toggle('collapsed');
+            consultToggle.setAttribute('aria-expanded', String(!isCollapsed));
+            const label = consultToggle.querySelector('.toggle-label');
+            const icon = consultToggle.querySelector('i');
+            if (label) {
+                label.textContent = isCollapsed ? 'Mở rộng' : 'Thu gọn';
+            }
+            if (icon) {
+                icon.classList.toggle('fa-chevron-up', !isCollapsed);
+                icon.classList.toggle('fa-chevron-down', isCollapsed);
+            }
         });
     }
 

@@ -21,7 +21,6 @@ namespace datn.Models
         [NotMapped]
         public string FullName => $"{LastName} {FirstName}".Trim();
         public string? Phone { get; set; }
-        public string? Position { get; set; }
         public decimal? BaseSalary { get; set; }
         public string? AvatarPath { get; set; }
         public bool IsActive { get; set; } = true;

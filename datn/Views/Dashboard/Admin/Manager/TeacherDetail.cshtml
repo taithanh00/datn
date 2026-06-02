@@ -37,7 +37,7 @@
             </div>
 
             <h3 class="student-name">@Model.FullName</h3>
-            <span class="student-code">@Model.Position</span>
+            <span class="student-code">@((Model.TeacherType == datn.Models.TeacherType.Lead) ? "Giáo viên phụ trách" : "Giáo viên bộ môn")</span>
 
             <div class="quick-stats">
                 <div class="stat-item">
@@ -71,8 +71,8 @@
                 <div class="info-item">
                     <i class="fa-solid fa-briefcase"></i>
                     <div>
-                        <label>Vị trí</label>
-                        <p>@(Model.Position ?? "Giáo viên")</p>
+                        <label>Vai trò</label>
+                        <p>@((Model.TeacherType == datn.Models.TeacherType.Lead) ? "Giáo viên phụ trách" : "Giáo viên bộ môn")</p>
                     </div>
                 </div>
             </div>

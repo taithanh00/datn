@@ -40,7 +40,6 @@ namespace datn.Controllers.Manager
                     id = t.Id,
                     fullName = t.FullName,
                     phone = t.Phone,
-                    position = t.Position ?? "Giáo viên",
                     teacherType = t.TeacherType,
                     baseSalary = t.BaseSalary,
                     avatarPath = t.AvatarPath ?? "/images/lion_blue.png",
@@ -81,7 +80,6 @@ namespace datn.Controllers.Manager
                     username = teacher.Account?.Username,
                     gender = teacher.Gender,
                     phone = teacher.Phone,
-                    position = teacher.Position,
                     teacherType = teacher.TeacherType,
                     baseSalary = teacher.BaseSalary,
                     avatarPath = teacher.AvatarPath,
@@ -133,7 +131,6 @@ namespace datn.Controllers.Manager
                     LastName = model.LastName,
                     Gender = model.Gender,
                     Phone = model.Phone,
-                    Position = model.Position,
                     TeacherType = TeacherType.Lead,
                     BaseSalary = model.BaseSalary,
                     Bio = model.Bio,
@@ -181,7 +178,6 @@ namespace datn.Controllers.Manager
                 teacher.LastName = model.LastName;
                 teacher.Gender = model.Gender;
                 teacher.Phone = model.Phone;
-                teacher.Position = model.Position;
                 teacher.TeacherType = TeacherType.Lead;
                 teacher.BaseSalary = model.BaseSalary;
                 teacher.Bio = model.Bio;

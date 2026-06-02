@@ -74,29 +74,41 @@
         <h2 class="section-title">Đăng ký tư vấn</h2>
         <p class="section-subtitle">Để lại thông tin, đội ngũ tuyển sinh của SenHồng sẽ liên hệ với bạn trong vòng 24h.</p>
         
-        <div class="consultation-form">
-            <form id="consultForm">
-                <div class="grid grid-2 gap-4" style="grid-template-columns: 1fr 1fr; margin-bottom: 20px;">
-                    <div class="form-group">
-                        <label>Tên của bạn</label>
-                        <input type="text" id="consultName" name="FullName" class="form-control" placeholder="Nhập họ tên" required />
+        <div class="consultation-form" id="consultationFormSection">
+            <div class="consultation-form-header">
+                <div>
+                    <h3 class="consultation-form-title">Đăng ký tư vấn</h3>
+                    <p class="consultation-form-text">Bạn có thể thu gọn phần này nếu chỉ muốn tham khảo nội dung và mở rộng khi cần gửi yêu cầu.</p>
+                </div>
+                <button type="button" class="collapse-toggle" id="consultToggle" aria-expanded="true">
+                    <span class="toggle-label">Thu gọn</span>
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+            </div>
+            <div class="consultation-form-body">
+                <form id="consultForm">
+                    <div class="grid grid-2 gap-4" style="grid-template-columns: 1fr 1fr; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label>Tên của bạn</label>
+                            <input type="text" id="consultName" name="FullName" class="form-control" placeholder="Nhập họ tên" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Số điện thoại</label>
+                            <input type="tel" id="consultPhone" name="PhoneNumber" class="form-control" placeholder="0xxx xxx xxx" required pattern="[0-9]{10}" title="Vui lòng nhập số điện thoại 10 chữ số" />
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label>Số điện thoại</label>
-                        <input type="tel" id="consultPhone" name="PhoneNumber" class="form-control" placeholder="0xxx xxx xxx" required pattern="[0-9]{10}" title="Vui lòng nhập số điện thoại 10 chữ số" />
+                        <label>Email (nếu có)</label>
+                        <input type="email" id="consultEmail" name="Email" class="form-control" placeholder="example@email.com" />
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Email (nếu có)</label>
-                    <input type="email" id="consultEmail" name="Email" class="form-control" placeholder="example@email.com" />
-                </div>
-                <div class="form-group" style="margin-top: 20px;">
-                    <label>Nội dung cần tư vấn</label>
-                    <textarea id="consultNote" name="Note" class="form-control" rows="4" placeholder="Nhập nội dung yêu cầu (ví dụ: muốn đăng ký lớp mầm cho bé 3 tuổi)..."></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 30px; width: 200px; padding: 12px; min-height: 50px;">GỬI YÊU CẦU</button>
-            </form>
-            <div id="consultResult" style="margin-top: 20px; display: none;"></div>
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>Nội dung cần tư vấn</label>
+                        <textarea id="consultNote" name="Note" class="form-control" rows="4" placeholder="Nhập nội dung yêu cầu (ví dụ: muốn đăng ký lớp mầm cho bé 3 tuổi)..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 30px; width: 200px; padding: 12px; min-height: 50px;">GỬI YÊU CẦU</button>
+                </form>
+                <div id="consultResult" style="margin-top: 20px; display: none;"></div>
+            </div>
         </div>
     </div>
 </section>

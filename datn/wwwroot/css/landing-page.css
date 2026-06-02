@@ -168,6 +168,63 @@ body {
     100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
 }
 
+.mobile-menu-btn {
+    display: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    border: 1px solid rgba(99, 102, 241, 0.12);
+    background: white;
+    color: var(--text-main);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.mobile-nav {
+    display: none;
+    position: fixed;
+    top: 72px;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background: white;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    max-height: 0;
+    opacity: 0;
+}
+
+.mobile-nav.active {
+    display: block;
+    max-height: 340px;
+    opacity: 1;
+}
+
+.mobile-nav .nav-link,
+.mobile-nav .btn-login {
+    display: block;
+    width: 100%;
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.mobile-nav .btn-login {
+    margin: 0;
+}
+
+@media (max-width: 767px) {
+    .desktop-nav {
+        display: none;
+    }
+
+    .mobile-menu-btn {
+        display: inline-flex;
+    }
+}
+
 /* Features/Program Card */
 .program-card {
     background: var(--bg-white);
@@ -200,11 +257,69 @@ body {
 /* Consultation Form */
 .consultation-form {
     background: var(--bg-white);
-    padding: 60px;
+    padding: 40px;
     border-radius: 32px;
     box-shadow: 0 30px 60px rgba(0,0,0,0.05);
     max-width: 800px;
     margin: 0 auto;
+}
+
+.consultation-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    padding-bottom: 18px;
+}
+
+.consultation-form-title {
+    margin: 0 0 8px;
+    font-size: 1.5rem;
+}
+
+.consultation-form-text {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.collapse-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(233, 30, 99, 0.25);
+    background: transparent;
+    color: var(--primary);
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.collapse-toggle:hover {
+    background: rgba(233, 30, 99, 0.05);
+}
+
+.consultation-form-body {
+    transition: max-height 0.35s ease, opacity 0.35s ease, transform 0.35s ease;
+    max-height: 2000px;
+    opacity: 1;
+    transform: translateY(0);
+    overflow: hidden;
+}
+
+.consultation-form.collapsed .consultation-form-body {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+.consultation-form.collapsed .collapse-toggle {
+    background: rgba(233, 30, 99, 0.08);
 }
 
 .form-group {

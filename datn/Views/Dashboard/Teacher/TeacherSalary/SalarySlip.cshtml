@@ -45,8 +45,8 @@
             <span style="font-weight: 600;">@Model.Employee.FullName</span>
         </div>
         <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
-            <span class="text-muted">Vị trí:</span>
-            <span style="font-weight: 600;">@Model.Employee.Position</span>
+            <span class="text-muted">Vai trò:</span>
+            <span style="font-weight: 600;">@((Model.Employee.TeacherType == datn.Models.TeacherType.Lead) ? "Giáo viên chủ nhiệm" : "Giáo viên bộ môn")</span>
         </div>
         <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
             <span class="text-muted">Trạng thái:</span>

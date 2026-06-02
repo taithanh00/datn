@@ -58,7 +58,6 @@ namespace datn.Controllers.Manager
         public string LastName { get; set; } = string.Empty;
         public bool Gender { get; set; }
         public string? Phone { get; set; }
-        public string? Position { get; set; }
         public TeacherType TeacherType { get; set; }
         public decimal? BaseSalary { get; set; }
         public IFormFile? Avatar { get; set; }
@@ -81,7 +80,6 @@ namespace datn.Controllers.Manager
         public string LastName { get; set; } = string.Empty;
         public bool Gender { get; set; }
         public string? Phone { get; set; }
-        public string? Position { get; set; }
         public TeacherType TeacherType { get; set; }
         public decimal? BaseSalary { get; set; }
         public IFormFile? Avatar { get; set; }

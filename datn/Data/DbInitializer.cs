@@ -38,7 +38,6 @@ namespace datn.Data
                     AccountId = adminAccount.Id,
                     FirstName = "Hệ thống",
                     LastName = "Quản trị",
-                    Position = "Administrator",
                     IsActive = true
                 };
 
@@ -74,8 +73,8 @@ namespace datn.Data
             {
                 var teachers = new List<Employee>
                 {
-                    new Employee { FirstName = "Nguyễn Thị", LastName = "Lan", Position = "Giáo viên mầm non", IsActive = true },
-                    new Employee { FirstName = "Trần Văn", LastName = "Hùng", Position = "Giáo viên chuyên môn", IsActive = true }
+                    new Employee { FirstName = "Nguyễn Thị", LastName = "Lan", IsActive = true },
+                    new Employee { FirstName = "Trần Văn", LastName = "Hùng", IsActive = true }
                 };
                 context.Employees.AddRange(teachers);
                 await context.SaveChangesAsync();
