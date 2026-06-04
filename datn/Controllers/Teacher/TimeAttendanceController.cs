@@ -16,9 +16,9 @@ namespace datn.Controllers.Teacher
     {
         private const string PendingStatus = "Pending";
         private const decimal LatePenaltyAmount = 20000m;
-        private static readonly TimeSpan WorkStart = new(8, 0, 0);
+        private static readonly TimeSpan WorkStart = new(6, 45, 0);
         private static readonly TimeSpan WorkEnd = new(17, 0, 0);
-        private static readonly TimeSpan GraceEnd = new(8, 10, 0);
+        private static readonly TimeSpan GraceEnd = new(6, 55, 0);
 
         private readonly IHubContext<RealtimeHub> _hubContext;
 

@@ -56,6 +56,18 @@ function validateAssignmentPayload(data, isEdit) {
         return 'Một lớp chỉ được phân công tối đa 2 giáo viên phụ trách trong cùng thời gian.';
     }
 
+    const teacherBusy = allAssignments.filter(a => {
+        if (a.employeeId !== data.employeeId) return false;
+        if (isEdit && data.oldEmployeeId === a.employeeId && data.oldClassId === a.classId && data.oldStartDate === a.startDate) {
+            return false;
+        }
+        return dateRangesOverlap(currentStart, currentEnd, parseAssignmentDate(a.startDate), parseAssignmentDate(a.endDate));
+    });
+
+    if (teacherBusy.length > 0) {
+        return 'Giáo viên này đã được phân công cho lớp khác trong cùng thời gian.';
+    }
+
     return null;
 }
 
@@ -121,11 +133,11 @@ function renderAssignments(data) {
     }
     tbody.innerHTML = data.map(item => {
         const initial = item.employeeName.charAt(0).toUpperCase();
-        const isPrimary = true;
+        const avatar = item.avatarPath || '/images/lion_blue.png';
         return `<tr>
-            <td><div class="d-flex align-center gap-1"><div class="avatar" style="background:${isPrimary?'var(--primary)':'#64748B'}">${initial}</div><div><div style="font-weight:600;">${item.employeeName}</div></div></div></td>
+            <td><div class="d-flex align-center gap-1"><img src="${avatar}" alt="Avatar" class="avatar" style="width:36px; height:36px; object-fit:cover; border-radius:50%; border:1px solid var(--border);" onerror="this.src='/images/lion_blue.png'"><div><div style="font-weight:600;">${item.employeeName}</div></div></div></td>
             <td><strong>${item.className}</strong></td>
-            <td><span class="badge ${isPrimary?'badge-info':'badge-success'}">${item.roleInClass || 'Giáo viên phụ trách'}</span></td>
+            <td><span class="badge badge-info">${item.roleInClass || 'Giáo viên phụ trách'}</span></td>
             <td>${formatDate(item.startDate)} ${item.endDate ? '- '+formatDate(item.endDate) : '<span class="text-success">Hiện tại</span>'}</td>
             <td style="text-align:right;">
                 <button class="btn-table" onclick="editAssignment(${item.employeeId},${item.classId},'${item.startDate}')">Sửa</button>
@@ -264,7 +276,7 @@ async function saveAssignment() {
 async function deleteAssignment(empId, clsId, start) {
     if (!confirm('Xóa phân công này?')) return;
     try {
-        const r = await fetch(`/Manager/Api/Assignment?employeeId=${empId}&classId=${clsId}&startDate=${start}`, { method:'DELETE' });
+        const r = await fetch(`/Manager/Api/Assignment?employeeId=${empId}&classId=${clsId}&startDate=${encodeURIComponent(start)}`, { method:'DELETE' });
         const result = await r.json();
         if (result.success) { 
             loadAssignments(); 

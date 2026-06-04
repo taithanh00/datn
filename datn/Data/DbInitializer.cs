@@ -124,8 +124,8 @@ namespace datn.Data
                     SubjectId = mathSubject.Id,
                     EmployeeId = null,
                     DayOfWeek = 1, // Monday
-                    StartTime = new TimeOnly(8, 30),
-                    EndTime = new TimeOnly(10, 0),
+                    StartTime = new TimeOnly(8, 15),
+                    EndTime = new TimeOnly(9, 45),
                     EffectiveFrom = DateOnly.FromDateTime(DateTime.Now.AddMonths(-1)),
                     Note = "Học tại phòng đa năng",
                     IsActive = true

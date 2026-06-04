@@ -5,12 +5,12 @@ let showInactiveClasses = false;
 let showInactiveSubjects = false;
 
 const ACTIVITY_SLOTS = [
-    { start: '07:00', end: '08:30' },
-    { start: '08:30', end: '10:00' },
-    { start: '10:00', end: '11:00' },
-    { start: '11:00', end: '14:00' },
-    { start: '14:00', end: '15:30' },
-    { start: '15:30', end: '17:00' }
+    { start: '06:45', end: '08:15' },
+    { start: '08:15', end: '09:45' },
+    { start: '09:45', end: '10:45' },
+    { start: '10:45', end: '13:45' },
+    { start: '13:45', end: '15:15' },
+    { start: '15:15', end: '17:00' }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -473,7 +473,7 @@ function openScheduleModal(day, slotIdx, isEdit = false, suggestedStartTime = nu
         document.getElementById('scheduleClassId').value = classId;
         document.getElementById('scheduleDayOfWeek').value = day;
         
-        const start = suggestedStartTime || (slotIdx >= 0 ? ACTIVITY_SLOTS[slotIdx].start : '07:00');
+        const start = suggestedStartTime || (slotIdx >= 0 ? ACTIVITY_SLOTS[slotIdx].start : '06:45');
         document.getElementById('scheduleStartTime').value = start;
         
         // Tự động tính giờ kết thúc (mặc định 45 phút sau)
@@ -608,7 +608,7 @@ function resetScheduleForm(classId = null) {
     
     document.getElementById('scheduleId').value = '';
     document.getElementById('scheduleEffectiveFrom').value = new Date().toISOString().split('T')[0];
-    document.getElementById('scheduleStartTime').value = '07:00';
+    document.getElementById('scheduleStartTime').value = '06:45';
     document.getElementById('scheduleEndTime').value = '08:00';
     document.getElementById('scheduleIsActive').value = 'true';
     document.getElementById('saveScheduleBtn').textContent = 'Lưu thời khóa biểu';

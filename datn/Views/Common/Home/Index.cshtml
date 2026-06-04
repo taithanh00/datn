@@ -55,14 +55,13 @@
     var hour = DateTime.Now.Hour;
     var greeting = hour < 12 ? "Chào buổi sáng" : hour < 18 ? "Chào buổi chiều" : "Chào buổi tối";
 
-    <div class="welcome-banner" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 16px; padding: 32px; color: white; margin-bottom: 24px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(232, 62, 140, 0.2);">
-        <div style="position: relative; z-index: 2;">
-            <h2 style="font-weight: 700; margin-bottom: 8px; font-size: 1.8rem;">@greeting, @ViewBag.FullName! 👋</h2>
-            <p style="opacity: 0.9; font-size: 1.1rem; max-width: 600px;">Chào mừng bạn đến với Cổng thông tin Phụ huynh. Hãy theo dõi hành trình học tập và phát triển của bé yêu mỗi ngày.</p>
+    <div class="welcome-banner parent-home-hero">
+        <div class="parent-home-hero__content">
+            <h2 class="parent-home-hero__title">@greeting, @ViewBag.FullName! 👋</h2>
+            <p class="parent-home-hero__text">Chào mừng bạn đến với Cổng thông tin Phụ huynh. Hãy theo dõi hành trình học tập và phát triển của bé yêu mỗi ngày.</p>
         </div>
-        <!-- Decorative shapes -->
-        <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; blur(10px);"></div>
-        <div style="position: absolute; bottom: -30px; right: 100px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; blur(5px);"></div>
+        <div class="parent-home-hero__orb parent-home-hero__orb--lg"></div>
+        <div class="parent-home-hero__orb parent-home-hero__orb--sm"></div>
     </div>
 
     <div class="stats-grid" id="parentDashboardGrid" style="margin-bottom: 32px;">
@@ -82,7 +81,6 @@
 
     <h3 style="margin-bottom: 20px; font-weight: 600; font-size: 1.4rem; color: var(--text-main);">Truy cập nhanh</h3>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
-        
         <a href="/DailyReport/MyChild" class="quick-access-card" style="background: white; border-radius: 16px; padding: 24px; text-align: center; text-decoration: none; color: var(--text-main); box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; display: block;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'">
             <div style="width: 60px; height: 60px; background: rgba(232, 62, 140, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
                 <i class="fa-solid fa-notes-medical" style="font-size: 24px; color: var(--primary);"></i>
@@ -107,6 +105,98 @@
             <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Ngoại khóa</p>
         </a>
     </div>
+}
+
+@section Styles {
+    <style>
+        .parent-home-hero {
+            position: relative;
+            overflow: hidden;
+            padding: 32px;
+            margin-bottom: 24px;
+            border-radius: 20px;
+            border: 1px solid rgba(233, 30, 99, 0.14);
+            background:
+                radial-gradient(circle at top right, rgba(255, 255, 255, 0.72), transparent 42%),
+                linear-gradient(135deg, #fff6fa 0%, #ffe7f0 52%, #ffd9e7 100%);
+            box-shadow: 0 12px 30px rgba(233, 30, 99, 0.12);
+            color: var(--text-main);
+        }
+
+        .parent-home-hero__content {
+            position: relative;
+            z-index: 2;
+            max-width: 700px;
+        }
+
+        .parent-home-hero__title {
+            margin: 0 0 10px;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            line-height: 1.25;
+            font-weight: 800;
+            color: var(--text-main);
+            text-shadow: none;
+        }
+
+        .parent-home-hero__text {
+            margin: 0;
+            max-width: 620px;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .parent-home-hero__orb {
+            position: absolute;
+            border-radius: 999px;
+            pointer-events: none;
+            background: rgba(233, 30, 99, 0.08);
+            filter: blur(10px);
+        }
+
+        .parent-home-hero__orb--lg {
+            width: 220px;
+            height: 220px;
+            top: -70px;
+            right: -60px;
+        }
+
+        .parent-home-hero__orb--sm {
+            width: 120px;
+            height: 120px;
+            right: 90px;
+            bottom: -40px;
+            filter: blur(8px);
+        }
+
+        :root[data-theme="dark"] .parent-home-hero {
+            border-color: rgba(240, 98, 146, 0.22);
+            background:
+                radial-gradient(circle at top right, rgba(240, 98, 146, 0.24), transparent 42%),
+                linear-gradient(135deg, rgba(240, 98, 146, 0.22) 0%, rgba(88, 86, 214, 0.22) 100%);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+            color: var(--text-main);
+        }
+
+        :root[data-theme="dark"] .parent-home-hero__title,
+        :root[data-theme="dark"] .parent-home-hero__text {
+            color: var(--text-main);
+        }
+
+        :root[data-theme="dark"] .parent-home-hero__orb {
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        @@media (max-width: 768px) {
+            .parent-home-hero {
+                padding: 24px;
+            }
+
+            .parent-home-hero__text {
+                font-size: 1rem;
+            }
+        }
+    </style>
 }
 
 @section Scripts {

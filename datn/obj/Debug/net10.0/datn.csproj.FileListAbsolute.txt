@@ -180,9 +180,7 @@ D:\thanhBinh\datn\obj\Debug\net10.0\compressed\3mwdkhtd7m-{0}-20b4fax1wx-20b4fax
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\8c1m8bx186-{0}-abzji43mun-abzji43mun.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\3z65dftx3d-{0}-hhnxmzhiy1-hhnxmzhiy1.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\zbexzdh1l8-{0}-qzxowu2lfj-qzxowu2lfj.gz
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\dfjcawpatl-{0}-vtlf63ueqg-vtlf63ueqg.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\pr1f74isvz-{0}-b8jiorawqs-b8jiorawqs.gz
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\jmwzi72gfx-{0}-36bfm2twq9-36bfm2twq9.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\7b2dbz06z1-{0}-zlg5xfn1nu-zlg5xfn1nu.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\9mf4cn6mds-{0}-kbfbo29pmn-kbfbo29pmn.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\acvmzaf8vk-{0}-t5zzs1u3hy-t5zzs1u3hy.gz
@@ -283,5 +281,7 @@ D:\thanhBinh\datn\obj\Debug\net10.0\ref\datn.dll
 d:\thanhBinh\datn\obj\Debug\net10.0\compressed\gnj500cxoh-{0}-f8jkejsepr-f8jkejsepr.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\jbp14jxeti-{0}-oh3ot2urgs-oh3ot2urgs.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\3t1hmoof64-{0}-08yhhjs2pu-08yhhjs2pu.gz
+D:\thanhBinh\datn\obj\Debug\net10.0\compressed\ip7xgacu2z-{0}-ekvbcs7hd5-ekvbcs7hd5.gz
+D:\thanhBinh\datn\obj\Debug\net10.0\compressed\jmwzi72gfx-{0}-9b1mxdp09c-9b1mxdp09c.gz
+D:\thanhBinh\datn\obj\Debug\net10.0\compressed\dfjcawpatl-{0}-6vq0z3p48c-6vq0z3p48c.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\ip7xgacu2z-{0}-do83c0vdi4-do83c0vdi4.gz

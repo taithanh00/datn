@@ -210,7 +210,7 @@ namespace datn.Controllers.Manager
                 return "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.";
 
             if (startTime < SchoolStart || endTime > SchoolEnd)
-                return "Chỉ được xếp lịch trong khung 07:00 - 16:30.";
+                return "Chỉ được xếp lịch trong khung 06:45 - 17:00.";
 
             if (startTime < LunchEnd && endTime > LunchStart)
                 return "Thời khóa biểu không được chồng lên khung nghỉ trưa 11:00 - 13:00.";

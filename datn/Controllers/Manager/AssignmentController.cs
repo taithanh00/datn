@@ -21,6 +21,7 @@ namespace datn.Controllers.Manager
             try
             {
                 var assignments = await _context.Assignments
+                    .Where(a => a.IsActive)
                     .Include(a => a.Employee)
                     .Include(a => a.Class)
                     .OrderByDescending(a => a.StartDate)
@@ -30,6 +31,7 @@ namespace datn.Controllers.Manager
                 {
                     employeeId = a.EmployeeId,
                     employeeName = a.Employee?.FullName ?? "N/A",
+                    avatarPath = a.Employee?.AvatarPath ?? "/images/lion_blue.png",
                     classId = a.ClassId,
                     className = a.Class?.Name ?? "N/A",
                     startDate = a.StartDate.ToString("yyyy-MM-dd"),
@@ -84,6 +86,13 @@ namespace datn.Controllers.Manager
                 var exists = await _context.Assignments.AnyAsync(a =>
                     a.EmployeeId == model.EmployeeId && a.ClassId == model.ClassId && a.StartDate == startDate);
                 if (exists) return Json(new { success = false, message = "Phân công này đã tồn tại" });
+
+                var teacherBusy = await CountOverlappingTeacherAssignmentsAsync(
+                    model.EmployeeId,
+                    startDate,
+                    endDate);
+                if (teacherBusy > 0)
+                    return Json(new { success = false, message = "Giáo viên này đã được phân công cho lớp khác trong cùng thời gian." });
 
                 var overlappingCount = await CountOverlappingAssignmentsAsync(model.ClassId, startDate, endDate);
                 if (overlappingCount >= 2)
@@ -164,6 +173,16 @@ namespace datn.Controllers.Manager
                     if (duplicate) return Json(new { success = false, message = "Phân công mới đã tồn tại" });
                 }
 
+                var teacherBusy = await CountOverlappingTeacherAssignmentsAsync(
+                    model.EmployeeId,
+                    newStartDate,
+                    newEndDate,
+                    oldEmpId,
+                    oldClsId,
+                    oldSDate);
+                if (teacherBusy > 0)
+                    return Json(new { success = false, message = "Giáo viên này đã được phân công cho lớp khác trong cùng thời gian." });
+
                 var overlappingCount = await CountOverlappingAssignmentsAsync(
                     model.ClassId,
                     newStartDate,
@@ -210,7 +229,9 @@ namespace datn.Controllers.Manager
         [HttpDelete("Api/Assignment")]
         public async Task<IActionResult> DeleteAssignment(int employeeId, int classId, string startDate)
         {
-            var sDate = DateOnly.Parse(startDate);
+            if (!DateOnly.TryParse(startDate, out var sDate))
+                return Json(new { success = false, message = "Ngày bắt đầu không hợp lệ." });
+
             var assignment = await _context.Assignments
                 .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.ClassId == classId && a.StartDate == sDate);
 
@@ -224,7 +245,9 @@ namespace datn.Controllers.Manager
         [HttpPost("Api/Assignment/Reactivate")]
         public async Task<IActionResult> ReactivateAssignment(int employeeId, int classId, string startDate)
         {
-            var sDate = DateOnly.Parse(startDate);
+            if (!DateOnly.TryParse(startDate, out var sDate))
+                return Json(new { success = false, message = "Ngày bắt đầu không hợp lệ." });
+
             var assignment = await _context.Assignments.IgnoreQueryFilters()
                 .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.ClassId == classId && a.StartDate == sDate);
 
@@ -259,6 +282,32 @@ namespace datn.Controllers.Manager
             var rangeEnd = endDate ?? DateOnly.MaxValue;
             var query = _context.Assignments.Where(a =>
                 a.ClassId == classId &&
+                a.IsActive &&
+                a.StartDate <= rangeEnd &&
+                (a.EndDate == null || a.EndDate >= startDate));
+
+            if (excludeEmployeeId.HasValue && excludeClassId.HasValue && excludeStartDate.HasValue)
+            {
+                query = query.Where(a =>
+                    !(a.EmployeeId == excludeEmployeeId.Value &&
+                      a.ClassId == excludeClassId.Value &&
+                      a.StartDate == excludeStartDate.Value));
+            }
+
+            return await query.CountAsync();
+        }
+
+        private async Task<int> CountOverlappingTeacherAssignmentsAsync(
+            int employeeId,
+            DateOnly startDate,
+            DateOnly? endDate,
+            int? excludeEmployeeId = null,
+            int? excludeClassId = null,
+            DateOnly? excludeStartDate = null)
+        {
+            var rangeEnd = endDate ?? DateOnly.MaxValue;
+            var query = _context.Assignments.Where(a =>
+                a.EmployeeId == employeeId &&
                 a.IsActive &&
                 a.StartDate <= rangeEnd &&
                 (a.EndDate == null || a.EndDate >= startDate));
