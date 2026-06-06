@@ -1,31 +1,8 @@
-﻿/*
-    SenHong Kindergarten final SQL script
-    Generated from current project EF schema and legacy data file:
-    C:\Users\taith\Downloads\SenHong_Kindergarten_CuoiKy.sql
-
-    WARNING: This script drops and recreates database [datn].
-*/
-USE [master];
-GO
-IF DB_ID(N'datn') IS NOT NULL
-BEGIN
-    ALTER DATABASE [datn] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [datn];
-END
-GO
-CREATE DATABASE [datn];
+﻿CREATE DATABASE [datn];
 GO
 USE [datn];
 GO
 
-SET ANSI_NULLS ON;
-SET ANSI_PADDING ON;
-SET ANSI_WARNINGS ON;
-SET ARITHABORT ON;
-SET CONCAT_NULL_YIELDS_NULL ON;
-SET QUOTED_IDENTIFIER ON;
-SET NUMERIC_ROUNDABORT OFF;
-GO
 
 CREATE TABLE [AuditLogs] (
     [Id] int NOT NULL IDENTITY,
@@ -168,6 +145,7 @@ CREATE TABLE [Employees] (
     [ShowOnLanding] bit NOT NULL,
     [TeacherType] int NOT NULL,
     [SpecializedSubjects] nvarchar(max) NULL,
+    [DateOfBirth] nvarchar(max) NULL,
     CONSTRAINT [PK_Employees] PRIMARY KEY ([Id]),
     CONSTRAINT [FK_Employees_Accounts_AccountId] FOREIGN KEY ([AccountId]) REFERENCES [Accounts] ([Id]) ON DELETE CASCADE
 );
@@ -756,8 +734,6 @@ GO
 
 
 
-
--- Seed Accounts for default manager, legacy employees and parents
 SET IDENTITY_INSERT [Accounts] ON;
 INSERT INTO [Accounts] ([Id], [Username], [PasswordHash], [PasswordSalt], [Email], [IsActive], [RoleId], [CreatedAt], [UpdatedAt], [PasswordResetToken], [ResetTokenExpires])
 VALUES
@@ -800,7 +776,6 @@ VALUES
 SET IDENTITY_INSERT [Accounts] OFF;
 GO
 
--- Seed Employees from default manager and legacy NHANVIEN
 SET IDENTITY_INSERT [Employees] ON;
 INSERT INTO [Employees] ([Id], [AccountId], [FirstName], [LastName], [Phone], [BaseSalary], [AvatarPath], [IsActive], [Gender], [Bio], [Qualifications], [Experience], [Philosophy], [Specialty], [ShowOnLanding], [TeacherType], [SpecializedSubjects])
 VALUES
@@ -823,7 +798,6 @@ VALUES
 SET IDENTITY_INSERT [Employees] OFF;
 GO
 
--- Seed Parents from legacy PHUHUYNH
 SET IDENTITY_INSERT [Parents] ON;
 INSERT INTO [Parents] ([Id], [AccountId], [FirstName], [LastName], [Phone], [Address], [Gender], [AvatarPath], [IsActive])
 VALUES
@@ -850,7 +824,3 @@ VALUES
 SET IDENTITY_INSERT [Parents] OFF;
 GO
 
-DBCC CHECKIDENT ('Accounts', RESEED, 3000);
-DBCC CHECKIDENT ('Employees', RESEED, 3000);
-DBCC CHECKIDENT ('Parents', RESEED, 3000);
-GO
