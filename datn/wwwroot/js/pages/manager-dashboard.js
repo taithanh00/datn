@@ -12,11 +12,19 @@ async function loadDashboardData() {
             document.getElementById('statTeachers').textContent = data.stats.totalTeachers;
             document.getElementById('statRevenue').textContent = new Intl.NumberFormat('vi-VN').format(data.stats.monthlyRevenue) + ' đ';
             document.getElementById('statPendingLeaves').textContent = data.stats.pendingLeaves;
+            setStatValue('statActiveContracts', data.stats.activeContracts);
+            setStatValue('statExpiringContracts', data.stats.expiringContracts);
+            setStatValue('statTeachersWithoutContracts', data.stats.teachersWithoutContracts);
             renderRevenueChart(data.charts.revenue);
             renderAttendanceChart(data.charts.attendance);
             renderLeavesTable(data.latestLeaves);
         }
     } catch (e) { console.error("Load dashboard failed", e); }
+}
+
+function setStatValue(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value ?? 0;
 }
 
 function renderRevenueChart(data) {

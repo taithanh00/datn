@@ -83,9 +83,10 @@ namespace datn.Controllers.Manager
                 if (!await _context.Classes.AnyAsync(c => c.Id == model.ClassId))
                     return Json(new { success = false, message = "Lớp học không tồn tại." });
 
-                var exists = await _context.Assignments.AnyAsync(a =>
+                var existingAssignment = await _context.Assignments.FirstOrDefaultAsync(a =>
                     a.EmployeeId == model.EmployeeId && a.ClassId == model.ClassId && a.StartDate == startDate);
-                if (exists) return Json(new { success = false, message = "Phân công này đã tồn tại" });
+                if (existingAssignment?.IsActive == true)
+                    return Json(new { success = false, message = "Phân công này đã tồn tại" });
 
                 var teacherBusy = await CountOverlappingTeacherAssignmentsAsync(
                     model.EmployeeId,
@@ -97,6 +98,15 @@ namespace datn.Controllers.Manager
                 var overlappingCount = await CountOverlappingAssignmentsAsync(model.ClassId, startDate, endDate);
                 if (overlappingCount >= 2)
                     return Json(new { success = false, message = "Một lớp chỉ được phân công tối đa 2 giáo viên phụ trách trong cùng thời gian." });
+
+                if (existingAssignment != null)
+                {
+                    existingAssignment.EndDate = endDate;
+                    existingAssignment.RoleInClass = model.RoleInClass.Trim();
+                    existingAssignment.IsActive = true;
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = "Đã khôi phục phân công thành công" });
+                }
 
                 var assignment = new Assignment
                 {
@@ -165,12 +175,17 @@ namespace datn.Controllers.Manager
                     return Json(new { success = false, message = "Lớp học không tồn tại." });
 
                 var isSameIdentity = oldEmpId == model.EmployeeId && oldClsId == model.ClassId && oldSDate == newStartDate;
+                Assignment? inactiveTargetAssignment = null;
 
                 if (!isSameIdentity)
                 {
-                    var duplicate = await _context.Assignments.AnyAsync(a =>
-                        a.EmployeeId == model.EmployeeId && a.ClassId == model.ClassId && a.StartDate == newStartDate);
-                    if (duplicate) return Json(new { success = false, message = "Phân công mới đã tồn tại" });
+                    var targetAssignment = await _context.Assignments.FirstOrDefaultAsync(a =>
+                        a.EmployeeId == model.EmployeeId &&
+                        a.ClassId == model.ClassId &&
+                        a.StartDate == newStartDate);
+                    if (targetAssignment?.IsActive == true)
+                        return Json(new { success = false, message = "Phân công mới đã tồn tại" });
+                    inactiveTargetAssignment = targetAssignment;
                 }
 
                 var teacherBusy = await CountOverlappingTeacherAssignmentsAsync(
@@ -199,16 +214,26 @@ namespace datn.Controllers.Manager
                     _context.Assignments.Remove(assignment);
                     await _context.SaveChangesAsync();
 
-                    var newAssignment = new Assignment
+                    if (inactiveTargetAssignment != null)
                     {
-                        EmployeeId = model.EmployeeId,
-                        ClassId = model.ClassId,
-                        StartDate = newStartDate,
-                        EndDate = newEndDate,
-                        RoleInClass = model.RoleInClass.Trim()
-                    };
-                    _context.Assignments.Add(newAssignment);
-                    await _context.SaveChangesAsync();
+                        inactiveTargetAssignment.EndDate = newEndDate;
+                        inactiveTargetAssignment.RoleInClass = model.RoleInClass.Trim();
+                        inactiveTargetAssignment.IsActive = true;
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        var newAssignment = new Assignment
+                        {
+                            EmployeeId = model.EmployeeId,
+                            ClassId = model.ClassId,
+                            StartDate = newStartDate,
+                            EndDate = newEndDate,
+                            RoleInClass = model.RoleInClass.Trim()
+                        };
+                        _context.Assignments.Add(newAssignment);
+                        await _context.SaveChangesAsync();
+                    }
                 }
                 else
                 {

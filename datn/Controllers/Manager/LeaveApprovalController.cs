@@ -196,8 +196,8 @@ namespace datn.Controllers.Manager
 
                 for (var date = startDate; date <= endDate; date = date.AddDays(1))
                 {
-                    // Chỉ tính công cho các ngày trong tuần (T2-T6)
-                    if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
+                    // Chỉ tính công cho các ngày làm việc (T2-T7).
+                    if (date.DayOfWeek != DayOfWeek.Sunday)
                     {
                         var existing = await _context.WorkAttendances
                             .FirstOrDefaultAsync(w => w.EmployeeId == record.EmployeeId && w.Date == date);
@@ -299,6 +299,7 @@ namespace datn.Controllers.Manager
                     DayOfWeek.Wednesday => 3,
                     DayOfWeek.Thursday => 4,
                     DayOfWeek.Friday => 5,
+                    DayOfWeek.Saturday => 6,
                     _ => 0
                 };
 
@@ -455,10 +456,11 @@ namespace datn.Controllers.Manager
                 DayOfWeek.Wednesday => 3,
                 DayOfWeek.Thursday => 4,
                 DayOfWeek.Friday => 5,
+                DayOfWeek.Saturday => 6,
                 _ => 0
             };
 
-            if (dayOfWeek == 0) return true; // Cuối tuần luôn rảnh
+            if (dayOfWeek == 0) return true; // Chủ nhật luôn rảnh
 
             // Kiểm tra trong ClassSchedule (lịch dạy cố định)
             var hasRegularConflict = await _context.ClassSchedules

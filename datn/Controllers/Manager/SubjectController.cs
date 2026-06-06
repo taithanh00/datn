@@ -38,7 +38,6 @@ namespace datn.Controllers.Manager
                 {
                     id = s.Id,
                     name = s.Name,
-                    code = s.Code,
                     description = s.Description,
                     isActive = s.IsActive
                 })
@@ -59,7 +58,6 @@ namespace datn.Controllers.Manager
                 {
                     id = subject.Id,
                     name = subject.Name,
-                    code = subject.Code,
                     description = subject.Description,
                     isActive = subject.IsActive
                 }
@@ -69,27 +67,16 @@ namespace datn.Controllers.Manager
         [HttpPost("Api/Subject")]
         public async Task<IActionResult> CreateSubject([FromBody] SaveSubjectViewModel model)
         {
-            if (string.IsNullOrWhiteSpace(model.Name) || string.IsNullOrWhiteSpace(model.Code))
-                return Json(new { success = false, message = "Tên môn và mã môn là bắt buộc." });
+            if (string.IsNullOrWhiteSpace(model.Name))
+                return Json(new { success = false, message = "Tên môn là bắt buộc." });
 
             var trimmedName = model.Name.Trim();
             if (trimmedName.Length < 2)
                 return Json(new { success = false, message = "Tên môn phải có ít nhất 2 ký tự." });
 
-            var normalizedCode = model.Code.Trim().ToUpperInvariant();
-            
-            // Validate Code pattern: 2-10 characters, letters/numbers/hyphens only
-            if (!System.Text.RegularExpressions.Regex.IsMatch(normalizedCode, @"^[A-Z0-9\-]{2,10}$"))
-                return Json(new { success = false, message = "Mã môn phải từ 2-10 ký tự, chỉ chứa chữ cái, số hoặc dấu gạch ngang." });
-
-            var duplicate = await _context.Subjects.AnyAsync(s => s.Code == normalizedCode);
-            if (duplicate)
-                return Json(new { success = false, message = "Mã môn đã tồn tại." });
-
             _context.Subjects.Add(new Subject
             {
                 Name = trimmedName,
-                Code = normalizedCode,
                 Description = model.Description?.Trim(),
                 IsActive = model.IsActive
             });
@@ -105,25 +92,14 @@ namespace datn.Controllers.Manager
             if (subject == null)
                 return Json(new { success = false, message = "Không tìm thấy môn học." });
 
-            if (string.IsNullOrWhiteSpace(model.Name) || string.IsNullOrWhiteSpace(model.Code))
-                return Json(new { success = false, message = "Tên môn và mã môn là bắt buộc." });
+            if (string.IsNullOrWhiteSpace(model.Name))
+                return Json(new { success = false, message = "Tên môn là bắt buộc." });
 
             var trimmedName = model.Name.Trim();
             if (trimmedName.Length < 2)
                 return Json(new { success = false, message = "Tên môn phải có ít nhất 2 ký tự." });
 
-            var normalizedCode = model.Code.Trim().ToUpperInvariant();
-            
-            // Validate Code pattern: 2-10 characters, letters/numbers/hyphens only
-            if (!System.Text.RegularExpressions.Regex.IsMatch(normalizedCode, @"^[A-Z0-9\-]{2,10}$"))
-                return Json(new { success = false, message = "Mã môn phải từ 2-10 ký tự, chỉ chứa chữ cái, số hoặc dấu gạch ngang." });
-
-            var duplicate = await _context.Subjects.AnyAsync(s => s.Id != id && s.Code == normalizedCode);
-            if (duplicate)
-                return Json(new { success = false, message = "Mã môn đã tồn tại." });
-
             subject.Name = trimmedName;
-            subject.Code = normalizedCode;
             subject.Description = model.Description?.Trim();
             subject.IsActive = model.IsActive;
 

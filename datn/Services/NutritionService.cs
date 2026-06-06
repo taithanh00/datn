@@ -16,7 +16,7 @@ namespace datn.Services
         public async Task<List<Menu>> GetWeeklyMenuAsync()
         {
             return await _context.Menus
-                .Where(m => m.DayOfWeek >= 1 && m.DayOfWeek <= 5 && m.IsActive)
+                .Where(m => m.DayOfWeek >= 1 && m.DayOfWeek <= 6 && m.IsActive)
                 .OrderBy(m => m.DayOfWeek)
                 .ThenBy(m => m.MealType)
                 .ToListAsync();
@@ -24,7 +24,7 @@ namespace datn.Services
 
         public async Task<bool> SaveMenuAsync(Menu menu)
         {
-            if (menu.DayOfWeek < 1 || menu.DayOfWeek > 5)
+            if (menu.DayOfWeek < 1 || menu.DayOfWeek > 6)
             {
                 return false;
             }
@@ -82,7 +82,6 @@ namespace datn.Services
             target.MealType = source.MealType;
             target.DishName = source.DishName;
             target.Ingredients = null;
-            target.Calories = source.Calories;
             target.Note = source.Note;
             target.IsActive = true;
         }

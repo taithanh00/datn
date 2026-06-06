@@ -33,7 +33,9 @@ namespace datn.Controllers.Manager
 
                 query = query
                     .Include(p => p.Account)
-                    .Include(p => p.ParentStudents).ThenInclude(ps => ps.Student);
+                    .Include(p => p.ParentStudents)
+                        .ThenInclude(ps => ps.Student)
+                            .ThenInclude(s => s.Class);
 
                 if (!string.IsNullOrEmpty(search))
                 {
@@ -53,18 +55,23 @@ namespace datn.Controllers.Manager
 
                 var result = data.Select(p => new {
                         id = p.Id,
+                        username = p.Account?.Username ?? "N/A",
                         email = p.Account?.Email ?? "N/A",
                         fullName = p.LastName + " " + p.FirstName,
                         gender = p.Gender,
+                        dateOfBirth = p.DateOfBirth?.ToString("yyyy-MM-dd"),
                         phone = p.Phone ?? "N/A",
                         address = p.Address ?? "N/A",
                         avatarPath = p.AvatarPath ?? "/images/lion_orange.png",
                         isActive = p.IsActive,
                         createdAt = p.Account?.CreatedAt ?? DateTime.MinValue,
+                        updatedAt = p.Account?.UpdatedAt ?? DateTime.MinValue,
                         childrenCount = p.ParentStudents.Count,
                         children = p.ParentStudents.Select(ps => new {
                             id = ps.StudentId,
-                            fullName = ps.Student.LastName + " " + ps.Student.FirstName
+                            fullName = ps.Student.LastName + " " + ps.Student.FirstName,
+                            relationship = ps.Relationship ?? "Phụ huynh",
+                            className = ps.Student.Class != null ? ps.Student.Class.Name : "N/A"
                         })
                     });
 
@@ -104,6 +111,7 @@ namespace datn.Controllers.Manager
                     firstName = p.FirstName,
                     lastName = p.LastName,
                     gender = p.Gender,
+                    dateOfBirth = p.DateOfBirth?.ToString("yyyy-MM-dd"),
                     phone = p.Phone,
                     address = p.Address,
                     avatarPath = p.AvatarPath ?? "/images/lion_orange.png",

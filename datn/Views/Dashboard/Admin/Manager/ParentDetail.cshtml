@@ -102,6 +102,10 @@
                         <p>@(Model.Account?.CreatedAt.ToString("dd/MM/yyyy") ?? "N/A")</p>
                     </div>
                     <div class="detail-group">
+                        <label>Ngày sinh</label>
+                        <p>@(Model.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</p>
+                    </div>
+                    <div class="detail-group">
                         <label>Trạng thái tài khoản</label>
                         <p>@((Model.Account?.IsActive ?? false) ? "Đang hoạt động" : "Đã khóa")</p>
                     </div>
@@ -124,7 +128,7 @@
                                 </div>
                                 <div class="child-info">
                                     <a href="/Manager/StudentDetail/@ps.StudentId" class="child-name">@ps.Student.LastName @ps.Student.FirstName</a>
-                                    <span class="child-code">@ps.Student.StudentCode</span>
+                                    <span class="child-code">ID: @ps.Student.Id</span>
                                     <div class="child-meta">
                                         <span class="badge bg-light text-dark">Lớp: @(ps.Student.Class?.Name ?? "N/A")</span>
                                         <span class="badge bg-primary-soft text-primary">Quan hệ: @(ps.Relationship ?? "N/A")</span>

@@ -193,7 +193,7 @@
             <select class="form-select" style="min-width: 220px;" onchange="location.href='?year=@selectedYear&studentId=' + this.value">
                 @foreach (var child in children)
                 {
-                    <option value="@child.Id" selected="@(child.Id == selectedStudentId)">Bé: @child.FirstName @child.LastName</option>
+                    <option value="@child.Id" selected="@(child.Id == selectedStudentId)">Bé: @child.LastName @child.FirstName </option>
                 }
             </select>
         }

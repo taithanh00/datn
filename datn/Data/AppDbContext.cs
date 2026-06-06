@@ -41,6 +41,7 @@ namespace datn.Data
         public DbSet<Activity> Activities { get; set; }
         public DbSet<ClassActivity> ClassActivities { get; set; }
         public DbSet<EmployeeLeaveRequest> EmployeeLeaveRequests { get; set; }
+        public DbSet<TeacherContract> TeacherContracts { get; set; }
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<ClassSchedule> ClassSchedules { get; set; }
         public DbSet<Notification> Notifications { get; set; }
@@ -49,7 +50,6 @@ namespace datn.Data
         public DbSet<StudentFeeConfig> StudentFeeConfigs { get; set; }
         public DbSet<TuitionDetail> TuitionDetails { get; set; }
         public DbSet<Menu> Menus { get; set; }
-        public DbSet<MenuOverride> MenuOverrides { get; set; }
         public DbSet<DailyReport> DailyReports { get; set; }
         public DbSet<ClassCoverageBonus> ClassCoverageBonuses { get; set; }
 
@@ -106,10 +106,6 @@ namespace datn.Data
                 .WithMany(c => c.Students)
                 .HasForeignKey(s => s.ClassId)
                 .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<Student>()
-                .HasIndex(s => s.StudentCode)
-                .IsUnique();
 
             // ── Class.LeadTeacher (GVCN) ─────────────────────────
             modelBuilder.Entity<Class>()
@@ -248,6 +244,36 @@ namespace datn.Data
                 .HasForeignKey(lr => lr.EmployeeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<TeacherContract>()
+                .HasOne(c => c.Employee)
+                .WithMany(e => e.TeacherContracts)
+                .HasForeignKey(c => c.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TeacherContract>()
+                .ToTable(t => t.HasCheckConstraint(
+                    "CK_TeacherContracts_ExpiryDate",
+                    "[ExpiryDate] IS NULL OR [ExpiryDate] >= [EffectiveDate]"));
+
+            modelBuilder.Entity<TeacherContract>()
+                .HasIndex(c => c.ContractNumber)
+                .IsUnique();
+
+            modelBuilder.Entity<TeacherContract>()
+                .HasIndex(c => new { c.EmployeeId, c.Status })
+                .IsUnique()
+                .HasFilter("[Status] = 1");
+
+            modelBuilder.Entity<TeacherContract>()
+                .HasIndex(c => c.ExpiryDate);
+
+            modelBuilder.Entity<TeacherContract>()
+                .HasIndex(c => c.Status);
+
+            modelBuilder.Entity<TeacherContract>()
+                .Property(c => c.AgreedSalary)
+                .HasColumnType("decimal(18,2)");
+
             // ── Salary (composite PK) ─────────────────────────────
             modelBuilder.Entity<Salary>()
                 .HasKey(s => new { s.EmployeeId, s.PayrollPeriodId });
@@ -294,9 +320,6 @@ namespace datn.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             // ── Subject ───────────────────────────────────────────
-            modelBuilder.Entity<Subject>()
-                .HasIndex(s => s.Code)
-                .IsUnique();
 
             // ── ClassSchedule ─────────────────────────────────────
             modelBuilder.Entity<ClassSchedule>()
@@ -405,27 +428,9 @@ namespace datn.Data
                 .HasForeignKey(td => td.SubjectId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ── Menu & MenuOverride ──────────────────────────────
+            // ── Menu ─────────────────────────────────────────────
             modelBuilder.Entity<Menu>()
                 .HasIndex(m => new { m.DayOfWeek, m.MealType });
-
-            modelBuilder.Entity<MenuOverride>()
-                .HasOne(mo => mo.Menu)
-                .WithMany(m => m.MenuOverrides)
-                .HasForeignKey(mo => mo.MenuId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<MenuOverride>()
-                .HasOne(mo => mo.Student)
-                .WithMany(s => s.MenuOverrides)
-                .HasForeignKey(mo => mo.StudentId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<MenuOverride>()
-                .HasOne(mo => mo.Class)
-                .WithMany()
-                .HasForeignKey(mo => mo.ClassId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // ── DailyReport ──────────────────────────────────────
             modelBuilder.Entity<DailyReport>()
@@ -462,7 +467,6 @@ namespace datn.Data
             modelBuilder.Entity<Location>().HasQueryFilter(l => l.IsActive);
             modelBuilder.Entity<Activity>().HasQueryFilter(a => a.IsActive);
             modelBuilder.Entity<Menu>().HasQueryFilter(m => m.IsActive);
-            modelBuilder.Entity<MenuOverride>().HasQueryFilter(mo => mo.IsActive);
             modelBuilder.Entity<ClassSchedule>().HasQueryFilter(cs => cs.IsActive);
         }
 

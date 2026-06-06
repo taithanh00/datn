@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SenHồng</title>
+    <title>@ViewData["Title"] - Sen Hồng</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -31,7 +31,7 @@
         <aside class="sidebar" id="sidebar">
             <a href="/" class="sidebar-header" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px;">
                 <i class="fa-solid fa-spa" style="font-size:1.4rem; color: #e91e63;"></i>
-                <span>SenHồng</span>
+                <span>Sen Hồng</span>
             </a>
 
             <nav class="sidebar-nav">
@@ -47,7 +47,8 @@
                     <a href="/Manager/Schedules" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Thời khóa biểu</a>
                     <a href="/Manager/Students" class="nav-item" data-transition><i class="fa-solid fa-user-graduate"></i> Học sinh</a>
                     <a href="/Manager/Parents" class="nav-item" data-transition><i class="fa-solid fa-users-viewfinder"></i> Phụ huynh</a>
-                    <a href="/Manager/Teachers" class="nav-item" data-transition><i class="fa-solid fa-user-tie"></i> Nhân sự</a>
+                    <a href="/Manager/Teachers" class="nav-item" data-transition><i class="fa-solid fa-user-tie"></i> Giáo viên</a>
+                    <a href="/Manager/TeacherContracts" class="nav-item" data-transition><i class="fa-solid fa-file-contract"></i> Hợp đồng giáo viên</a>
                     <a href="/HolidayManagement" class="nav-item" data-transition><i class="fa-solid fa-umbrella-beach"></i> Ngày lễ</a>
                     <a href="/Manager/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động</a>
                     <a href="/Manager/Nutrition" class="nav-item" data-transition><i class="fa-solid fa-utensils"></i> Quản lý Dinh dưỡng</a>
@@ -72,7 +73,7 @@
                     <a href="/Employee/StudyReport" class="nav-item" data-transition><i class="fa-solid fa-file-signature"></i> Nhận xét & Báo cáo</a>
                     <a href="/Employee/Activities" class="nav-item @(ViewData["Title"]?.ToString() == "Hoạt động" ? "active" : "")" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động</a>
                     <a href="/DailyReport/ClassReports" class="nav-item @(ViewData["Title"]?.ToString() == "Nhật ký lớp học" ? "active" : "")" data-transition><i class="fa-solid fa-book-open"></i> Nhật ký lớp học</a>
-                    <a href="/Manager/Nutrition" class="nav-item @(ViewData["Title"]?.ToString() == "Quản lý Dinh dưỡng & Thực đơn" ? "active" : "")" data-transition><i class="fa-solid fa-utensils"></i> Dinh dưỡng & Thực đơn</a>
+                    <a href="/Manager/Nutrition" class="nav-item @(ViewData["Title"]?.ToString() == "Quản lý Dinh dưỡng & Thực đơn" ? "active" : "")" data-transition><i class="fa-solid fa-utensils"></i> Dinh dưỡng và Thực đơn</a>
 
                     <div class="nav-label">Cá nhân</div>
                     <a href="/TimeAttendance" class="nav-item" data-transition><i class="fa-solid fa-clock"></i> Chấm công</a>
@@ -88,7 +89,7 @@
                     <a href="/Parent/AttendanceReport" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Chuyên cần</a>
                     <a href="/Parent/StudyReports" class="nav-item" data-transition><i class="fa-solid fa-chart-bar"></i> Học tập</a>
                     <a href="/Parent/Activities" class="nav-item" data-transition><i class="fa-solid fa-puzzle-piece"></i> Hoạt động của bé</a>
-                    <a href="/DailyReport/MyChild" class="nav-item" data-transition><i class="fa-solid fa-notes-medical"></i> Nhật ký & Sức khỏe</a>
+                    <a href="/DailyReport/MyChild" class="nav-item" data-transition><i class="fa-solid fa-notes-medical"></i> Nhật ký và Sức khỏe</a>
                     <a href="/Tuition/MyTuition" class="nav-item" data-transition><i class="fa-solid fa-wallet"></i> Học phí</a>
                 }
 
@@ -112,8 +113,13 @@
                         <span style="color:var(--text-muted)">
                             @{
                                 var ctrl = ViewContext.RouteData.Values["Controller"]?.ToString();
+                                var role = ViewBag.Role as string;
                                 var localizedCtrl = ctrl switch
                                 {
+                                    "Account" => "Tài khoản",
+                                    _ when role == "Manager" => "Quản lý",
+                                    _ when role == "Employee" => "Giáo viên",
+                                    _ when role == "Parent" => "Phụ huynh",
                                     "Manager" => "Quản lý",
                                     "Employee" => "Giáo viên",
                                     "Parent" => "Phụ huynh",
@@ -121,7 +127,6 @@
                                     "Tuition" => "Học phí",
                                     "TeacherSalary" => "Lương giáo viên",
                                     "LeaveApproval" => "Duyệt nghỉ phép",
-                                    "Account" => "Tài khoản",
                                     "TimeAttendance" => "Chấm công",
                                     "LeaveRequest" => "Nghỉ phép",
                                     "DailyReport" => "Nhật ký",

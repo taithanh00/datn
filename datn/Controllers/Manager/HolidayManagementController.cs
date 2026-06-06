@@ -22,7 +22,7 @@ namespace datn.Controllers.Manager
         [HttpGet("")]
         public IActionResult Index()
         {
-            ViewData["Title"] = "Quản lý Ngày lễ";
+            ViewData["Title"] = "Quản lý ngày lễ";
             return View("~/Views/Dashboard/Admin/HolidayManagement/Index.cshtml");
         }
 

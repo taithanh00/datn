@@ -59,21 +59,27 @@
             <thead>
                 <tr>
                     <th class="sticky-col first-col">STT</th>
-                    <th class="sticky-col second-col">Ảnh</th>
-                    <th class="sticky-col third-col">Họ và tên</th>
+                    <th class="sticky-col second-col">ID</th>
+                    <th class="sticky-col third-col">Ảnh</th>
+                    <th class="sticky-col fourth-col">Họ và tên</th>
+                    <th>Trạng thái</th>
                     <th>Giới tính</th>
+                    <th>Ngày sinh</th>
+                    <th>Tên đăng nhập</th>
                     <th>Email</th>
                     <th>Số điện thoại</th>
                     <th>Địa chỉ</th>
+                    <th>Số con</th>
                     <th>Danh sách con</th>
+                    <th>Lớp của con</th>
                     <th>Ngày tạo</th>
-                    <th>Trạng thái</th>
+                    <th>Cập nhật</th>
                     <th class="text-end">Thao tác</th>
                 </tr>
             </thead>
             <tbody id="parentsTableBody">
                 <tr class="loading-row">
-                    <td colspan="10" style="text-align:center; padding:40px;">
+                    <td colspan="17" style="text-align:center; padding:40px;">
                         <div class="spinner"></div>
                         <p class="text-muted">Đang tải dữ liệu...</p>
                     </td>
@@ -163,6 +169,10 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="form-label" for="dateOfBirth">Ngày sinh</label>
+                    <input type="date" id="dateOfBirth" name="DateOfBirth" class="form-control" />
+                </div>
+                <div class="form-group">
                     <label class="form-label" for="phone">Số điện thoại</label>
                     <input type="text" id="phone" name="Phone" class="form-control" placeholder="Số điện thoại liên hệ" />
                 </div>
@@ -232,7 +242,7 @@
         <div id="linkDetailSection" style="display:none; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);">
             <div style="background: var(--bg-main); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
                 <span id="selectedStudentName" class="fw-bold"></span>
-                <span id="selectedStudentCode" class="text-muted small"></span>
+                <span id="selectedStudentId" class="text-muted small"></span>
             </div>
             <div class="form-group">
                 <label class="form-label">Mối quan hệ</label>

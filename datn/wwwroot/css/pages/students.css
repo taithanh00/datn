@@ -356,6 +356,12 @@ thead th.sticky-col {
 }
 
 /* Action buttons */
+.form-actions .btn-save,
+.form-actions .btn-delete {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
 .table-actions {
     display: flex;
     gap: 8px;

@@ -20,9 +20,9 @@
             if (!href) return;
             const hrefLower = href.toLowerCase();
             
-            // Dashboard special case: only active when exactly at the root or dashboard path
-            if (hrefLower === '/' || hrefLower === '/manager' || hrefLower === '/employee' || hrefLower === '/manager/' || hrefLower === '/employee/') {
-                if (path === '/' || path === '/manager' || path === '/employee' || path === '/manager/' || path === '/employee/') {
+            // Dashboard special case: only active when exactly at the root or role dashboard path.
+            if (hrefLower === '/' || hrefLower === '/manager' || hrefLower === '/employee' || hrefLower === '/parent' || hrefLower === '/manager/' || hrefLower === '/employee/' || hrefLower === '/parent/') {
+                if (path === '/' || path === '/manager' || path === '/employee' || path === '/parent' || path === '/manager/' || path === '/employee/' || path === '/parent/') {
                     item.classList.add('active');
                 }
             } 
@@ -129,7 +129,7 @@
             });
         }
 
-        table._currentPage = 1;
+        table._currentPage = table._currentPage || 1;
         table._pageSize = pageSize;
         table._refreshPagination = render;
         render();
@@ -140,6 +140,8 @@
         const input = document.getElementById(inputId);
         const table = document.getElementById(tableId);
         if (!input || !table) return;
+        if (input._boundTableSearch === tableId) return;
+        input._boundTableSearch = tableId;
 
         input.addEventListener('input', function () {
             const query = this.value.toLowerCase();

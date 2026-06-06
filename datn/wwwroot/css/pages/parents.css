@@ -9,7 +9,7 @@
 /* ===== TABLE ===== */
 #parentsTable {
     width: 100%;
-    min-width: 1100px;
+    min-width: 1850px;
     border-collapse: separate;
     border-spacing: 0;
 }
@@ -60,9 +60,10 @@ thead th.sticky-col {
     background-color: #1A1D27 !important;
 }
 
-.first-col  { left: 0;   min-width: 60px; }
-.second-col { left: 60px; min-width: 80px; }
-.third-col  { left: 140px; min-width: 220px; border-right: 2px solid var(--border) !important; }
+.first-col  { left: 0; min-width: 60px; width: 60px; }
+.second-col { left: 60px; min-width: 120px; width: 120px; }
+.third-col  { left: 180px; min-width: 90px; width: 90px; }
+.fourth-col { left: 270px; min-width: 240px; width: 240px; border-right: 2px solid var(--border) !important; }
 
 /* ===== AVATAR ===== */
 .avatar-sm {
@@ -92,7 +93,26 @@ thead th.sticky-col {
     color: var(--primary);
 }
 
-/* ===== ADDRESS CELL ===== */
+/* ===== COMPACT TABLE CELLS ===== */
+.parent-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.username-cell {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.email-cell,
 .address-cell {
     max-width: 200px;
     white-space: nowrap;
@@ -100,6 +120,31 @@ thead th.sticky-col {
     text-overflow: ellipsis;
     display: inline-block;
     vertical-align: middle;
+}
+
+.email-cell {
+    max-width: 240px;
+}
+
+.children-cell,
+.child-class-cell {
+    max-width: 260px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.children-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: #E0F2FE;
+    color: #0369A1;
+    font-weight: 800;
 }
 
 /* ===== CHILD BADGES ===== */
@@ -114,6 +159,25 @@ thead th.sticky-col {
     margin-right: 4px;
     margin-bottom: 2px;
     border: 1px solid rgba(var(--primary-rgb), 0.1);
+}
+
+.child-badge small {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    margin-left: 4px;
+}
+
+.class-badge {
+    display: inline-block;
+    background: #F1F5F9;
+    color: #334155;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-right: 4px;
+    margin-bottom: 2px;
 }
 
 /* ===== PREMIUM DATE (sync với students.css) ===== */
@@ -165,6 +229,7 @@ thead th.sticky-col {
     border: 1px solid var(--border);
     overflow-x: auto;
     position: relative;
+    width: 100%;
 }
 
 /* Custom Scrollbar */
@@ -337,6 +402,8 @@ thead th.sticky-col {
     gap: 8px;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .btn-save:hover {
@@ -356,6 +423,8 @@ thead th.sticky-col {
     gap: 8px;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .btn-delete:hover {
@@ -376,6 +445,8 @@ thead th.sticky-col {
     gap: 8px;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .btn-activate:hover {

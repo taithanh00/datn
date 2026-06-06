@@ -130,6 +130,8 @@ async function loadStudents() {
         }
     } catch (e) {
         console.error(e);
+        document.getElementById('reportContent').innerHTML = '<div class="page-alert error">Lỗi kết nối khi tải danh sách học sinh.</div>';
+        setSaveButtonVisible(false);
     }
 }
 

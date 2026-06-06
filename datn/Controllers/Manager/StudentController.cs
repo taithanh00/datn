@@ -40,8 +40,7 @@ namespace datn.Controllers.Manager
                 var result = students.Select(s => new
                 {
                     id = s.Id,
-                    studentCode = s.StudentCode,
-                    fullName = $"{s.FirstName} {s.LastName}".Trim(),
+                    fullName = s.FullName,
                     gender = s.Gender ? "Nam" : "Nữ",
                     dateOfBirth = s.DateOfBirth.ToString("dd/MM/yyyy"),
                     address = s.Address ?? "N/A",
@@ -155,7 +154,7 @@ namespace datn.Controllers.Manager
                     {
                         return StatusCode(409, new { 
                             success = false, 
-                            message = $"Có một học sinh tên là {duplicate.FirstName} {duplicate.LastName}, ngày sinh {duplicate.DateOfBirth:dd/MM/yyyy} đã tồn tại trong hệ thống. Bạn có chắc muốn tạo mới không?",
+                            message = $"Có một học sinh tên là {duplicate.FullName}, ngày sinh {duplicate.DateOfBirth:dd/MM/yyyy} đã tồn tại trong hệ thống. Bạn có chắc muốn tạo mới không?",
                             existingStudentId = duplicate.Id
                         });
                     }
@@ -181,7 +180,7 @@ namespace datn.Controllers.Manager
 
                 var student = await _studentService.CreateStudentAsync(model);
                 
-                return Json(new { success = true, message = "Thêm học sinh thành công", studentCode = student.StudentCode });
+                return Json(new { success = true, message = "Thêm học sinh thành công", studentId = student.Id });
             }
             catch (Exception ex)
             {
@@ -283,11 +282,14 @@ namespace datn.Controllers.Manager
         [HttpGet("Api/Students/Search")]
         public async Task<IActionResult> SearchStudents(string q)
         {
+            q = q?.Trim() ?? string.Empty;
+            var hasNumericId = int.TryParse(q, out var studentId);
+
             var students = await _context.Students
-                .Where(s => s.Status == StudentStatus.Active &&  
-                    (s.FirstName.Contains(q) || s.LastName.Contains(q) || s.StudentCode.Contains(q)))
+                .Where(s => s.Status == StudentStatus.Active &&
+                    (s.FirstName.Contains(q) || s.LastName.Contains(q) || (hasNumericId && s.Id == studentId)))
                 .Take(10)
-                .Select(s => new { id = s.Id, fullName = s.LastName + " " + s.FirstName, code = s.StudentCode })
+                .Select(s => new { id = s.Id, fullName = s.LastName + " " + s.FirstName })
                 .ToListAsync();
             return Json(new { success = true, data = students });
         }
@@ -307,27 +309,29 @@ namespace datn.Controllers.Manager
             // 2. Kiểm tra Độ tuổi
             if (DateOnly.TryParse(dobStr, out var dob))
             {
-                var yearNow = DateTime.Now.Year;
-                var age = yearNow - dob.Year;
-                
-                if (classroom.AgeFrom.HasValue && age < classroom.AgeFrom.Value)
-                    return $"Học sinh ({age} tuổi) nhỏ hơn độ tuổi quy định của lớp ({classroom.AgeFrom.Value}-{classroom.AgeTo} tuổi).";
-                
-                if (classroom.AgeTo.HasValue && age > classroom.AgeTo.Value)
-                    return $"Học sinh ({age} tuổi) lớn hơn độ tuổi quy định của lớp ({classroom.AgeFrom}-{classroom.AgeTo.Value} tuổi).";
+                var today = DateOnly.FromDateTime(DateTime.Today);
+                var age = CalculateAgeInYears(dob, today);
+                var classAgeLabel = FormatClassAgeRange(classroom.AgeFrom, classroom.AgeTo);
+
+                if (classroom.AgeFrom == 2 && classroom.AgeTo == 3)
+                {
+                    var ageInMonths = CalculateAgeInMonths(dob, today);
+                    if (ageInMonths < 24)
+                        return $"Học sinh ({ageInMonths} tháng) nhỏ hơn độ tuổi quy định của lớp ({classAgeLabel}).";
+
+                    if (ageInMonths > 36)
+                        return $"Học sinh ({ageInMonths} tháng) lớn hơn độ tuổi quy định của lớp ({classAgeLabel}).";
+                }
+                else if (classroom.AgeFrom.HasValue && age < classroom.AgeFrom.Value)
+                    return $"Học sinh ({age} tuổi) nhỏ hơn độ tuổi quy định của lớp ({classAgeLabel}).";
+                 
+                else if (classroom.AgeTo.HasValue && age > classroom.AgeTo.Value)
+                    return $"Học sinh ({age} tuổi) lớn hơn độ tuổi quy định của lớp ({classAgeLabel}).";
             }
 
-            // 3. Kiểm tra Niên khóa (Chỉ cho phép thêm vào niên khóa hiện tại)
-            var currentYear = DateTime.Now.Year;
-            var nextYear = currentYear + 1;
-            var currentSchoolYear = $"{currentYear}-{nextYear}";
-            
-            // Nếu niên khóa lớp không phải năm nay và không phải năm sau (đang tuyển sinh)
-            if (!string.IsNullOrEmpty(classroom.SchoolYear) && !classroom.SchoolYear.Contains(currentYear.ToString()) && !classroom.SchoolYear.Contains(nextYear.ToString()))
+            if (!IsCurrentOrNextSchoolYear(classroom.SchoolYear) && studentId == null)
             {
-                // Cho phép sửa nếu là học sinh cũ đang ở trong lớp đó, nhưng không cho thêm mới
-                if (studentId == null)
-                    return $"Không thể thêm học sinh vào niên khóa cũ ({classroom.SchoolYear}).";
+                return $"Không thể thêm học sinh vào niên khóa cũ ({classroom.SchoolYear}).";
             }
 
             return null;
@@ -343,6 +347,47 @@ namespace datn.Controllers.Manager
             await using var stream = new FileStream(path, FileMode.Create);
             await file.CopyToAsync(stream);
             return $"/uploads/avatars/{fileName}";
+        }
+
+        private static int CalculateAgeInYears(DateOnly dob, DateOnly today)
+        {
+            var age = today.Year - dob.Year;
+            if (today < dob.AddYears(age)) age--;
+            return age;
+        }
+
+        private static int CalculateAgeInMonths(DateOnly dob, DateOnly today)
+        {
+            var months = (today.Year - dob.Year) * 12 + today.Month - dob.Month;
+            if (today.Day < dob.Day) months--;
+            return months;
+        }
+
+        private static string FormatClassAgeRange(int? ageFrom, int? ageTo)
+        {
+            if (ageFrom == 2 && ageTo == 3) return "24 - 36 tháng";
+            if (ageFrom.HasValue && ageTo.HasValue) return $"{ageFrom.Value} - {ageTo.Value} tuổi";
+            if (ageFrom.HasValue) return $"từ {ageFrom.Value} tuổi";
+            if (ageTo.HasValue) return $"đến {ageTo.Value} tuổi";
+            return "chưa cập nhật";
+        }
+
+        private static bool IsCurrentOrNextSchoolYear(string? schoolYear)
+        {
+            if (string.IsNullOrWhiteSpace(schoolYear))
+                return false;
+
+            var match = System.Text.RegularExpressions.Regex.Match(schoolYear.Trim(), @"^(\d{4})-(\d{4})$");
+            if (!match.Success)
+                return false;
+
+            var startYear = int.Parse(match.Groups[1].Value);
+            var endYear = int.Parse(match.Groups[2].Value);
+            if (endYear != startYear + 1)
+                return false;
+
+            var currentYear = DateTime.Now.Year;
+            return startYear == currentYear || startYear == currentYear + 1;
         }
     }
 }

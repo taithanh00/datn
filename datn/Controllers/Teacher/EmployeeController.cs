@@ -327,6 +327,7 @@ namespace datn.Controllers.Teacher
                 var assignments = await _context.Assignments
                     .Include(a => a.Class)
                     .Where(a => a.EmployeeId == employeeId
+                        && a.IsActive
                         && a.StartDate <= today
                         && (a.EndDate == null || a.EndDate >= today))
                     .Select(a => new
@@ -552,6 +553,8 @@ namespace datn.Controllers.Teacher
                         id = s.Id,
                         fullName = ((s.LastName ?? "") + " " + (s.FirstName ?? "")).Trim(),
                         gender = s.Gender ? "Nam" : "Nữ",
+                        dateOfBirth = s.DateOfBirth.ToString("yyyy-MM-dd"),
+                        avatarPath = s.AvatarPath ?? "/images/lion_orange.png",
                         attendanceStatus = _context.Attendances
                             .Where(a => a.StudentId == s.Id && a.Date == today)
                             .Select(a => a.Status)
@@ -788,6 +791,7 @@ namespace datn.Controllers.Teacher
                 DayOfWeek.Wednesday => 3,
                 DayOfWeek.Thursday => 4,
                 DayOfWeek.Friday => 5,
+                DayOfWeek.Saturday => 6,
                 _ => null
             };
         }

@@ -165,7 +165,7 @@ namespace datn.Services
             for (int day = 1; day <= days; day++)
             {
                 var date = new DateTime(year, month, day);
-                if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
+                if (date.DayOfWeek != DayOfWeek.Sunday)
                 {
                     count++;
                 }

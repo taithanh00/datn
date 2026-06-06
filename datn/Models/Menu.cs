@@ -11,11 +11,9 @@ namespace datn.Models
         [Required]
         public string DishName { get; set; } = string.Empty;
         public string? Ingredients { get; set; }
-        public int? Calories { get; set; }
         public string? Note { get; set; }
         public bool IsActive { get; set; } = true;
 
-        public ICollection<MenuOverride> MenuOverrides { get; set; } = new List<MenuOverride>();
     }
 
     public enum MealType

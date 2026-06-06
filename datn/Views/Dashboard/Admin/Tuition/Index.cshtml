@@ -1,6 +1,6 @@
 @model IEnumerable<datn.Models.FeeItem>
 @{
-    ViewData["Title"] = "Quản lý Học phí";
+    ViewData["Title"] = "Quản lý học phí";
     Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
 }
 
@@ -51,7 +51,7 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">Quản lý & Thiết lập Học phí</h1>
+        <h1 class="page-title">Quản lý và Thiết lập học phí</h1>
         <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Điều hành quy trình thu phí và quản lý bảng giá toàn trường</p>
     </div>
     <div class="page-actions">
@@ -97,7 +97,9 @@
                                 <td>
                                     @if (item.AgeFrom.HasValue || item.AgeTo.HasValue)
                                     {
-                                        <span class="badge badge-outline" style="border-color: var(--border-focus);">@item.AgeFrom - @item.AgeTo tuổi</span>
+                                        <span class="badge badge-outline" style="border-color: var(--border-focus);">
+                                            @(item.AgeFrom == 2 && item.AgeTo == 3 ? "24 - 36 tháng" : $"{item.AgeFrom} - {item.AgeTo} tuổi")
+                                        </span>
                                     }
                                     else
                                     {

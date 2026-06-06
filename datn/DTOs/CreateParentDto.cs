@@ -29,6 +29,8 @@ namespace datn.DTOs
         public string? Address { get; set; }
         
         public bool Gender { get; set; }
+
+        public string? DateOfBirth { get; set; }
         
         public IFormFile? Avatar { get; set; }
 

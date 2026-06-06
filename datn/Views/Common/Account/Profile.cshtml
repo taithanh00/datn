@@ -2,6 +2,13 @@
 @{
     ViewData["Title"] = "Thông tin cá nhân";
     Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+    var roleLabel = Model?.Role switch
+    {
+        "Manager" => "Quản lý",
+        "Employee" => "Giáo viên",
+        "Parent" => "Phụ huynh",
+        _ => "Người dùng"
+    };
     var isEmployee = Model?.Role == "Employee" || Model?.Role == "Manager";
     var isParent = Model?.Role == "Parent";
 }
@@ -24,7 +31,7 @@
                 </div>
                 <h2 class="profile-name">@ViewBag.FullName</h2>
                 <div class="profile-role-badge">
-                    @(isEmployee ? "Giáo viên" : isParent ? "Phụ huynh" : "Quản lý")
+                    @roleLabel
                 </div>
                 <p class="text-muted mt-2" style="font-size: 0.85rem;">@@@ViewBag.Username</p>
             </div>
@@ -84,7 +91,7 @@
 
                     <div class="form-grid">
                         <div class="form-group">
-                            <label class="form-label">Họ đệm</label>
+                            <label class="form-label">Họ</label>
                             <input type="text" name="LastName" value="@Model?.LastName" class="form-input" />
                         </div>
                         <div class="form-group">

@@ -1,0 +1,187 @@
+.contract-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.contract-filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(160px, 1fr));
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 18px;
+}
+
+.contract-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.contract-summary-card {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(34, 197, 94, 0.06));
+}
+
+.contract-summary-card.warning {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(249, 115, 22, 0.06));
+}
+
+.contract-summary-card.danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.14), rgba(244, 63, 94, 0.06));
+}
+
+.contract-summary-label {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.contract-summary-value {
+    color: var(--text-main);
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-top: 6px;
+}
+
+.contract-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.contract-badge.draft { background: rgba(100, 116, 139, 0.14); color: #64748b; }
+.contract-badge.active { background: rgba(34, 197, 94, 0.14); color: #16a34a; }
+.contract-badge.expired { background: rgba(239, 68, 68, 0.14); color: #dc2626; }
+.contract-badge.terminated { background: rgba(245, 158, 11, 0.16); color: #d97706; }
+.contract-badge.cancelled { background: rgba(148, 163, 184, 0.16); color: #64748b; }
+.contract-badge.warning { background: rgba(245, 158, 11, 0.16); color: #d97706; }
+
+.contract-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.contract-icon-btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-main);
+    border-radius: 10px;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.contract-icon-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.contract-panel-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1050;
+}
+
+.contract-panel-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.contract-slide-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(560px, 100vw);
+    height: 100vh;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    box-shadow: -24px 0 60px rgba(15, 23, 42, 0.22);
+    transform: translateX(100%);
+    transition: transform 0.24s ease;
+    z-index: 1060;
+    display: flex;
+    flex-direction: column;
+}
+
+.contract-slide-panel.active {
+    transform: translateX(0);
+}
+
+.contract-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 22px;
+    border-bottom: 1px solid var(--border);
+}
+
+.contract-panel-body {
+    padding: 22px;
+    overflow-y: auto;
+}
+
+.contract-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.contract-form-grid .full-width {
+    grid-column: 1 / -1;
+}
+
+.contract-alert {
+    display: none;
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+    font-weight: 700;
+}
+
+.contract-alert.active {
+    display: block;
+}
+
+.contract-alert.error {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+}
+
+.contract-alert.success {
+    background: rgba(34, 197, 94, 0.12);
+    color: #16a34a;
+}
+
+@media (max-width: 900px) {
+    .contract-filters,
+    .contract-summary-grid,
+    .contract-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contract-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}

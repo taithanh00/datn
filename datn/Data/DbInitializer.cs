@@ -58,10 +58,10 @@ namespace datn.Data
             {
                 var subjects = new List<Subject>
                 {
-                    new Subject { Code = "MATH", Name = "Toán tư duy", Description = "Làm quen với các con số và hình khối", IsActive = true },
-                    new Subject { Code = "VIET", Name = "Tiếng Việt", Description = "Nhận diện bảng chữ cái", IsActive = true },
-                    new Subject { Code = "ART", Name = "Mỹ thuật", Description = "Tô màu và vẽ tranh sáng tạo", IsActive = true },
-                    new Subject { Code = "ENG", Name = "Tiếng Anh (Bản ngữ)", Description = "Giao tiếp cơ bản với giáo viên nước ngoài", IsActive = true }
+                    new Subject { Name = "Toán tư duy", Description = "Làm quen với các con số và hình khối", IsActive = true },
+                    new Subject { Name = "Tiếng Việt", Description = "Nhận diện bảng chữ cái", IsActive = true },
+                    new Subject { Name = "Mỹ thuật", Description = "Tô màu và vẽ tranh sáng tạo", IsActive = true },
+                    new Subject { Name = "Tiếng Anh (Bản ngữ)", Description = "Giao tiếp cơ bản với giáo viên nước ngoài", IsActive = true }
                 };
                 context.Subjects.AddRange(subjects);
                 await context.SaveChangesAsync();
@@ -98,7 +98,7 @@ namespace datn.Data
             }
 
             var classMam1 = await context.Classes.FirstOrDefaultAsync(c => c.Name == "Lớp Mầm 1");
-            var mathSubject = await context.Subjects.FirstOrDefaultAsync(s => s.Code == "MATH");
+            var mathSubject = await context.Subjects.FirstOrDefaultAsync(s => s.Name == "Toán tư duy");
 
             // 5. Assignments
             if (!await context.Assignments.AnyAsync() && teacherHung != null && classMam1 != null)

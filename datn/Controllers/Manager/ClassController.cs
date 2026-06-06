@@ -105,6 +105,7 @@ namespace datn.Controllers.Manager
                     ageFrom = classroom.AgeFrom,
                     ageTo = classroom.AgeTo,
                     schoolYear = classroom.SchoolYear,
+                    maxCapacity = classroom.MaxCapacity,
                     studentCount = classroom.Students.Count,
                     teachers = classroom.Assignments
                         .Where(a => a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
@@ -142,15 +143,12 @@ namespace datn.Controllers.Manager
             if (maxCapacity < 1 || maxCapacity > 100)
                 return Json(new { success = false, message = "Sĩ số tối đa phải từ 1 đến 100." });
 
-            // Validate SchoolYear format if provided
-            if (!string.IsNullOrWhiteSpace(model.SchoolYear))
-            {
-                var schoolYear = model.SchoolYear.Trim();
-                if (!System.Text.RegularExpressions.Regex.IsMatch(schoolYear, @"^\d{4}-\d{4}$"))
-                    return Json(new { success = false, message = "Niên khóa phải có định dạng yyyy-yyyy (ví dụ: 2025-2026)." });
-            }
+            var schoolYearValidation = NormalizeSchoolYear(model.SchoolYear);
+            if (!schoolYearValidation.IsValid)
+                return Json(new { success = false, message = schoolYearValidation.ErrorMessage });
+            var schoolYear = schoolYearValidation.Value!;
 
-            var duplicate = await _context.Classes.AnyAsync(c => c.Name == trimmedName && c.SchoolYear == (model.SchoolYear != null ? model.SchoolYear.Trim() : null));
+            var duplicate = await _context.Classes.AnyAsync(c => c.Name == trimmedName && c.SchoolYear == schoolYear);
             if (duplicate)
                 return Json(new { success = false, message = "Đã tồn tại lớp cùng tên trong niên khóa này." });
 
@@ -159,7 +157,7 @@ namespace datn.Controllers.Manager
                 Name = trimmedName,
                 AgeFrom = model.AgeFrom,
                 AgeTo = model.AgeTo,
-                SchoolYear = model.SchoolYear?.Trim(),
+                SchoolYear = schoolYear,
                 MaxCapacity = maxCapacity,
                 IsActive = true
             };
@@ -196,23 +194,20 @@ namespace datn.Controllers.Manager
             if (maxCapacity < 1 || maxCapacity > 100)
                 return Json(new { success = false, message = "Sĩ số tối đa phải từ 1 đến 100." });
 
-            // Validate SchoolYear format if provided
-            if (!string.IsNullOrWhiteSpace(model.SchoolYear))
-            {
-                var schoolYear = model.SchoolYear.Trim();
-                if (!System.Text.RegularExpressions.Regex.IsMatch(schoolYear, @"^\d{4}-\d{4}$"))
-                    return Json(new { success = false, message = "Niên khóa phải có định dạng yyyy-yyyy (ví dụ: 2025-2026)." });
-            }
+            var schoolYearValidation = NormalizeSchoolYear(model.SchoolYear);
+            if (!schoolYearValidation.IsValid)
+                return Json(new { success = false, message = schoolYearValidation.ErrorMessage });
+            var schoolYear = schoolYearValidation.Value!;
 
             var duplicate = await _context.Classes.AnyAsync(c =>
-                c.Id != id && c.Name == trimmedName && c.SchoolYear == (model.SchoolYear != null ? model.SchoolYear.Trim() : null));
+                c.Id != id && c.Name == trimmedName && c.SchoolYear == schoolYear);
             if (duplicate)
                 return Json(new { success = false, message = "Đã tồn tại lớp cùng tên trong niên khóa này." });
 
             classroom.Name = trimmedName;
             classroom.AgeFrom = model.AgeFrom;
             classroom.AgeTo = model.AgeTo;
-            classroom.SchoolYear = model.SchoolYear?.Trim();
+            classroom.SchoolYear = schoolYear;
             classroom.MaxCapacity = maxCapacity;
             await _context.SaveChangesAsync();
 
@@ -240,6 +235,24 @@ namespace datn.Controllers.Manager
             classroom.IsActive = true;
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Đã khôi phục lớp học thành công." });
+        }
+
+        private static (bool IsValid, string? Value, string ErrorMessage) NormalizeSchoolYear(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return (false, null, "Niên khóa không được để trống.");
+
+            var schoolYear = value.Trim();
+            var match = System.Text.RegularExpressions.Regex.Match(schoolYear, @"^(\d{4})-(\d{4})$");
+            if (!match.Success)
+                return (false, null, "Niên khóa phải có định dạng yyyy-yyyy (ví dụ: 2025-2026).");
+
+            var startYear = int.Parse(match.Groups[1].Value);
+            var endYear = int.Parse(match.Groups[2].Value);
+            if (endYear != startYear + 1)
+                return (false, null, "Niên khóa phải là hai năm liên tiếp (ví dụ: 2025-2026).");
+
+            return (true, schoolYear, string.Empty);
         }
     }
 }

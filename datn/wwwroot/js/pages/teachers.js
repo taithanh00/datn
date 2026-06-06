@@ -1,7 +1,7 @@
 ﻿// ====== TEACHER MANAGEMENT PAGE ======
 // Xử lý tất cả tương tác: tải dữ liệu, render table, quản lý form
 const TEACHERS_PAGE_SIZE = 10;
-const TEACHERS_TABLE_COLS = 7;
+const TEACHERS_TABLE_COLS = 16;
 
 let showInactiveTeachers = false;
 let teachersPaginationReady = false;
@@ -175,6 +175,15 @@ async function loadTeachers() {
 }
 
 // ====== TABLE RENDERING ======
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function renderTeachersTable(teachers) {
   const tbody = document.getElementById("teachersTableBody");
   tbody.innerHTML = "";
@@ -195,14 +204,26 @@ function renderTeachersTable(teachers) {
     const actionBtn = `<button class="btn-table" onclick="openEditPanel(${teacher.id})">Sửa</button>`;
     const roleText = teacher.teacherType === "Lead" ? "Giáo viên phụ trách" : teacher.teacherType;
     const roleBadge = `<span class="badge" style="background:#e3f2fd; color:#1976d2;">${roleText}</span>`;
+    const landingBadge = teacher.showOnLanding
+      ? '<span class="badge badge-info">Có</span>'
+      : '<span class="text-muted">Không</span>';
 
     row.innerHTML = `
-    <td>${index + 1}</td>
-    <td> <img src="${teacher.avatarPath}" class="rounded-circle" style="width:36px; height:36px; object-fit:cover; border-radius:50%;"> </td>
-    <td> <a href="/Manager/TeacherDetail/${teacher.id}" target="_blank" class="teacher-name-link" title="${teacher.fullName}"><strong>${teacher.fullName}</strong></a> </td>
-    <td>${teacher.phone || "Chưa cập nhật"}</td>
-    <td>${roleBadge}</td>
+    <td class="sticky-col first-col">${index + 1}</td>
+    <td class="sticky-col second-col"><span class="teacher-code">#${teacher.id}</span></td>
+    <td class="sticky-col third-col"><img src="${escapeHtml(teacher.avatarPath || "/images/lion_blue.png")}" class="avatar-sm" alt="avatar" onerror="this.src='/images/lion_blue.png'"></td>
+    <td class="sticky-col fourth-col"><a href="/Manager/TeacherDetail/${teacher.id}" target="_blank" class="teacher-name-link" title="${escapeHtml(teacher.fullName)}"><strong>${escapeHtml(teacher.fullName)}</strong></a></td>
     <td>${statusBadge}</td>
+    <td>${teacher.gender ? "Nam" : "Nữ"}</td>
+    <td>${formatDateOnly(teacher.dateOfBirth)}</td>
+    <td><span class="username-cell">${escapeHtml(teacher.username || "N/A")}</span></td>
+    <td><div class="email-cell" title="${escapeHtml(teacher.email || "N/A")}">${escapeHtml(teacher.email || "N/A")}</div></td>
+    <td>${escapeHtml(teacher.phone || "Chưa cập nhật")}</td>
+    <td>${roleBadge}</td>
+    <td>${teacher.baseSalary ? formatCurrency(teacher.baseSalary) : "N/A"}</td>
+    <td>${landingBadge}</td>
+    <td><span class="premium-date">${formatPremiumDate(teacher.createdAt)}</span></td>
+    <td><span class="premium-date">${formatPremiumDate(teacher.updatedAt)}</span></td>
     <td class="text-end">${actionBtn}</td>
 `;
     tbody.appendChild(row);
@@ -267,6 +288,7 @@ async function openEditPanel(teacherId) {
     document.getElementById("email").value = data.email || "";
     document.getElementById("username").value = data.username || "";
     document.getElementById("phone").value = data.phone || "";
+    document.getElementById("dateOfBirth").value = data.dateOfBirth || "";
     document.getElementById("teacherType").value = data.teacherType || "Lead";
     document.getElementById("baseSalary").value = data.baseSalary || "";
     document.getElementById("avatarPreview").src =
@@ -379,6 +401,8 @@ async function handleFormSubmit(e) {
   formData.append("LastName", lastName);
   formData.append("Email", document.getElementById("email").value);
   formData.append("Phone", document.getElementById("phone").value);
+  formData.append("DateOfBirth", document.getElementById("dateOfBirth").value);
+  formData.append("Gender", document.querySelector('input[name="Gender"]:checked')?.value || "true");
   formData.append("TeacherType", document.getElementById("teacherType").value);
   formData.append("BaseSalary", document.getElementById("baseSalary").value);
 
@@ -466,6 +490,31 @@ function formatCurrency(value) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+function formatPremiumDate(dateString) {
+  if (!dateString) return "N/A";
+  if (String(dateString).startsWith("0001-01-01")) return "N/A";
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "N/A";
+  const day = date.getDate().toString().padStart(2, "0");
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  let hours = date.getHours();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  return `${day} ${month} ${year} / ${hours}:${minutes}${ampm}`;
+}
+
+function formatDateOnly(value) {
+  if (!value) return "Chưa cập nhật";
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "Chưa cập nhật";
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  return `${day}/${month}/${date.getFullYear()}`;
 }
 
 function setupFilterListeners() {

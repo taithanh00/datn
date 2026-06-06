@@ -2,6 +2,7 @@
 
 #teachersTable {
     width: 100%;
+    min-width: 1750px;
     border-collapse: separate;
     border-spacing: 0;
 }
@@ -24,10 +25,78 @@
     font-size: 0.9rem;
     color: var(--text-main);
     vertical-align: middle;
+    white-space: nowrap;
 }
 
 #teachersTable tbody tr:hover {
     background-color: var(--sidebar-active);
+}
+
+/* ===== STICKY COLUMNS ===== */
+thead th {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+}
+
+thead th.sticky-col {
+    z-index: 40;
+}
+
+.sticky-col {
+    position: sticky;
+    z-index: 10;
+    background-color: var(--bg-card) !important;
+}
+
+:root[data-theme="dark"] .sticky-col {
+    background-color: #1A1D27 !important;
+}
+
+.first-col  { left: 0; min-width: 60px; width: 60px; }
+.second-col { left: 60px; min-width: 120px; width: 120px; }
+.third-col  { left: 180px; min-width: 90px; width: 90px; }
+.fourth-col { left: 270px; min-width: 260px; width: 260px; border-right: 2px solid var(--border) !important; }
+
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--bg-card);
+    box-shadow: 0 0 0 1px var(--border);
+}
+
+.teacher-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.username-cell {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.email-cell {
+    max-width: 240px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.premium-date {
+    font-family: inherit;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
 }
 
 .teacher-name-link {
@@ -131,4 +200,25 @@
 .badge-danger {
     background: #fef2f2;
     color: #dc2626;
+}
+
+.badge-info {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.table-container {
+    overflow-x: auto;
+    width: 100%;
+}
+
+.table-container::-webkit-scrollbar { height: 8px; }
+.table-container::-webkit-scrollbar-track { background: #f1f5f9; }
+.table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.form-actions .btn-save,
+.form-actions .btn-delete {
+    white-space: nowrap;
+    flex-shrink: 0;
 }

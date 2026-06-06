@@ -23,7 +23,11 @@ function loadMyClasses() {
             
             // Tự động tải danh sách học sinh
             if (currentClassId > 0) loadStudents(currentClassId);
+        } else {
+            document.getElementById('attendanceContent').innerHTML = `<div class="page-alert error">${response.message || 'Không tải được danh sách lớp.'}</div>`;
         }
+    }).catch(() => {
+        document.getElementById('attendanceContent').innerHTML = '<div class="page-alert error">Lỗi kết nối khi tải danh sách lớp.</div>';
     });
 }
 
@@ -55,7 +59,11 @@ function loadStudents(classId) {
             });
             document.getElementById('attendanceContent').innerHTML = html;
             document.getElementById('footerActions').style.display = 'flex';
+        } else {
+            document.getElementById('attendanceContent').innerHTML = `<div class="page-alert error">${response.message || 'Không tải được danh sách học sinh.'}</div>`;
         }
+    }).catch(() => {
+        document.getElementById('attendanceContent').innerHTML = '<div class="page-alert error">Lỗi kết nối khi tải danh sách học sinh.</div>';
     });
 }
 

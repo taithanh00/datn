@@ -1,21 +1,21 @@
 @{
-    ViewData["Title"] = "Quan ly Dinh duong & Thuc don";
+    ViewData["Title"] = "Quản lý Dinh dưỡng & Thực đơn";
     Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
     var isManager = ViewBag.Role == "Manager";
 }
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">Thuc don tuan lap</h1>
+        <h1 class="page-title">Thực đơn tuần</h1>
         <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">
-            Xay dung mau thuc don chung cho toan truong, ap dung lap lai moi tuan.
+            Xây dựng mẫu thực đơn chung cho toàn trường, áp dụng lặp lại mỗi tuần.
         </p>
     </div>
 </div>
 
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
     <div style="font-size:0.9rem; color:var(--text-muted); font-weight:600;">
-        Mau tuan: Thu 2 den Thu 6
+        Mẫu tuần: Thứ 2 đến Thứ 7
     </div>
 </div>
 
@@ -24,7 +24,7 @@
         <table id="menuGrid" style="width:100%; border-collapse:collapse; min-width:700px;">
             <thead>
                 <tr id="gridHeader">
-                    <th style="width:110px; padding:12px 16px; text-align:left; background:var(--bg-body); border-bottom:2px solid var(--border); font-size:0.8rem; color:var(--text-muted); text-transform:uppercase;">Bua an</th>
+                    <th style="width:110px; padding:12px 16px; text-align:left; background:var(--bg-body); border-bottom:2px solid var(--border); font-size:0.8rem; color:var(--text-muted); text-transform:uppercase;">Bữa ăn</th>
                 </tr>
             </thead>
             <tbody id="gridBody"></tbody>
@@ -32,43 +32,42 @@
     </div>
 </div>
 
-<div class="card" id="editCard" style="margin-top:20px; display:none;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-        <h3 id="editCardTitle">Cap nhat thuc don</h3>
-        <button class="btn btn-outline" onclick="resetForm()" style="font-size:0.8rem; padding:5px 14px;">Dong</button>
+<div id="nutritionModalOverlay" class="modal-overlay"></div>
+<div class="slide-panel" id="editCard">
+    <div class="slide-panel-header">
+        <h3 id="editCardTitle">Cập nhật thực đơn</h3>
+        <button class="close-btn" onclick="resetForm()" type="button">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
     </div>
-    <form id="menuForm">
-        <input type="hidden" id="menuId" value="0" />
-        <input type="hidden" id="menuDayOfWeek" />
-        <input type="hidden" id="menuType" />
+    <div class="slide-panel-body">
+        <form id="menuForm">
+            <input type="hidden" id="menuId" value="0" />
+            <input type="hidden" id="menuDayOfWeek" />
+            <input type="hidden" id="menuType" />
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
             <div class="form-group">
-                <label class="form-label">Ten mon an <span style="color:var(--danger);">*</span></label>
+                <label class="form-label">Tên món ăn <span style="color:var(--danger);">*</span></label>
                 <input type="text" id="dishName" class="form-input" required />
             </div>
             <div class="form-group">
-                <label class="form-label">Calo uoc tinh</label>
-                <input type="number" id="calories" class="form-input" min="0" />
+                <label class="form-label">Ghi chú</label>
+                <textarea id="menuNote" class="form-input" rows="2"></textarea>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="form-label">Ghi chu</label>
-            <textarea id="menuNote" class="form-input" rows="2"></textarea>
-        </div>
 
-        @if (isManager)
-        {
-            <div style="display:flex; gap:10px;">
-                <button type="submit" class="btn btn-primary">Luu thuc don</button>
-                <button type="button" class="btn btn-outline" id="deleteBtn" onclick="deleteMenu()" style="display:none; color:var(--danger); border-color:var(--danger);">Xoa mon</button>
-            </div>
-        }
-        else
-        {
-            <div class="alert-info-soft"><i class="fa-solid fa-info-circle"></i> Ban dang xem o che do chi doc.</div>
-        }
-    </form>
+            @if (isManager)
+            {
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn btn-primary">Lưu thực đơn</button>
+                    <button type="button" class="btn btn-outline" id="deleteBtn" onclick="deleteMenu()" style="display:none; color:var(--danger); border-color:var(--danger);">Xóa món</button>
+                </div>
+            }
+            else
+            {
+                <div class="alert-info-soft"><i class="fa-solid fa-info-circle"></i> Bạn đang xem ở chế độ chỉ đọc.</div>
+            }
+        </form>
+    </div>
 </div>
 
 @section Styles {
@@ -135,16 +134,17 @@
 @section Scripts {
 <script>
     const DAYS = [
-        { value: 1, label: 'Thu 2' },
-        { value: 2, label: 'Thu 3' },
-        { value: 3, label: 'Thu 4' },
-        { value: 4, label: 'Thu 5' },
-        { value: 5, label: 'Thu 6' }
+        { value: 1, label: 'Thứ 2' },
+        { value: 2, label: 'Thứ 3' },
+        { value: 3, label: 'Thứ 4' },
+        { value: 4, label: 'Thứ 5' },
+        { value: 5, label: 'Thứ 6' },
+        { value: 6, label: 'Thứ 7' }
     ];
     const MEALS = [
-        { type: 0, label: 'Sang' },
-        { type: 1, label: 'Trua' },
-        { type: 2, label: 'Xe' }
+        { type: 0, label: 'Sáng' },
+        { type: 1, label: 'Trưa' },
+        { type: 2, label: 'Xế' }
     ];
     const IS_MANAGER = @(isManager.ToString().ToLower());
     let weeklyMenuData = [];
@@ -153,6 +153,7 @@
         buildGridHeader();
         loadWeeklyMenu();
         document.getElementById('menuForm').addEventListener('submit', saveMenu);
+        document.getElementById('nutritionModalOverlay').addEventListener('click', resetForm);
     });
 
     function buildGridHeader() {
@@ -171,7 +172,7 @@
             weeklyMenuData = await resp.json();
             renderGrid();
         } catch (e) {
-            window.showToast?.('Loi', 'Khong the tai thuc don tuan', 'error');
+            window.showToast?.('Lỗi', 'Không thể tải thực đơn tuần', 'error');
         }
     }
 
@@ -212,20 +213,20 @@
         const day = DAYS.find(d => d.value === dayOfWeek);
         const meal = MEALS.find(m => m.type === mealType);
 
-        document.getElementById('editCard').style.display = 'block';
+        document.getElementById('nutritionModalOverlay').classList.add('active');
+        document.getElementById('editCard').classList.add('active');
+        document.body.style.overflow = 'hidden';
         document.getElementById('editCardTitle').textContent = `${meal.label} - ${day.label}`;
         document.getElementById('menuId').value = item ? item.id : 0;
         document.getElementById('menuDayOfWeek').value = dayOfWeek;
         document.getElementById('menuType').value = mealType;
         document.getElementById('dishName').value = item ? item.dishName : '';
-        document.getElementById('calories').value = item ? (item.calories || '') : '';
         document.getElementById('menuNote').value = item ? (item.note || '') : '';
         document.getElementById('deleteBtn').style.display = (item && IS_MANAGER) ? 'block' : 'none';
 
         document.querySelectorAll('#menuForm input, #menuForm textarea')
             .forEach(input => input.readOnly = !IS_MANAGER);
 
-        document.getElementById('editCard').scrollIntoView({ behavior: 'smooth' });
     }
 
     async function saveMenu(e) {
@@ -236,13 +237,12 @@
             dayOfWeek: parseInt(document.getElementById('menuDayOfWeek').value),
             mealType: parseInt(document.getElementById('menuType').value),
             dishName: document.getElementById('dishName').value.trim(),
-            calories: parseInt(document.getElementById('calories').value) || null,
             note: document.getElementById('menuNote').value.trim(),
             isActive: true
         };
 
         if (!payload.dishName) {
-            window.showToast?.('Loi', 'Vui long nhap ten mon an', 'error');
+            window.showToast?.('Lỗi', 'Vui lòng nhập tên món ăn', 'error');
             return;
         }
 
@@ -254,11 +254,11 @@
 
         const result = await resp.json();
         if (result.success) {
-            window.showToast?.('Thanh cong', 'Da luu thuc don', 'success');
+            window.showToast?.('Thành công', 'Đã lưu thực đơn', 'success');
             resetForm();
             loadWeeklyMenu();
         } else {
-            window.showToast?.('Loi', 'Khong the luu thuc don', 'error');
+            window.showToast?.('Lỗi', 'Không thể lưu thực đơn', 'error');
         }
     }
 
@@ -269,16 +269,18 @@
         const resp = await fetch(`/Manager/Nutrition/DeleteMenu?id=${id}`, { method: 'POST' });
         const result = await resp.json();
         if (result.success) {
-            window.showToast?.('Thanh cong', 'Da xoa mon an', 'success');
+            window.showToast?.('Thành công', 'Đã xóa món ăn', 'success');
             resetForm();
             loadWeeklyMenu();
         } else {
-            window.showToast?.('Loi', 'Khong the xoa mon an', 'error');
+            window.showToast?.('Lỗi', 'Không thể xóa món ăn', 'error');
         }
     }
 
     function resetForm() {
-        document.getElementById('editCard').style.display = 'none';
+        document.getElementById('nutritionModalOverlay').classList.remove('active');
+        document.getElementById('editCard').classList.remove('active');
+        document.body.style.overflow = 'auto';
         document.getElementById('menuForm').reset();
     }
 

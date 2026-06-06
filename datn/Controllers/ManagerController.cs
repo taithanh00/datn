@@ -37,6 +37,15 @@ namespace datn.Controllers
                 .Include(e => e.Account).ThenInclude(a => a.Role)
                 .CountAsync(e => e.Account.Role.Name == "Employee");
             var pendingLeaves = await _context.EmployeeLeaveRequests.CountAsync(r => r.Status == "Pending");
+            var contractDeadline = today.AddDays(30);
+            var activeContracts = await _context.TeacherContracts.CountAsync(c => c.Status == TeacherContractStatus.Active);
+            var expiringContracts = await _context.TeacherContracts.CountAsync(c => c.Status == TeacherContractStatus.Active
+                && c.ExpiryDate.HasValue
+                && c.ExpiryDate.Value >= today
+                && c.ExpiryDate.Value <= contractDeadline);
+            var teachersWithoutContracts = await _context.Employees
+                .Include(e => e.Account).ThenInclude(a => a.Role)
+                .CountAsync(e => e.Account.Role.Name == "Employee" && !e.TeacherContracts.Any());
 
             // Doanh thu tháng hiện tại (Tổng từ TuitionDetails của các hóa đơn đã nộp)
             var currentMonthRevenue = await _context.TuitionDetails
@@ -81,6 +90,9 @@ namespace datn.Controllers
                     totalStudents,
                     totalTeachers,
                     pendingLeaves,
+                    activeContracts,
+                    expiringContracts,
+                    teachersWithoutContracts,
                     monthlyRevenue = currentMonthRevenue,
                     teacherAttendanceToday = await _context.WorkAttendances.CountAsync(w => w.Date == today && w.CheckInAtUtc != null)
                 },
@@ -114,7 +126,7 @@ namespace datn.Controllers
             var student = await _studentService.GetStudentByIdAsync(id);
             if (student == null) return NotFound();
             
-            ViewData["Title"] = $"Hồ sơ học sinh - {student.FirstName} {student.LastName}";
+            ViewData["Title"] = $"Hồ sơ học sinh - {student.FullName}";
             return View("~/Views/Dashboard/Admin/Manager/StudentDetail.cshtml", student);
         }
 
@@ -125,12 +137,20 @@ namespace datn.Controllers
             return View("~/Views/Dashboard/Admin/Manager/Teachers.cshtml");
         }
 
+        [HttpGet("TeacherContracts")]
+        public IActionResult TeacherContracts()
+        {
+            ViewData["Title"] = "Quản lý hợp đồng giáo viên";
+            return View("~/Views/Dashboard/Admin/Manager/TeacherContracts.cshtml");
+        }
+
         [HttpGet("TeacherDetail/{id:int}")]
         public async Task<IActionResult> TeacherDetail(int id)
         {
             var teacher = await _context.Employees
                 .Include(e => e.Account)
                 .Include(e => e.Assignments).ThenInclude(a => a.Class)
+                .Include(e => e.TeacherContracts)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (teacher == null) return NotFound();

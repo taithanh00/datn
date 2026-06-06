@@ -7,6 +7,7 @@
 @section Styles {
     <link rel="stylesheet" href="~/css/pages/profile-detail.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/pages/teacher-detail.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/teacher-contracts.css" asp-append-version="true" />
 }
 
 <div class="page-header">
@@ -85,6 +86,7 @@
             <div class="card-header-tabs">
                 <button class="tab-btn active" data-tab="basic">Thông tin cá nhân</button>
                 <button class="tab-btn" data-tab="assignments">Lớp phụ trách</button>
+                <button class="tab-btn" data-tab="contracts">Hợp đồng</button>
             </div>
 
             <!-- Tab 1: Basic Info -->
@@ -105,6 +107,10 @@
                     <div class="detail-group">
                         <label>Số điện thoại</label>
                         <p>@(Model.Phone ?? "Chưa cập nhật")</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Ngày sinh</label>
+                        <p>@(Model.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</p>
                     </div>
                     <div class="detail-group">
                         <label>Lương cơ bản</label>
@@ -160,10 +166,47 @@
                 }
             </div>
 
+            <div class="tab-content" id="contracts" data-teacher-id="@Model.Id" data-teacher-name="@Model.FullName">
+                <div class="contract-toolbar">
+                    <div>
+                        <h4>Hợp đồng giáo viên</h4>
+                        <p class="text-muted" style="margin:4px 0 0;">Quản lý hợp đồng hiện tại và lịch sử hợp đồng của giáo viên này.</p>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="btnCreateContractForTeacher">
+                        <i class="fa-solid fa-plus"></i>
+                        Thêm hợp đồng
+                    </button>
+                </div>
+
+                <div id="teacherContractSummary"></div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Số hợp đồng</th>
+                                <th>Loại</th>
+                                <th>Hiệu lực</th>
+                                <th>Hết hạn</th>
+                                <th>Lương thỏa thuận</th>
+                                <th>Trạng thái</th>
+                                <th style="text-align:right;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacherContractsBody">
+                            <tr><td colspan="7" class="text-muted" style="text-align:center; padding:32px;">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
 
+@await Html.PartialAsync("~/Views/Dashboard/Admin/Manager/_TeacherContractPanel.cshtml")
+
 @section Scripts {
     <script src="~/js/pages/profile-detail.js" asp-append-version="true"></script>
+    <script src="~/js/pages/teacher-contracts.js" asp-append-version="true"></script>
 }

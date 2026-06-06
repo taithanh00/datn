@@ -52,7 +52,7 @@ namespace datn.Controllers
 
             // Gửi email (Mock)
             var resetLink = Url.Action("ResetPassword", "Auth", new { token = token }, Request.Scheme);
-            var subject = "[SenHồng] Khôi phục mật khẩu của bạn";
+            var subject = "[Sen Hồng] Khôi phục mật khẩu của bạn";
             var body = $@"
 <div style='background-color: #f4f7f6; padding: 40px 0; font-family: ""Segoe UI"", Tahoma, Geneva, Verdana, sans-serif;'>
     <table align='center' border='0' cellpadding='0' cellspacing='0' width='600' style='background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);'>
@@ -68,7 +68,7 @@ namespace datn.Controllers
                     Chào <strong>{account.Username}</strong>,
                 </p>
                 <p style='color: #475569; line-height: 1.6; font-size: 16px;'>
-                    Chúng tôi nhận được yêu cầu khôi phục mật khẩu cho tài khoản của bạn tại <strong>Trường Mầm Non SenHồng</strong>. 
+                    Chúng tôi nhận được yêu cầu khôi phục mật khẩu cho tài khoản của bạn tại <strong>Trường Mầm Non Sen Hồng</strong>. 
                     Nếu đây đúng là yêu cầu của bạn, hãy nhấn vào nút bên dưới để tiến hành đặt lại mật khẩu mới.
                 </p>
                 <div style='text-align: center; margin: 35px 0;'>
@@ -88,8 +88,8 @@ namespace datn.Controllers
         <tr>
             <td style='padding: 20px 30px; background-color: #f8fafc; text-align: center;'>
                 <p style='color: #94a3b8; font-size: 12px; margin: 0;'>
-                    © {DateTime.Now.Year} Trường Mầm Non SenHồng. All rights reserved.<br>
-                    Địa chỉ: Khu đô thị SenHồng, TP. Hồ Chí Minh
+                    © {DateTime.Now.Year} Trường Mầm Non Sen Hồng. All rights reserved.<br>
+                    Địa chỉ: Khu đô thị Sen Hồng, TP. Hồ Chí Minh
                 </p>
             </td>
         </tr>

@@ -66,14 +66,14 @@
                     <input id="className" type="text" class="form-control" required placeholder="Nhập tên lớp" />
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="schoolYear">Niên khóa</label>
-                    <input id="schoolYear" type="text" class="form-control" placeholder="Ví dụ: 2025-2026" />
+                    <label class="form-label" for="schoolYear">Niên khóa <span class="text-danger">*</span></label>
+                    <input id="schoolYear" type="text" class="form-control" placeholder="Ví dụ: 2025-2026" pattern="\d{4}-\d{4}" required />
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="ageRange">Độ tuổi <span class="text-danger">*</span></label>
                     <select id="ageRange" class="form-control" required>
                         <option value="">-- Chọn độ tuổi --</option>
-                        <option value="2-3">2 - 3 tuổi</option>
+                        <option value="2-3">24 - 36 tháng</option>
                         <option value="3-4">3 - 4 tuổi</option>
                         <option value="4-5">4 - 5 tuổi</option>
                         <option value="5-6">5 - 6 tuổi</option>

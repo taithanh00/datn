@@ -180,6 +180,10 @@
     display: flex;
 }
 
+.modal-overlay.active {
+    display: block;
+}
+
 .modal-card {
     background: var(--bg-card);
     border-radius: var(--radius-lg);

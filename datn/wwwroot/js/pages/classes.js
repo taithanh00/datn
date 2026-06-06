@@ -111,11 +111,11 @@ function bindClassManagementEvents() {
         });
     }
 
-    // Status Tabs - Classes (no scope or scope=classes)
-    document.querySelectorAll(".status-tab:not([data-scope])").forEach((tab) => {
+    // Status Tabs - Classes
+    document.querySelectorAll('.status-tab[data-scope="classes"], .status-tab:not([data-scope])').forEach((tab) => {
         tab.addEventListener("click", function () {
             document
-                .querySelectorAll(".status-tab:not([data-scope])")
+                .querySelectorAll('.status-tab[data-scope="classes"], .status-tab:not([data-scope])')
                 .forEach((t) => t.classList.remove("active"));
             this.classList.add("active");
             showInactiveClasses = this.getAttribute("data-show-inactive") === "true";
@@ -199,7 +199,7 @@ async function loadSubjects() {
             : `<button type="button" class="btn-table" onclick="reactivateSubject(${item.id})" style="color:var(--primary);">Khôi phục</button>`;
 
         return `<tr>
-            <td><strong>${escapeHtml(item.code)}</strong></td>
+            <td>${escapeHtml(item.id)}</td>
             <td>${escapeHtml(item.name)}</td>
             <td class="note-muted">${escapeHtml(item.description || 'Không có mô tả')}</td>
             <td><span class="status-badge ${item.isActive ? 'active' : 'inactive'}">${item.isActive ? 'Đang dùng' : 'Tạm ngưng'}</span></td>
@@ -220,7 +220,7 @@ async function refreshDropdowns() {
         (subjectsResult.data || []).filter(item => item.isActive),
         'Chọn môn học',
         'id',
-        item => `${item.code} - ${item.name}`
+        item => item.name
     );
 
     if (!document.getElementById('scheduleClassFilter').value && classesResult.data && classesResult.data.length > 0) {
@@ -253,7 +253,8 @@ async function loadSchedules(classId) {
         { val: 2, label: 'Thứ 3' },
         { val: 3, label: 'Thứ 4' },
         { val: 4, label: 'Thứ 5' },
-        { val: 5, label: 'Thứ 6' }
+        { val: 5, label: 'Thứ 6' },
+        { val: 6, label: 'Thứ 7' }
     ];
 
     days.forEach(day => {
@@ -297,13 +298,19 @@ async function saveClass(event) {
 
     const ageRange = document.getElementById('ageRange').value;
     const [ageFrom, ageTo] = ageRange ? ageRange.split('-').map(Number) : [null, null];
+    const schoolYear = document.getElementById('schoolYear').value.trim();
+    const schoolYearError = validateSchoolYear(schoolYear);
+    if (schoolYearError) {
+        showAlert('classFormAlert', false, schoolYearError);
+        return;
+    }
 
     const payload = {
         name: document.getElementById('className').value.trim(),
         ageFrom: ageFrom,
         ageTo: ageTo,
         maxCapacity: parseNullableInt(document.getElementById('maxCapacity').value) || 25,
-        schoolYear: document.getElementById('schoolYear').value.trim() || null
+        schoolYear: schoolYear
     };
 
     const isEdit = !!currentClassId;
@@ -326,7 +333,6 @@ async function saveSubject(event) {
     event.preventDefault();
 
     const payload = {
-        code: document.getElementById('subjectCode').value.trim(),
         name: document.getElementById('subjectName').value.trim(),
         description: document.getElementById('subjectDescription').value.trim() || null,
         isActive: document.getElementById('subjectIsActive').checked
@@ -419,7 +425,6 @@ async function editSubject(subjectId) {
 
     currentSubjectId = subjectId;
     document.getElementById('subjectId').value = subjectId;
-    document.getElementById('subjectCode').value = result.data.code || '';
     document.getElementById('subjectName').value = result.data.name || '';
     document.getElementById('subjectDescription').value = result.data.description || '';
     const isActiveCheckbox = document.getElementById('subjectIsActive');
@@ -492,11 +497,15 @@ function openScheduleModal(day, slotIdx, isEdit = false, suggestedStartTime = nu
         document.getElementById('modalTitle').textContent = 'Phân công tiết học mới';
     }
 
-    document.getElementById('scheduleModal').style.display = 'flex';
+    document.getElementById('scheduleModal').classList.add('active');
+    document.getElementById('scheduleSlidePanel').classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeScheduleModal() {
-    document.getElementById('scheduleModal').style.display = 'none';
+    document.getElementById('scheduleModal').classList.remove('active');
+    document.getElementById('scheduleSlidePanel').classList.remove('active');
+    document.body.style.overflow = 'auto';
 }
 
 async function deleteClass(classId) {
@@ -662,6 +671,7 @@ function renderTeacherTags(teachers) {
 
 function formatAgeRange(from, to) {
     if (!from && !to) return 'Chưa cập nhật';
+    if (from === 2 && to === 3) return '24 - 36 tháng';
     if (from && to) return `${from} - ${to} tuổi`;
     if (from) return `Từ ${from} tuổi`;
     return `Đến ${to} tuổi`;
@@ -681,6 +691,20 @@ function formatDate(value) {
 function parseNullableInt(value) {
     const parsed = parseInt(value, 10);
     return Number.isNaN(parsed) ? null : parsed;
+}
+
+function validateSchoolYear(value) {
+    if (!value) return 'Niên khóa không được để trống.';
+    const match = value.match(/^(\d{4})-(\d{4})$/);
+    if (!match) return 'Niên khóa phải có định dạng yyyy-yyyy. Ví dụ: 2025-2026.';
+
+    const startYear = parseInt(match[1], 10);
+    const endYear = parseInt(match[2], 10);
+    if (endYear !== startYear + 1) {
+        return 'Niên khóa phải là hai năm liên tiếp. Ví dụ: 2025-2026.';
+    }
+
+    return null;
 }
 
 async function sendJson(url, method, payload) {

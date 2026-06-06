@@ -224,6 +224,19 @@
         color: #bbb;
     }
 
+/* Hide browser-native password reveal controls so only the custom eye button is shown. */
+.field-group input[type="password"]::-ms-reveal,
+.field-group input[type="password"]::-ms-clear {
+    display: none;
+}
+
+.field-group input[type="password"]::-webkit-credentials-auto-fill-button,
+.field-group input[type="password"]::-webkit-caps-lock-indicator {
+    visibility: hidden;
+    display: none !important;
+    pointer-events: none;
+}
+
 /* Override Browser Autofill Styling */
 .field-group input:-webkit-autofill,
 .field-group input:-webkit-autofill:hover,

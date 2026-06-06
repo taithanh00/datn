@@ -59,7 +59,7 @@ namespace datn.Controllers
             try
             {
                 var senderEmail = _config["EmailSettings:SenderEmail"] ?? "taithanh421@gmail.com";
-                var subject = "[SenHồng] Yêu cầu tư vấn mới từ Landing Page";
+                var subject = "[Sen Hồng] Yêu cầu tư vấn mới từ Landing Page";
                 
                 var body = $@"
 <div style='background-color: #f4f7f6; padding: 40px 0; font-family: ""Segoe UI"", Tahoma, Geneva, Verdana, sans-serif;'>
@@ -90,7 +90,7 @@ namespace datn.Controllers
         <tr>
             <td style='padding: 20px 30px; background-color: #f8fafc; text-align: center;'>
                 <p style='color: #94a3b8; font-size: 12px; margin: 0;'>
-                    © {DateTime.Now.Year} Trường Mầm Non SenHồng. All rights reserved.<br>
+                    © {DateTime.Now.Year} Trường Mầm Non Sen Hồng. All rights reserved.<br>
                     Địa chỉ: 12 Lang Liêu, Nha Trang, Khánh Hòa
                 </p>
             </td>

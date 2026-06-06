@@ -16,16 +16,6 @@ namespace datn.Services
             _environment = environment;
         }
 
-        public async Task<string> GenerateStudentCodeAsync(int year)
-        {
-            // Ignore global filter to include "deleted" students in the count for unique codes
-            var count = await _context.Students
-                .IgnoreQueryFilters()
-                .CountAsync(s => s.EnrollDate.HasValue && s.EnrollDate.Value.Year == year);
-            
-            return $"{year}{(count + 1):D4}";
-        }
-
         public async Task<Student?> CheckPotentialDuplicateAsync(CreateStudentDto dto)
         {
             if (!DateOnly.TryParse(dto.DateOfBirth, out var dob)) return null;
@@ -50,11 +40,8 @@ namespace datn.Services
                     ? DateOnly.FromDateTime(DateTime.Now) 
                     : DateOnly.Parse(dto.EnrollDate);
                 
-                var studentCode = await GenerateStudentCodeAsync(enrollDate.Year);
-
                 var student = new Student
                 {
-                    StudentCode = studentCode,
                     FirstName = dto.FirstName.Trim(),
                     LastName = dto.LastName.Trim(),
                     Gender = dto.Gender == "true",

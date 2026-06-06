@@ -2,6 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     loadFeeItems();
+    document.getElementById('feeModalOverlay')?.addEventListener('click', closeFeeModal);
 });
 
 async function loadFeeItems() {
@@ -27,7 +28,7 @@ async function loadFeeItems() {
                     <div class="text-muted small">${escapeHtml(item.description || '')}</div>
                 </td>
                 <td>
-                    ${(item.ageFrom || item.ageTo) ? `<span class="badge badge-outline">${item.ageFrom}-${item.ageTo} tuổi</span>` : '<span class="text-muted">--</span>'}
+                    ${(item.ageFrom || item.ageTo) ? `<span class="badge badge-outline">${formatAgeRange(item.ageFrom, item.ageTo)}</span>` : '<span class="text-muted">--</span>'}
                 </td>
                 <td><span class="fw-bold text-primary">${formatCurrency(item.defaultAmount)}</span></td>
                 <td>
@@ -59,11 +60,13 @@ function showCreateFeeModal() {
     document.getElementById('feeItemId').value = '';
     document.getElementById('feeAgeRange').value = '';
     document.getElementById('feeIsActive').checked = true;
-    document.getElementById('feeModalOverlay').classList.add('show');
+    openFeePanel();
 }
 
 function closeFeeModal() {
-    document.getElementById('feeModalOverlay').classList.remove('show');
+    document.getElementById('feeModalOverlay').classList.remove('active');
+    document.getElementById('feeSlidePanel').classList.remove('active');
+    document.body.style.overflow = 'auto';
 }
 
 async function editFeeItem(id) {
@@ -87,13 +90,19 @@ async function editFeeItem(id) {
             document.getElementById('feeDescription').value = item.description || '';
             document.getElementById('feeIsRequired').checked = item.isRequired;
             document.getElementById('feeIsActive').checked = item.isActive;
-            document.getElementById('feeModalOverlay').classList.add('show');
+            openFeePanel();
         } else {
             alert(result.message);
         }
     } catch (error) {
         console.error('Error fetching fee item:', error);
     }
+}
+
+function openFeePanel() {
+    document.getElementById('feeModalOverlay').classList.add('active');
+    document.getElementById('feeSlidePanel').classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
 async function saveFeeItem() {
@@ -168,6 +177,14 @@ function formatDate(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     return date.toLocaleDateString('vi-VN');
+}
+
+function formatAgeRange(ageFrom, ageTo) {
+    if (ageFrom === 2 && ageTo === 3) return '24 - 36 tháng';
+    if (ageFrom && ageTo) return `${ageFrom} - ${ageTo} tuổi`;
+    if (ageFrom) return `Từ ${ageFrom} tuổi`;
+    if (ageTo) return `Đến ${ageTo} tuổi`;
+    return '--';
 }
 
 function escapeHtml(text) {

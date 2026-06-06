@@ -24,7 +24,7 @@ namespace datn.Controllers.Teacher
         [HttpGet("")]
         public IActionResult Index()
         {
-            ViewData["Title"] = "Tính lương Giáo viên";
+            ViewData["Title"] = "Quản lý tiền lương";
             return View("~/Views/Dashboard/Admin/TeacherSalary/Index.cshtml");
         }
 
@@ -239,7 +239,7 @@ namespace datn.Controllers.Teacher
             for (int day = 1; day <= days; day++)
             {
                 var date = new DateTime(year, month, day);
-                if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
+                if (date.DayOfWeek != DayOfWeek.Sunday)
                 {
                     count++;
                 }

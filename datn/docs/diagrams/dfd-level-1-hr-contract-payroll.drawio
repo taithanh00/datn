@@ -1,0 +1,118 @@
+<mxfile host="app.diagrams.net" agent="Codex">
+  <diagram id="dfd-level-1-hr-contract-payroll" name="DFD Level 1 - HR Contract Payroll">
+    <mxGraphModel dx="1572" dy="940" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3400" pageHeight="2300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=26;fontStyle=1;align=center;verticalAlign=middle;" value="DFD MỨC 1 - TIẾN TRÌNH 6.0: NHÂN SỰ, HỢP ĐỒNG, CHẤM CÔNG, LƯƠNG, NGHỈ PHÉP" vertex="1">
+          <mxGeometry height="60" width="2500" x="420" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="manager" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Consolas;fontSize=15;fontStyle=1;align=left;verticalAlign=top;spacing=12;" value="BAN QUẢN LÝ&#xa;-------------------------&#xa;Quản lý hồ sơ giáo viên&#xa;Quản lý hợp đồng&#xa;Duyệt nghỉ phép&#xa;Tính và khóa lương" vertex="1">
+          <mxGeometry height="170" width="330" x="80" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="teacher" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Consolas;fontSize=15;fontStyle=1;align=left;verticalAlign=top;spacing=12;" value="GIÁO VIÊN / NHÂN SỰ&#xa;-------------------------&#xa;Chấm công&#xa;Tạo đơn nghỉ&#xa;Xem trạng thái nghỉ&#xa;Xem phiếu lương" vertex="1">
+          <mxGeometry height="170" width="330" x="80" y="1250" as="geometry" />
+        </mxCell>
+        <mxCell id="p61" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Consolas;fontSize=15;fontStyle=1;align=left;verticalAlign=top;spacing=12;" value="6.1 QUẢN LÝ HỒ SƠ GIÁO VIÊN&#xa;-------------------------&#xa;Tạo/sửa giáo viên&#xa;Khóa/khôi phục tài khoản&#xa;Cập nhật hồ sơ, lương cơ bản" vertex="1">
+          <mxGeometry height="180" width="430" x="600" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="p62" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Consolas;fontSize=15;fontStyle=1;align=left;verticalAlign=top;spacing=12;" value="6.2 QUẢN LÝ HỢP ĐỒNG GIÁO VIÊN&#xa;-------------------------&#xa;Tạo Draft / sửa Draft&#xa;Upload file hợp đồng&#xa;Activate / Terminate / Cancel&#xa;Cảnh báo hết hạn" vertex="1">
+          <mxGeometry height="210" width="470" x="1240" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="p63" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Consolas;fontSize=15;fontStyle=1;align=left;verticalAlign=top;spacing=12;" value="6.3 GHI NHẬN CHẤM CÔNG &amp; DẠY THAY&#xa;-------------------------&#xa;Check-in / Check-out&#xa;Tính công, phạt đi trễ&#xa;Ghi phụ cấp dạy thay" vertex="1">
+          <mxGeometry height="190" width="460" x="1980" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="p64" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Consolas;fontSize=15;fontStyle=1;align=left;verticalAlign=top;spacing=12;" value="6.4 QUẢN LÝ NGHỈ PHÉP&#xa;-------------------------&#xa;Giáo viên tạo đơn nghỉ&#xa;Manager duyệt/từ chối&#xa;Xác định nghỉ có tính lương" vertex="1">
+          <mxGeometry height="180" width="430" x="600" y="950" as="geometry" />
+        </mxCell>
+        <mxCell id="p65" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Consolas;fontSize=15;fontStyle=1;align=left;verticalAlign=top;spacing=12;" value="6.5 TÍNH LƯƠNG &amp; PHÁT HÀNH PHIẾU LƯƠNG&#xa;-------------------------&#xa;Tạo kỳ lương&#xa;Tính lương từ BaseSalary, công, nghỉ, phụ cấp&#xa;Khóa kỳ lương&#xa;Cho giáo viên xem phiếu lương" vertex="1">
+          <mxGeometry height="230" width="500" x="1240" y="940" as="geometry" />
+        </mxCell>
+        <mxCell id="p66" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontFamily=Consolas;fontSize=15;fontStyle=1;align=left;verticalAlign=top;spacing=12;" value="6.6 THÔNG BÁO &amp; AUDIT&#xa;-------------------------&#xa;Thông báo duyệt nghỉ&#xa;Cảnh báo hợp đồng sắp hết hạn&#xa;Thông báo phiếu lương&#xa;Ghi nhật ký thay đổi" vertex="1">
+          <mxGeometry height="210" width="470" x="2060" y="950" as="geometry" />
+        </mxCell>
+        <mxCell id="d51" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Consolas;fontSize=15;fontStyle=1;align=center;" value="D5.1 EMPLOYEES / ACCOUNTS" vertex="1">
+          <mxGeometry height="75" width="430" x="600" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="d52" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Consolas;fontSize=15;fontStyle=1;align=center;" value="D5.2 TEACHER_CONTRACTS + APP_DATA/CONTRACTS" vertex="1">
+          <mxGeometry height="75" width="500" x="1240" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="d53" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Consolas;fontSize=15;fontStyle=1;align=center;" value="D5.3 WORK_ATTENDANCES / CLASS_COVERAGE_BONUSES" vertex="1">
+          <mxGeometry height="75" width="520" x="1980" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="d54" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Consolas;fontSize=15;fontStyle=1;align=center;" value="D5.4 EMPLOYEE_LEAVE_REQUESTS" vertex="1">
+          <mxGeometry height="75" width="430" x="600" y="1240" as="geometry" />
+        </mxCell>
+        <mxCell id="d55" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Consolas;fontSize=15;fontStyle=1;align=center;" value="D5.5 PAYROLL_PERIODS / SALARIES" vertex="1">
+          <mxGeometry height="75" width="500" x="1240" y="1280" as="geometry" />
+        </mxCell>
+        <mxCell id="d56" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontFamily=Consolas;fontSize=15;fontStyle=1;align=center;" value="D5.6 NOTIFICATIONS / AUDIT_LOGS" vertex="1">
+          <mxGeometry height="75" width="470" x="2060" y="1280" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="manager" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="p61" value="Hồ sơ giáo viên, tài khoản">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="p61" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="d51" value="Lưu/cập nhật hồ sơ">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="d51" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="p62" value="Thông tin giáo viên">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="manager" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="p62" value="Tạo/sửa/kích hoạt/chấm dứt/hủy hợp đồng">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="p62" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="d52" value="Hợp đồng, metadata file, trạng thái">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="p62" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="d51" value="Đồng bộ BaseSalary khi activate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="d52" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="p66" value="Hợp đồng sắp hết hạn / hết hạn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="teacher" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="p63" value="Check-in / check-out">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="p63" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="d53" value="Công, phạt, phụ cấp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="d53" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="p65" value="Dữ liệu công/phụ cấp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="teacher" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="p64" value="Tạo đơn nghỉ">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="manager" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="p64" value="Duyệt/từ chối nghỉ phép">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="p64" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="d54" value="Đơn nghỉ, trạng thái, IsPaid">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="d54" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="p65" value="Nghỉ phép ảnh hưởng lương">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="d51" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="p65" value="BaseSalary">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="manager" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="p65" value="Tạo kỳ, tính lương, khóa kỳ">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="p65" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="d55" value="Kỳ lương, bảng lương">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="p65" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="teacher" value="Phiếu lương cá nhân">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="p66" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="teacher" value="Thông báo nghỉ phép, hợp đồng, lương">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="p66" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="manager" value="Dashboard/cảnh báo quản trị">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="p66" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#444444;fontSize=13;" target="d56" value="Notification, audit trail">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

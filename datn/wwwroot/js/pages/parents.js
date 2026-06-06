@@ -233,43 +233,66 @@ function openLinkStudentPanel() {
   if (linkOverlay) linkOverlay.classList.add("active");
   if (linkPanel) linkPanel.classList.add("active");
 }
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function renderParentsTable(parents) {
   const tbody = document.getElementById("parentsTableBody");
   tbody.innerHTML = "";
 
   if (!parents || parents.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="11" class="text-center">Không tìm thấy dữ liệu</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="17" class="text-center">Không tìm thấy dữ liệu</td></tr>';
     return;
   }
 
   parents.forEach((p, index) => {
     const row = document.createElement("tr");
+    const children = Array.isArray(p.children) ? p.children : [];
+    const childrenNames = children.length > 0
+      ? children
+          .map((c) => {
+            const relationship = c.relationship || "Phụ huynh";
+            return `<span class="child-badge" title="${escapeHtml(relationship)}">${escapeHtml(c.fullName)} <small>${escapeHtml(relationship)}</small></span>`;
+          })
+          .join("")
+      : '<span class="text-muted" style="font-size:0.8rem; font-style:italic;">Chưa gán con</span>';
+    const classNames = [
+      ...new Set(children.map((c) => c.className).filter((name) => name && name !== "N/A")),
+    ];
+    const childClasses = classNames.length > 0
+      ? classNames.map((name) => `<span class="class-badge">${escapeHtml(name)}</span>`).join("")
+      : '<span class="text-muted">N/A</span>';
+    const statusBadge = p.isActive
+      ? '<span class="badge badge-success">Hoạt động</span>'
+      : '<span class="badge badge-danger">Đã khóa</span>';
+
     row.innerHTML = `
             <td class="sticky-col first-col">${index + 1}</td>
-            <td class="sticky-col second-col">
-                <img src="${p.avatarPath}" class="avatar-sm" alt="avatar" onerror="this.src='/images/lion_orange.png'">
-            </td>
+            <td class="sticky-col second-col"><span class="parent-code">#${p.id}</span></td>
             <td class="sticky-col third-col">
-                <a href="/Manager/ParentDetail/${p.id}" target="_blank" class="parent-name-link" title="${p.fullName}">${p.fullName}</a>
+                <img src="${escapeHtml(p.avatarPath || "/images/lion_orange.png")}" class="avatar-sm" alt="avatar" onerror="this.src='/images/lion_orange.png'">
             </td>
+            <td class="sticky-col fourth-col">
+                <a href="/Manager/ParentDetail/${p.id}" target="_blank" class="parent-name-link" title="${escapeHtml(p.fullName)}">${escapeHtml(p.fullName)}</a>
+            </td>
+            <td>${statusBadge}</td>
             <td>${p.gender ? "Nam" : "Nữ"}</td>
-            <td>${p.email || "N/A"}</td>
-            <td>${p.phone || "N/A"}</td>
-            <td><div class="address-cell" title="${p.address}">${p.address || "N/A"}</div></td>
-            <td>
-                ${
-                  p.children && p.children.length > 0
-                    ? p.children
-                        .map(
-                          (c) =>
-                            `<span class="child-badge" title="${c.relationship}">${c.fullName}</span>`,
-                        )
-                        .join("")
-                    : '<span class="text-muted" style="font-size:0.8rem; font-style:italic;">Chưa gán con</span>'
-                }
-            </td>
+            <td>${formatDateOnly(p.dateOfBirth)}</td>
+            <td><span class="username-cell">${escapeHtml(p.username || "N/A")}</span></td>
+            <td><div class="email-cell" title="${escapeHtml(p.email || "N/A")}">${escapeHtml(p.email || "N/A")}</div></td>
+            <td>${escapeHtml(p.phone || "N/A")}</td>
+            <td><div class="address-cell" title="${escapeHtml(p.address || "N/A")}">${escapeHtml(p.address || "N/A")}</div></td>
+            <td><span class="children-count">${p.childrenCount ?? children.length}</span></td>
+            <td><div class="children-cell">${childrenNames}</div></td>
+            <td><div class="child-class-cell">${childClasses}</div></td>
             <td><span class="premium-date">${formatPremiumDate(p.createdAt)}</span></td>
-            <td>${p.isActive ? '<span class="badge badge-success">Hoạt động</span>' : '<span class="badge badge-danger">Đã khóa</span>'}</td>
+            <td><span class="premium-date">${formatPremiumDate(p.updatedAt)}</span></td>
             <td class="text-end">
                 <button class="btn-table" onclick="openEditPanel(${p.id})">Sửa</button>
             </td>
@@ -281,13 +304,15 @@ function renderParentsTable(parents) {
 
 function showTableError(message) {
   const tbody = document.getElementById("parentsTableBody");
-  tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 20px; color: red;">${message}</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="17" style="text-align: center; padding: 20px; color: red;">${message}</td></tr>`;
 }
 
 // ====== DATE FORMATTING (sync với students.js) ======
 function formatPremiumDate(dateString) {
   if (!dateString) return "N/A";
+  if (String(dateString).startsWith("0001-01-01")) return "N/A";
   const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "N/A";
   const day = date.getDate().toString().padStart(2, "0");
   const months = [
     "Jan",
@@ -313,6 +338,15 @@ function formatPremiumDate(dateString) {
   const minutes = date.getMinutes().toString().padStart(2, "0");
 
   return `${day} ${month} ${year} / ${hours}:${minutes}${ampm}`;
+}
+
+function formatDateOnly(value) {
+  if (!value) return "Chưa cập nhật";
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "Chưa cập nhật";
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  return `${day}/${month}/${date.getFullYear()}`;
 }
 
 // ====== PANEL MANAGEMENT ======
@@ -368,6 +402,7 @@ async function openEditPanel(id) {
     document.getElementById("lastName").value = p.lastName;
     document.getElementById("firstName").value = p.firstName;
     document.getElementById("phone").value = p.phone || "";
+    document.getElementById("dateOfBirth").value = p.dateOfBirth || "";
     document.getElementById("address").value = p.address || "";
     
     // Gender
@@ -595,11 +630,10 @@ async function searchStudentsForLink(q) {
                 <a href="javascript:void(0)" class="list-group-item list-group-item-action"
                    data-id="${s.id}"
                    data-name="${s.fullName}"
-                   data-code="${s.code}"
                    style="padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--border);">
                     <div style="display: flex; flex-direction: column;">
                         <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">${s.fullName}</span>
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">Mã học sinh: ${s.code}</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">ID: ${s.id}</span>
                     </div>
                     <i class="fa-solid fa-chevron-right text-muted" style="font-size: 0.8rem;"></i>
                 </a>
@@ -609,7 +643,7 @@ async function searchStudentsForLink(q) {
 
       list.querySelectorAll("a").forEach((el) => {
         el.addEventListener("click", () => {
-          selectStudentForLink(el.dataset.id, el.dataset.name, el.dataset.code);
+          selectStudentForLink(el.dataset.id, el.dataset.name);
         });
       });
     }
@@ -618,10 +652,10 @@ async function searchStudentsForLink(q) {
   }
 }
 
-function selectStudentForLink(id, name, code) {
+function selectStudentForLink(id, name) {
   selectedStudentForLink = id;
   document.getElementById("selectedStudentName").textContent = name;
-  document.getElementById("selectedStudentCode").textContent = ` (${code})`;
+  document.getElementById("selectedStudentId").textContent = ` (ID: ${id})`;
   document.getElementById("linkDetailSection").style.display = "block";
   const confirmBtn = document.getElementById("linkPanelConfirmBtn");
   if (confirmBtn) confirmBtn.disabled = false;

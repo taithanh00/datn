@@ -186,8 +186,8 @@ namespace datn.Controllers.Manager
                     return "Địa điểm học không tồn tại.";
             }
 
-            if (model.DayOfWeek < 1 || model.DayOfWeek > 5)
-                return "Chỉ được tạo lịch từ Thứ 2 đến Thứ 6.";
+            if (model.DayOfWeek < 1 || model.DayOfWeek > 6)
+                return "Chỉ được tạo lịch từ Thứ 2 đến Thứ 7.";
 
             if (!TimeOnly.TryParse(model.StartTime, out var startTime) || !TimeOnly.TryParse(model.EndTime, out var endTime))
                 return "Khung giờ không hợp lệ.";
@@ -267,6 +267,7 @@ namespace datn.Controllers.Manager
                 3 => "Thứ 4",
                 4 => "Thứ 5",
                 5 => "Thứ 6",
+                6 => "Thứ 7",
                 _ => "Không xác định"
             };
         }

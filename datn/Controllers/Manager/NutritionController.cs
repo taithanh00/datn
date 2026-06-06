@@ -20,7 +20,7 @@ namespace datn.Controllers.Manager
         [HttpGet]
         public IActionResult Index()
         {
-            ViewData["Title"] = "Quan ly Dinh duong & Thuc don";
+            ViewData["Title"] = "Quản lý Dinh dưỡng & Thực đơn";
             return View("~/Views/Dashboard/Admin/Nutrition/Index.cshtml");
         }
 
@@ -35,7 +35,7 @@ namespace datn.Controllers.Manager
         [HttpPost("SaveMenu")]
         public async Task<IActionResult> SaveMenu([FromBody] Menu menu)
         {
-            if (menu == null || menu.DayOfWeek < 1 || menu.DayOfWeek > 5)
+            if (menu == null || menu.DayOfWeek < 1 || menu.DayOfWeek > 6)
             {
                 return BadRequest(new { success = false });
             }

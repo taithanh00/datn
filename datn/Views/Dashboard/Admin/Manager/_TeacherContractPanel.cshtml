@@ -1,0 +1,84 @@
+<div class="contract-panel-overlay" id="contractModalOverlay"></div>
+<aside class="contract-slide-panel" id="contractSlidePanel" aria-hidden="true">
+    <div class="contract-panel-header">
+        <div>
+            <h3 id="contractPanelTitle">Thêm hợp đồng</h3>
+            <p class="text-muted" style="margin:4px 0 0;">File hợp đồng hỗ trợ PDF, DOC, DOCX, JPG, PNG tối đa 10MB.</p>
+        </div>
+        <button type="button" class="contract-icon-btn" id="closeContractPanelBtn" aria-label="Đóng">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <div class="contract-panel-body">
+        <div class="contract-alert" id="contractFormAlert"></div>
+        <form id="contractForm" enctype="multipart/form-data">
+            <input type="hidden" id="contractId" />
+            <div class="contract-form-grid">
+                <div class="form-group full-width" id="contractEmployeeGroup">
+                    <label>Giáo viên <span class="text-danger">*</span></label>
+                    <select id="contractEmployeeId" class="form-control">
+                        <option value="">Chọn giáo viên</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Số hợp đồng <span class="text-danger">*</span></label>
+                    <input type="text" id="contractNumber" class="form-control" maxlength="100" required />
+                </div>
+                <div class="form-group">
+                    <label>Loại hợp đồng <span class="text-danger">*</span></label>
+                    <input type="text" id="contractType" class="form-control" maxlength="100" placeholder="Ví dụ: Xác định thời hạn" required />
+                </div>
+                <div class="form-group">
+                    <label>Ngày ký <span class="text-danger">*</span></label>
+                    <input type="date" id="signedDate" class="form-control" required />
+                </div>
+                <div class="form-group">
+                    <label>Ngày hiệu lực <span class="text-danger">*</span></label>
+                    <input type="date" id="effectiveDate" class="form-control" required />
+                </div>
+                <div class="form-group">
+                    <label>Ngày hết hạn</label>
+                    <input type="date" id="expiryDate" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>Lương thỏa thuận</label>
+                    <input type="number" id="agreedSalary" class="form-control" min="0" step="1000" />
+                </div>
+                <div class="form-group">
+                    <label>Vị trí</label>
+                    <input type="text" id="workPosition" class="form-control" maxlength="200" />
+                </div>
+                <div class="form-group">
+                    <label>Địa điểm làm việc</label>
+                    <input type="text" id="workLocation" class="form-control" maxlength="200" />
+                </div>
+                <div class="form-group full-width">
+                    <label>Thời gian làm việc</label>
+                    <input type="text" id="workingHours" class="form-control" maxlength="200" placeholder="Ví dụ: Thứ 2 - Thứ 6, 7:30 - 16:30" />
+                </div>
+                <div class="form-group">
+                    <label>Trạng thái khi lưu</label>
+                    <select id="contractStatus" class="form-control">
+                        <option value="Draft">Draft</option>
+                        <option value="Active">Active</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>File hợp đồng</label>
+                    <input type="file" id="contractFile" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                </div>
+                <div class="form-group full-width">
+                    <label>Ghi chú</label>
+                    <textarea id="contractNote" class="form-control" rows="4"></textarea>
+                </div>
+            </div>
+            <div class="d-flex justify-between align-center gap-2" style="margin-top:20px;">
+                <button type="button" class="btn btn-outline" id="cancelContractFormBtn">Hủy</button>
+                <button type="submit" class="btn btn-primary" id="saveContractBtn">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Lưu hợp đồng
+                </button>
+            </div>
+        </form>
+    </div>
+</aside>

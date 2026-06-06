@@ -39,12 +39,19 @@ namespace datn.Controllers.Manager
                 {
                     id = t.Id,
                     fullName = t.FullName,
+                    username = t.Account?.Username ?? "N/A",
+                    email = t.Account?.Email ?? "N/A",
                     phone = t.Phone,
-                    teacherType = t.TeacherType,
+                    dateOfBirth = t.DateOfBirth?.ToString("yyyy-MM-dd"),
+                    teacherType = t.TeacherType.ToString(),
                     baseSalary = t.BaseSalary,
                     avatarPath = t.AvatarPath ?? "/images/lion_blue.png",
                     isActive = t.IsActive,
-                    gender = t.Gender
+                    gender = t.Gender,
+                    specialty = t.Specialty,
+                    showOnLanding = t.ShowOnLanding,
+                    createdAt = t.Account?.CreatedAt ?? DateTime.MinValue,
+                    updatedAt = t.Account?.UpdatedAt ?? DateTime.MinValue
                 }).ToList();
                 
                 var total = result.Count;
@@ -79,8 +86,9 @@ namespace datn.Controllers.Manager
                     email = teacher.Account?.Email,
                     username = teacher.Account?.Username,
                     gender = teacher.Gender,
+                    dateOfBirth = teacher.DateOfBirth?.ToString("yyyy-MM-dd"),
                     phone = teacher.Phone,
-                    teacherType = teacher.TeacherType,
+                    teacherType = teacher.TeacherType.ToString(),
                     baseSalary = teacher.BaseSalary,
                     avatarPath = teacher.AvatarPath,
                     isActive = teacher.Account?.IsActive ?? true,
@@ -108,6 +116,9 @@ namespace datn.Controllers.Manager
             if (await _context.Accounts.AnyAsync(a => a.Email == model.Email))
                 return Json(new { success = false, message = "Email đã tồn tại." });
 
+            if (!TryParseOptionalDateOnly(model.DateOfBirth, out var dateOfBirth, out var dateError))
+                return Json(new { success = false, message = dateError });
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -130,6 +141,7 @@ namespace datn.Controllers.Manager
                     FirstName = model.FirstName,
                     LastName = model.LastName,
                     Gender = model.Gender,
+                    DateOfBirth = dateOfBirth,
                     Phone = model.Phone,
                     TeacherType = TeacherType.Lead,
                     BaseSalary = model.BaseSalary,
@@ -166,6 +178,9 @@ namespace datn.Controllers.Manager
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                if (!TryParseOptionalDateOnly(model.DateOfBirth, out var dateOfBirth, out var dateError))
+                    return Json(new { success = false, message = dateError });
+
                 var teacher = await _context.Employees.Include(e => e.Account).FirstOrDefaultAsync(e => e.Id == id);
                 if (teacher == null)
                     return Json(new { success = false, message = "Không tìm thấy giáo viên." });
@@ -177,6 +192,7 @@ namespace datn.Controllers.Manager
                 teacher.FirstName = model.FirstName;
                 teacher.LastName = model.LastName;
                 teacher.Gender = model.Gender;
+                teacher.DateOfBirth = dateOfBirth;
                 teacher.Phone = model.Phone;
                 teacher.TeacherType = TeacherType.Lead;
                 teacher.BaseSalary = model.BaseSalary;
@@ -279,6 +295,25 @@ namespace datn.Controllers.Manager
             await file.CopyToAsync(stream);
             return $"/uploads/avatars/{fileName}";
         }
+
+        private static bool TryParseOptionalDateOnly(string? value, out DateOnly? date, out string? error)
+        {
+            date = null;
+            error = null;
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return true;
+            }
+
+            if (DateOnly.TryParse(value, out var parsed))
+            {
+                date = parsed;
+                return true;
+            }
+
+            error = "Ngày sinh không hợp lệ.";
+            return false;
+        }
     }
 }
-

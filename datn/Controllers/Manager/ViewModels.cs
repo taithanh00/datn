@@ -57,6 +57,7 @@ namespace datn.Controllers.Manager
         [Required(ErrorMessage = "Tên không được để trống")]
         public string LastName { get; set; } = string.Empty;
         public bool Gender { get; set; }
+        public string? DateOfBirth { get; set; }
         public string? Phone { get; set; }
         public TeacherType TeacherType { get; set; }
         public decimal? BaseSalary { get; set; }
@@ -79,6 +80,7 @@ namespace datn.Controllers.Manager
         [Required(ErrorMessage = "Tên không được để trống")]
         public string LastName { get; set; } = string.Empty;
         public bool Gender { get; set; }
+        public string? DateOfBirth { get; set; }
         public string? Phone { get; set; }
         public TeacherType TeacherType { get; set; }
         public decimal? BaseSalary { get; set; }
@@ -89,6 +91,28 @@ namespace datn.Controllers.Manager
         public string? Philosophy { get; set; }
         public string? Specialty { get; set; }
         public bool ShowOnLanding { get; set; }
+    }
+
+    public class SaveTeacherContractViewModel
+    {
+        public string ContractNumber { get; set; } = string.Empty;
+        public string ContractType { get; set; } = string.Empty;
+        public string SignedDate { get; set; } = string.Empty;
+        public string EffectiveDate { get; set; } = string.Empty;
+        public string? ExpiryDate { get; set; }
+        public decimal? AgreedSalary { get; set; }
+        public string? WorkPosition { get; set; }
+        public string? WorkLocation { get; set; }
+        public string? WorkingHours { get; set; }
+        public TeacherContractStatus Status { get; set; } = TeacherContractStatus.Draft;
+        public string? Note { get; set; }
+        public IFormFile? File { get; set; }
+    }
+
+    public class TerminateTeacherContractViewModel
+    {
+        public string TerminationDate { get; set; } = string.Empty;
+        public string TerminationReason { get; set; } = string.Empty;
     }
 
     public class SaveClassViewModel
@@ -103,7 +127,6 @@ namespace datn.Controllers.Manager
     public class SaveSubjectViewModel
     {
         public string Name { get; set; } = string.Empty;
-        public string Code { get; set; } = string.Empty;
         public string? Description { get; set; }
         public bool IsActive { get; set; } = true;
     }

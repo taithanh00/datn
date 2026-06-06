@@ -78,7 +78,7 @@ namespace datn.Controllers.Teacher
 
             var nowVnt = GetVntNow();
             if (!IsWithinWorkingWindow(nowVnt))
-                return Json(new { success = false, message = "Chỉ được chấm công từ Thứ 2 đến Thứ 6, 08:00 - 17:00 (VNT)." });
+                return Json(new { success = false, message = "Chỉ được chấm công từ Thứ 2 đến Thứ 7, 08:00 - 17:00 (VNT)." });
 
             var today = DateOnly.FromDateTime(nowVnt.DateTime);
             var existing = await _context.WorkAttendances
@@ -131,7 +131,7 @@ namespace datn.Controllers.Teacher
 
             var nowVnt = GetVntNow();
             if (!IsWithinWorkingWindow(nowVnt))
-                return Json(new { success = false, message = "Chỉ được chấm công từ Thứ 2 đến Thứ 6, 08:00 - 17:00 (VNT)." });
+                return Json(new { success = false, message = "Chỉ được chấm công từ Thứ 2 đến Thứ 7, 08:00 - 17:00 (VNT)." });
 
             var today = DateOnly.FromDateTime(nowVnt.DateTime);
             var record = await _context.WorkAttendances
@@ -189,7 +189,7 @@ namespace datn.Controllers.Teacher
         private static bool IsWithinWorkingWindow(DateTimeOffset vntNow)
         {
             var day = vntNow.DayOfWeek;
-            var isWorkingDay = day is >= DayOfWeek.Monday and <= DayOfWeek.Friday;
+            var isWorkingDay = day is >= DayOfWeek.Monday and <= DayOfWeek.Saturday;
             var time = vntNow.TimeOfDay;
             return isWorkingDay && time >= WorkStart && time <= WorkEnd;
         }

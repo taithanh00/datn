@@ -25,6 +25,7 @@
                     <th>Thứ 4</th>
                     <th>Thứ 5</th>
                     <th>Thứ 6</th>
+                    <th>Thứ 7</th>
                 </tr>
             </thead>
             <tbody id="weeklyTimetableBody">
@@ -213,12 +214,12 @@
 
         async function loadWeeklyTimetable() {
             const tbody = document.getElementById('weeklyTimetableBody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;"><div class="spinner"></div></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><div class="spinner"></div></td></tr>';
 
             const result = await fetchJson('/Employee/Api/WeeklyTimetable');
             if (result.success) {
                 if (result.data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding: 40px;">Bạn chưa có lịch dạy nào trong tuần này.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding: 40px;">Bạn chưa có lịch dạy nào trong tuần này.</td></tr>';
                     return;
                 }
 
@@ -230,7 +231,7 @@
                     const [start, end] = slot.split(' - ');
                     html += `<tr><td class="time-col">${slot}</td>`;
                     
-                    for (let day = 1; day <= 5; day++) {
+                    for (let day = 1; day <= 6; day++) {
                         const lessons = result.data.filter(s => s.dayOfWeek === day && s.startTime === start && s.endTime === end);
                         html += '<td>';
                         lessons.forEach(l => {

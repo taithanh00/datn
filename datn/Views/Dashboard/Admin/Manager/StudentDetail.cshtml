@@ -28,16 +28,16 @@
                 <img src="@(Model.AvatarPath ?? "/images/lion_orange.png")" alt="Avatar" />
                 <div class="status-indicator active"></div>
             </div>
-            <h3 class="student-name">@Model.FirstName @Model.LastName</h3>
-            <span class="student-code">@Model.StudentCode</span>
+            <h3 class="student-name">@Model.FullName</h3>
+            <span class="student-code">ID: @Model.Id</span>
             
             <div class="quick-stats">
                 <div class="stat-item">
-                    <span class="stat-label">Lớp</span>
+                    <span class="stat-label" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">Lớp</span>
                     <span class="stat-value">@(Model.Class?.Name ?? "N/A")</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Giới tính</span>
+                    <span class="stat-label" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">Giới tính</span>
                     <span class="stat-value">@(Model.Gender ? "Nam" : "Nữ")</span>
                 </div>
             </div>

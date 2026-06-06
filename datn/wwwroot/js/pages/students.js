@@ -5,6 +5,7 @@ let currentStudentId = null;
 let isEditMode = false;
 let showInactiveStudents = false;
 let allStudentsData = [];
+let studentsPaginationReady = false;
 
 // DOMContentLoaded - Khởi tạo trang khi HTML đã load xong
 document.addEventListener("DOMContentLoaded", function () {
@@ -23,11 +24,22 @@ async function refreshData() {
   await loadStudents();
 
   // Khởi tạo pagination và search sau khi dữ liệu đã được load và render
-  if (typeof initPagination === "function") {
-    initPagination("studentsTable", 7);
+  const table = document.getElementById("studentsTable");
+  if (!table) return;
+
+  if (!studentsPaginationReady) {
+    studentsPaginationReady = true;
+    if (typeof initPagination === "function") {
+      initPagination("studentsTable", 7);
+    }
+    if (typeof initTableSearch === "function") {
+      initTableSearch("searchStudents", "studentsTable");
+    }
   }
-  if (typeof initTableSearch === "function") {
-    initTableSearch("searchStudents", "studentsTable");
+
+  if (typeof table._refreshPagination === "function") {
+    table._currentPage = 1;
+    table._refreshPagination();
   }
 }
 
@@ -144,12 +156,12 @@ async function loadStudents() {
 }
 
 function setupFilterListeners() {
-  document.getElementById('btnToggleFilter').addEventListener('click', function() {
+  document.getElementById('btnToggleFilter')?.addEventListener('click', function() {
     this.classList.toggle('active');
     document.getElementById('filterPanel').classList.toggle('active');
   });
-  document.getElementById('btnApplyFilter').addEventListener('click', () => applyStudentFilters());
-  document.getElementById('btnResetFilter').addEventListener('click', () => {
+  document.getElementById('btnApplyFilter')?.addEventListener('click', () => applyStudentFilters());
+  document.getElementById('btnResetFilter')?.addEventListener('click', () => {
     document.getElementById('filterGender').value = '';
     document.getElementById('filterClass').value = '';
     document.getElementById('filterEnrollFrom').value = '';
@@ -192,6 +204,14 @@ function applyStudentFilters() {
   }
 
   renderStudentsTable(filtered);
+  refreshStudentsPagination(false);
+}
+
+function refreshStudentsPagination(resetPage) {
+  const table = document.getElementById("studentsTable");
+  if (!table || typeof table._refreshPagination !== "function") return;
+  if (resetPage) table._currentPage = 1;
+  table._refreshPagination();
 }
 
 let classesData = []; // Lưu trữ thông tin lớp học để validate ở frontend
@@ -210,7 +230,7 @@ async function loadClasses() {
     result.data.forEach((cls) => {
       const option = document.createElement("option");
       option.value = cls.id;
-      option.textContent = `${cls.name} (${cls.ageFrom}-${cls.ageTo} tuổi)`;
+      option.textContent = `${cls.name} (${formatClassAgeRange(cls.ageFrom, cls.ageTo)})`;
       classSelect.appendChild(option);
     });
   } catch (error) {
@@ -219,6 +239,14 @@ async function loadClasses() {
 }
 
 // Hàm tính tuổi và kiểm tra hợp lệ
+function formatClassAgeRange(ageFrom, ageTo) {
+  if (ageFrom === 2 && ageTo === 3) return "24 - 36 tháng";
+  if (ageFrom && ageTo) return `${ageFrom}-${ageTo} tuổi`;
+  if (ageFrom) return `Từ ${ageFrom} tuổi`;
+  if (ageTo) return `Đến ${ageTo} tuổi`;
+  return "Chưa cập nhật";
+}
+
 function validateAgeAndClass() {
     const dobValue = document.getElementById("dateOfBirth").value;
     const classId = parseInt(document.getElementById("classId").value);
@@ -276,7 +304,7 @@ function renderStudentsTable(students) {
     const row = document.createElement("tr");
     row.innerHTML = `
     <td class="sticky-col first-col">${index + 1}</td>
-    <td class="sticky-col second-col"><span class="student-code">${s.studentCode}</span></td>
+    <td class="sticky-col second-col"><span class="student-code">#${s.id}</span></td>
     <td class="sticky-col third-col">
         <img src="${s.avatarPath}" class="student-avatar" alt="avatar" onerror="this.src='/images/lion_orange.png'">
     </td>
@@ -357,7 +385,7 @@ async function openEditPanel(studentId) {
 
     // Update title and show delete button
     document.getElementById("panelTitle").textContent =
-      `Sửa thông tin - ${student.firstName} ${student.lastName}`;
+      `Sửa thông tin - ${student.lastName} ${student.firstName}`.trim();
     
     const deleteBtn = document.getElementById("deleteStudentBtn");
     deleteBtn.style.display = "block";

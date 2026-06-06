@@ -68,7 +68,6 @@ function openMenuModal(dayDiff, mealType, existingData = null) {
     document.getElementById('menuType').value = mealType;
     document.getElementById('dishName').value = existingData ? existingData.dishName : '';
     document.getElementById('ingredients').value = existingData ? (existingData.ingredients || '') : '';
-    document.getElementById('calories').value = existingData ? existingData.calories : '';
     document.getElementById('isActive').value = existingData ? existingData.isActive.toString() : 'true';
     document.getElementById('menuNote').value = existingData ? (existingData.note || '') : '';
 
@@ -83,7 +82,6 @@ async function saveMenu() {
         mealType: parseInt(document.getElementById('menuType').value),
         dishName: document.getElementById('dishName').value,
         ingredients: document.getElementById('ingredients').value,
-        calories: parseInt(document.getElementById('calories').value) || null,
         isActive: document.getElementById('isActive').value === 'true',
         note: document.getElementById('menuNote').value
     };

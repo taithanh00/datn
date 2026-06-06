@@ -55,12 +55,15 @@ namespace datn.Services
                 await _context.SaveChangesAsync();
 
                 // 2. Create Parent
+                var dateOfBirth = ParseOptionalDateOfBirth(dto.DateOfBirth);
+
                 var parent = new Parent
                 {
                     AccountId = account.Id,
                     FirstName = dto.FirstName.Trim(),
                     LastName = dto.LastName.Trim(),
                     Gender = dto.Gender,
+                    DateOfBirth = dateOfBirth,
                     Phone = dto.Phone ?? "",
                     Address = dto.Address ?? "",
                     ParentStudents = new List<ParentStudent>()
@@ -123,6 +126,7 @@ namespace datn.Services
                 parent.FirstName = dto.FirstName.Trim();
                 parent.LastName = dto.LastName.Trim();
                 parent.Gender = dto.Gender;
+                parent.DateOfBirth = ParseOptionalDateOfBirth(dto.DateOfBirth);
                 parent.Phone = dto.Phone ?? "";
                 parent.Address = dto.Address ?? "";
 
@@ -238,6 +242,21 @@ namespace datn.Services
             await using var stream = new FileStream(path, FileMode.Create);
             await file.CopyToAsync(stream);
             return $"/uploads/avatars/{fileName}";
+        }
+
+        private static DateOnly? ParseOptionalDateOfBirth(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            if (DateOnly.TryParse(value, out var parsed))
+            {
+                return parsed;
+            }
+
+            throw new ArgumentException("Ngày sinh không hợp lệ.");
         }
     }
 }

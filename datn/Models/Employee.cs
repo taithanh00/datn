@@ -25,6 +25,7 @@ namespace datn.Models
         public string? AvatarPath { get; set; }
         public bool IsActive { get; set; } = true;
         public bool Gender { get; set; } // true: Male, false: Female
+        public DateOnly? DateOfBirth { get; set; }
 
         // Các trường phục vụ Landing Page
         public string? Bio { get; set; }                 // Giới thiệu ngắn
@@ -47,5 +48,6 @@ namespace datn.Models
         public ICollection<Activity> Activities { get; set; } = new List<Activity>();
         public ICollection<EmployeeLeaveRequest> LeaveRequests { get; set; } = new List<EmployeeLeaveRequest>();
         public ICollection<ClassSchedule> ClassSchedules { get; set; } = new List<ClassSchedule>();
+        public ICollection<TeacherContract> TeacherContracts { get; set; } = new List<TeacherContract>();
     }
 }

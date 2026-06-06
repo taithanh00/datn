@@ -1,0 +1,104 @@
+@{
+    ViewData["Title"] = "Quản lý hợp đồng giáo viên";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/teacher-contracts.css" asp-append-version="true" />
+}
+
+<div class="page-header">
+    <div class="header-left">
+        <div class="header-icon" style="background: rgba(14, 165, 233, 0.12); color: #0284c7;">
+            <i class="fa-solid fa-file-contract"></i>
+        </div>
+        <div>
+            <h2 class="page-title">Quản lý hợp đồng giáo viên</h2>
+            <p class="page-subtitle">Theo dõi hợp đồng hiện hành, lịch sử và cảnh báo hết hạn.</p>
+        </div>
+    </div>
+    <div class="header-actions">
+        <button type="button" class="btn btn-primary" id="openContractFormBtn">
+            <i class="fa-solid fa-plus"></i>
+            Thêm hợp đồng
+        </button>
+    </div>
+</div>
+
+<div id="teacherContractsPage">
+    <div class="contract-summary-grid" id="contractAlertSummary">
+        <div class="contract-summary-card">
+            <div class="contract-summary-label">Đang hiệu lực</div>
+            <div class="contract-summary-value" id="contractActiveCount">...</div>
+        </div>
+        <div class="contract-summary-card warning">
+            <div class="contract-summary-label">Sắp hết hạn 30 ngày</div>
+            <div class="contract-summary-value" id="contractExpiringCount">...</div>
+        </div>
+        <div class="contract-summary-card danger">
+            <div class="contract-summary-label">Giáo viên chưa có hợp đồng</div>
+            <div class="contract-summary-value" id="teacherWithoutContractCount">...</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="contract-filters">
+            <div class="form-group">
+                <label>Trạng thái</label>
+                <select id="contractStatusFilter" class="form-control">
+                    <option value="">Tất cả</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Active">Active</option>
+                    <option value="Expired">Expired</option>
+                    <option value="Terminated">Terminated</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Giáo viên</label>
+                <select id="contractTeacherFilter" class="form-control">
+                    <option value="">Tất cả giáo viên</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cảnh báo</label>
+                <select id="contractExpiringFilter" class="form-control">
+                    <option value="">Không lọc</option>
+                    <option value="30">Sắp hết hạn 30 ngày</option>
+                    <option value="60">Sắp hết hạn 60 ngày</option>
+                    <option value="90">Sắp hết hạn 90 ngày</option>
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" id="btnApplyContractFilter">Lọc</button>
+                <button type="button" class="btn btn-outline" id="btnResetContractFilter">Đặt lại</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Số hợp đồng</th>
+                        <th>Giáo viên</th>
+                        <th>Loại</th>
+                        <th>Hiệu lực</th>
+                        <th>Hết hạn</th>
+                        <th>Lương thỏa thuận</th>
+                        <th>Trạng thái</th>
+                        <th style="text-align:right;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="contractsTableBody">
+                    <tr><td colspan="8" class="text-muted" style="text-align:center; padding:32px;">Đang tải...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("~/Views/Dashboard/Admin/Manager/_TeacherContractPanel.cshtml")
+
+@section Scripts {
+    <script src="~/js/pages/teacher-contracts.js" asp-append-version="true"></script>
+}

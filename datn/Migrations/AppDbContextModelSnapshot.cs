@@ -439,6 +439,9 @@ namespace datn.Migrations
                     b.Property<bool>("Gender")
                         .HasColumnType("bit");
 
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -648,9 +651,6 @@ namespace datn.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("Calories")
-                        .HasColumnType("int");
-
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
@@ -678,44 +678,6 @@ namespace datn.Migrations
                     b.HasIndex("DayOfWeek", "MealType");
 
                     b.ToTable("Menus");
-                });
-
-            modelBuilder.Entity("datn.Models.MenuOverride", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("ClassId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("MenuId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("NewDishName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("StudentId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClassId");
-
-                    b.HasIndex("MenuId");
-
-                    b.HasIndex("StudentId");
-
-                    b.ToTable("MenuOverrides");
                 });
 
             modelBuilder.Entity("datn.Models.Notification", b =>
@@ -784,6 +746,9 @@ namespace datn.Migrations
 
                     b.Property<bool>("Gender")
                         .HasColumnType("bit");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -1012,16 +977,9 @@ namespace datn.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<string>("StudentCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ClassId");
-
-                    b.HasIndex("StudentCode")
-                        .IsUnique();
 
                     b.ToTable("Students");
                 });
@@ -1117,15 +1075,8 @@ namespace datn.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("FeeAmount")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -1135,9 +1086,6 @@ namespace datn.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
 
                     b.ToTable("Subjects");
                 });
@@ -1181,6 +1129,98 @@ namespace datn.Migrations
                     b.HasIndex("SubstituteEmployeeId");
 
                     b.ToTable("Substitutions");
+                });
+
+            modelBuilder.Entity("datn.Models.TeacherContract", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("AgreedSalary")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ContentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContractNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ContractType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("EffectiveDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("ExpiryDate")
+                        .HasColumnType("date");
+
+                    b.Property<long?>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OriginalFileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly>("SignedDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StoredFileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("TerminationDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("TerminationReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UploadedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("WorkLocation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkPosition")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkingHours")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractNumber")
+                        .IsUnique();
+
+                    b.HasIndex("ExpiryDate");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("EmployeeId", "Status")
+                        .IsUnique()
+                        .HasFilter("[Status] = 1");
+
+                    b.ToTable("TeacherContracts", t =>
+                        {
+                            t.HasCheckConstraint("CK_TeacherContracts_ExpiryDate", "[ExpiryDate] IS NULL OR [ExpiryDate] >= [EffectiveDate]");
+                        });
                 });
 
             modelBuilder.Entity("datn.Models.Tuition", b =>
@@ -1513,31 +1553,6 @@ namespace datn.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("datn.Models.MenuOverride", b =>
-                {
-                    b.HasOne("datn.Models.Class", "Class")
-                        .WithMany()
-                        .HasForeignKey("ClassId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("datn.Models.Menu", "Menu")
-                        .WithMany("MenuOverrides")
-                        .HasForeignKey("MenuId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("datn.Models.Student", "Student")
-                        .WithMany("MenuOverrides")
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Class");
-
-                    b.Navigation("Menu");
-
-                    b.Navigation("Student");
-                });
-
             modelBuilder.Entity("datn.Models.Notification", b =>
                 {
                     b.HasOne("datn.Models.Account", "Recipient")
@@ -1708,6 +1723,17 @@ namespace datn.Migrations
                     b.Navigation("SubstituteEmployee");
                 });
 
+            modelBuilder.Entity("datn.Models.TeacherContract", b =>
+                {
+                    b.HasOne("datn.Models.Employee", "Employee")
+                        .WithMany("TeacherContracts")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
             modelBuilder.Entity("datn.Models.Tuition", b =>
                 {
                     b.HasOne("datn.Models.Student", "Student")
@@ -1797,6 +1823,8 @@ namespace datn.Migrations
 
                     b.Navigation("StudyReports");
 
+                    b.Navigation("TeacherContracts");
+
                     b.Navigation("WorkAttendances");
                 });
 
@@ -1810,11 +1838,6 @@ namespace datn.Migrations
             modelBuilder.Entity("datn.Models.Location", b =>
                 {
                     b.Navigation("Activities");
-                });
-
-            modelBuilder.Entity("datn.Models.Menu", b =>
-                {
-                    b.Navigation("MenuOverrides");
                 });
 
             modelBuilder.Entity("datn.Models.Parent", b =>
@@ -1845,8 +1868,6 @@ namespace datn.Migrations
 
                     b.Navigation("HealthRecords");
 
-                    b.Navigation("MenuOverrides");
-
                     b.Navigation("ParentStudents");
 
                     b.Navigation("StudentActivities");
@@ -1873,3 +1894,4 @@ namespace datn.Migrations
         }
     }
 }
+
