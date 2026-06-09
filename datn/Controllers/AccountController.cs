@@ -162,7 +162,14 @@ namespace datn.Controllers
                     Expires = DateTimeOffset.UtcNow.AddHours(1)
                 });
 
+#if false
+
                 ViewBag.SuccessMessage = "Cập nhật thông tin thành công! ✓";
+            }
+                ViewBag.SuccessMessage = "Cập nhật thông tin thành công.";
+            }
+#endif
+                ViewBag.SuccessMessage = "Cập nhật thông tin thành công.";
             }
             catch (Exception ex)
             {

@@ -52,7 +52,9 @@ async function loadStudents() {
         return;
     }
 
-    document.getElementById('reportContent').innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner"></div><p class="text-muted mt-2">Đang tải danh sách học sinh...</p></div>';
+    document.getElementById('reportContent').innerHTML = window.appLoading
+        ? window.appLoading.content("\u0110ang t\u1ea3i danh s\u00e1ch h\u1ecdc sinh...")
+        : '<div style="text-align:center; padding:40px;"><div class="spinner"></div><p class="text-muted mt-2">Đang tải danh sách học sinh...</p></div>';
     setSaveButtonVisible(false);
 
     try {

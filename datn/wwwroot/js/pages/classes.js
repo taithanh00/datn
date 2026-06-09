@@ -137,16 +137,23 @@ function bindClassManagementEvents() {
 }
 
 async function loadClassesOverview() {
-    const result = await fetchJson(`/Manager/Api/Classes/Overview?showInactive=${showInactiveClasses}`);
     const tbody = document.getElementById('classesTableBody');
+    if (window.appLoading && tbody) {
+        window.appLoading.setTable(tbody, 6);
+    }
+    const result = await fetchJson(`/Manager/Api/Classes/Overview?showInactive=${showInactiveClasses}`);
 
     if (!result.success) {
-        tbody.innerHTML = `<tr><td colspan="6">Không tải được dữ liệu lớp học.</td></tr>`;
+        tbody.innerHTML = window.appLoading
+            ? window.appLoading.tableError(6, "Kh\u00f4ng t\u1ea3i \u0111\u01b0\u1ee3c d\u1eef li\u1ec7u l\u1edbp h\u1ecdc.")
+            : `<tr><td colspan="6">Không tải được dữ liệu lớp học.</td></tr>`;
         return;
     }
 
     if (result.data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6">Chưa có lớp học nào.</td></tr>`;
+        tbody.innerHTML = window.appLoading
+            ? window.appLoading.tableEmpty(6, "Ch\u01b0a c\u00f3 l\u1edbp h\u1ecdc n\u00e0o.")
+            : `<tr><td colspan="6">Chưa có lớp học nào.</td></tr>`;
         return;
     }
 
@@ -179,16 +186,23 @@ async function loadClassesOverview() {
 }
 
 async function loadSubjects() {
-    const result = await fetchJson(`/Manager/Api/Subjects?showInactive=${showInactiveSubjects}`);
     const tbody = document.getElementById('subjectsTableBody');
+    if (window.appLoading && tbody) {
+        window.appLoading.setTable(tbody, 5);
+    }
+    const result = await fetchJson(`/Manager/Api/Subjects?showInactive=${showInactiveSubjects}`);
 
     if (!result.success) {
-        tbody.innerHTML = `<tr><td colspan="5">Không tải được dữ liệu môn học.</td></tr>`;
+        tbody.innerHTML = window.appLoading
+            ? window.appLoading.tableError(5, "Kh\u00f4ng t\u1ea3i \u0111\u01b0\u1ee3c d\u1eef li\u1ec7u m\u00f4n h\u1ecdc.")
+            : `<tr><td colspan="5">Không tải được dữ liệu môn học.</td></tr>`;
         return;
     }
 
     if (result.data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:24px;">Không có dữ liệu.</td></tr>`;
+        tbody.innerHTML = window.appLoading
+            ? window.appLoading.tableEmpty(5, "Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u.")
+            : `<tr><td colspan="5" class="text-center text-muted" style="padding:24px;">Không có dữ liệu.</td></tr>`;
         return;
     }
 
@@ -236,13 +250,20 @@ async function refreshDropdowns() {
 async function loadSchedules(classId) {
     const tbody = document.getElementById('scheduleGridBody');
     if (!classId) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 40px; color: var(--text-muted);">Vui lòng chọn một lớp để xem thời khóa biểu.</td></tr>`;
+        tbody.innerHTML = window.appLoading
+            ? window.appLoading.tableEmpty(7, "Vui l\u00f2ng ch\u1ecdn m\u1ed9t l\u1edbp \u0111\u1ec3 xem th\u1eddi kh\u00f3a bi\u1ec3u.")
+            : `<tr><td colspan="7" style="text-align:center; padding: 40px; color: var(--text-muted);">Vui lòng chọn một lớp để xem thời khóa biểu.</td></tr>`;
         return;
     }
 
+    if (window.appLoading) {
+        window.appLoading.setTable(tbody, 7);
+    }
     const result = await fetchJson(`/Manager/Api/ClassSchedules?classId=${classId}`);
     if (!result.success) {
-        tbody.innerHTML = `<tr><td colspan="7">Không tải được thời khóa biểu.</td></tr>`;
+        tbody.innerHTML = window.appLoading
+            ? window.appLoading.tableError(7, "Kh\u00f4ng t\u1ea3i \u0111\u01b0\u1ee3c th\u1eddi kh\u00f3a bi\u1ec3u.")
+            : `<tr><td colspan="7">Không tải được thời khóa biểu.</td></tr>`;
         return;
     }
 
@@ -643,12 +664,13 @@ function fillSelect(selectElement, data, placeholder, valueKey = 'id', textResol
 
 function showAlert(elementId, success, message) {
     const alert = document.getElementById(elementId);
-    if (!alert) return;
-    const isFormAlert = elementId.toLowerCase().includes('form');
-    const baseClass = isFormAlert ? 'form-alert' : 'page-alert';
-    alert.className = `${baseClass} ${success ? 'success' : 'error'}`;
-    alert.textContent = message;
-    alert.style.display = 'block';
+    if (alert) {
+        alert.style.display = 'none';
+        alert.textContent = '';
+    }
+    if (window.showToast) {
+        window.showToast(success ? 'Thành công' : 'Có lỗi', message, success ? 'success' : 'error');
+    }
 }
 
 function renderTeacherTags(teachers) {

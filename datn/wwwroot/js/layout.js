@@ -62,17 +62,98 @@ document.addEventListener('DOMContentLoaded', function() {
     initMenuToggle('financeMenuToggle', 'financeSubMenu');
 
     // === Notification System ===
+    const toastTypes = ['success', 'error', 'warning', 'info'];
+    const nativeAlert = window.alert?.bind(window);
+
+    function normalizeToastArgs(title, message, type) {
+        if (toastTypes.includes(String(message || '').toLowerCase()) && type === undefined) {
+            return {
+                title: defaultToastTitle(message),
+                message: title || '',
+                type: String(message).toLowerCase()
+            };
+        }
+
+        return {
+            title: title || defaultToastTitle(type),
+            message: message || '',
+            type: toastTypes.includes(String(type || '').toLowerCase()) ? String(type).toLowerCase() : 'info'
+        };
+    }
+
+    function defaultToastTitle(type) {
+        switch (String(type || '').toLowerCase()) {
+            case 'success': return 'Thành công';
+            case 'error': return 'Có lỗi';
+            case 'warning': return 'Cảnh báo';
+            default: return 'Thông tin';
+        }
+    }
+
+    function setText(el, text) {
+        el.textContent = text == null ? '' : String(text);
+    }
+
     window.showToast = function(title, message, type) {
-        type = type || 'info';
+        const args = normalizeToastArgs(title, message, type);
         const icons = { info:'fa-circle-info', success:'fa-circle-check', warning:'fa-triangle-exclamation', error:'fa-circle-xmark' };
         const colors = { info:'var(--primary)', success:'var(--success)', warning:'var(--warning)', error:'var(--danger)' };
         const c = document.getElementById('toastContainer');
-        if(!c) return;
+        if (!c) {
+            if (nativeAlert) nativeAlert(args.message || args.title);
+            return;
+        }
+
         const t = document.createElement('div');
-        t.style.cssText = 'background:var(--bg-card); border:1px solid var(--border); border-left:4px solid '+colors[type]+'; padding:14px 18px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.15); display:flex; gap:12px; align-items:flex-start; animation:slideInRight 0.3s ease; min-width:300px;';
-        t.innerHTML = '<i class="fa-solid '+icons[type]+'" style="color:'+colors[type]+'; margin-top:2px;"></i><div><div style="font-weight:600; font-size:0.85rem;">'+title+'</div><div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">'+message+'</div></div>';
+        t.style.cssText = 'background:var(--bg-card); border:1px solid var(--border); border-left:4px solid '+colors[args.type]+'; padding:14px 18px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.15); display:flex; gap:12px; align-items:flex-start; animation:slideInRight 0.3s ease; min-width:300px; max-width:380px;';
+
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid ' + icons[args.type];
+        icon.style.cssText = 'color:'+colors[args.type]+'; margin-top:2px;';
+
+        const content = document.createElement('div');
+        const titleEl = document.createElement('div');
+        titleEl.style.cssText = 'font-weight:600; font-size:0.85rem;';
+        setText(titleEl, args.title);
+        const messageEl = document.createElement('div');
+        messageEl.style.cssText = 'font-size:0.8rem; color:var(--text-muted); margin-top:2px;';
+        setText(messageEl, args.message);
+
+        content.appendChild(titleEl);
+        if (args.message) content.appendChild(messageEl);
+        t.appendChild(icon);
+        t.appendChild(content);
         c.appendChild(t);
-        setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 5000);
+        setTimeout(() => {
+            t.style.opacity = '0';
+            t.style.transform = 'translateX(12px)';
+            t.style.transition = 'opacity 0.3s, transform 0.3s';
+            setTimeout(() => t.remove(), 300);
+        }, 5000);
+    };
+
+    window.notifySuccess = (message, title = 'Thành công') => window.showToast(title, message, 'success');
+    window.notifyError = (message, title = 'Có lỗi') => window.showToast(title, message, 'error');
+    window.notifyWarning = (message, title = 'Cảnh báo') => window.showToast(title, message, 'warning');
+    window.notifyInfo = (message, title = 'Thông tin') => window.showToast(title, message, 'info');
+    window.alert = (message) => window.showToast('Thông báo', message, 'warning');
+
+    if (window.Swal && typeof window.Swal.fire === 'function') {
+        const originalSwalFire = window.Swal.fire.bind(window.Swal);
+        window.Swal.fire = function(arg1, arg2, arg3) {
+            const simpleIcon = typeof arg1 === 'string' ? arg3 : arg1?.icon;
+            const isToastable = toastTypes.includes(String(simpleIcon || '').toLowerCase())
+                && !(typeof arg1 === 'object' && (arg1.showConfirmButton || arg1.allowOutsideClick === false || arg1.didOpen));
+
+            if (isToastable) {
+                const title = typeof arg1 === 'string' ? arg1 : arg1.title;
+                const message = typeof arg1 === 'string' ? arg2 : arg1.text;
+                window.showToast(title || defaultToastTitle(simpleIcon), message || '', simpleIcon);
+                return Promise.resolve({ isConfirmed: true, isDismissed: false, isDenied: false });
+            }
+
+            return originalSwalFire(arg1, arg2, arg3);
+        };
     }
 
     async function loadLatestNotifications() {

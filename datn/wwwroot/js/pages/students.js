@@ -134,6 +134,11 @@ function previewAvatar(input) {
 
 // ====== DATA LOADING ======
 async function loadStudents() {
+  const tbody = document.getElementById("studentsTableBody");
+  if (window.appLoading && tbody) {
+    window.appLoading.setTable(tbody, 14);
+  }
+
   try {
     const t = new Date().getTime();
     const response = await fetch(
@@ -288,6 +293,10 @@ function renderStudentsTable(students) {
   tbody.innerHTML = "";
 
   if (students.length === 0) {
+    if (window.appLoading) {
+      tbody.innerHTML = window.appLoading.tableEmpty(14, "Kh\u00f4ng t\u00ecm th\u1ea5y d\u1eef li\u1ec7u");
+      return;
+    }
     tbody.innerHTML =
       '<tr><td colspan="14" class="text-center">Không tìm thấy dữ liệu</td></tr>';
     return;
@@ -330,6 +339,10 @@ function renderStudentsTable(students) {
 
 function showTableError(message) {
   const tbody = document.getElementById("studentsTableBody");
+  if (window.appLoading) {
+    tbody.innerHTML = window.appLoading.tableError(14, message);
+    return;
+  }
   tbody.innerHTML = `<tr><td colspan="14" style="text-align: center; padding: 20px; color: red;">${message}</td></tr>`;
 }
 
@@ -556,11 +569,13 @@ async function handleReactivate(id) {
 // ====== ALERT MANAGEMENT ======
 function showFormAlert(message, type) {
   const alertContainer = document.getElementById("editFormAlert");
-  const className = type === "success" ? "alert-success" : "alert-error";
-
-  alertContainer.className = `form-alert ${className}`;
-  alertContainer.textContent = message;
-  alertContainer.style.display = "block";
+  if (alertContainer) {
+    alertContainer.style.display = "none";
+    alertContainer.textContent = "";
+  }
+  if (window.showToast) {
+    window.showToast(type === "success" ? "Thành công" : "Có lỗi", message, type === "success" ? "success" : "error");
+  }
 }
 
 function hideFormAlert() {

@@ -6,12 +6,10 @@ let assignmentPanelTitle = null;
 function showAssignmentAlert(message) {
     const alertEl = document.getElementById('assignmentFormAlert');
     if (alertEl) {
-        alertEl.textContent = message;
-        alertEl.className = 'form-alert error';
-        alertEl.style.display = 'block';
-    } else {
-        alert(message);
+        alertEl.style.display = 'none';
+        alertEl.textContent = '';
     }
+    if (window.showToast) window.showToast('Có lỗi', message, 'error');
 }
 
 function clearAssignmentAlert() {
@@ -93,6 +91,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function loadAssignments() {
+    const tbody = document.getElementById('assignmentTableBody');
+    if (window.appLoading && tbody) {
+        window.appLoading.setTable(tbody, 5);
+    }
     try {
         const response = await fetch('/Manager/Api/Assignments');
         const result = await response.json();
@@ -100,8 +102,15 @@ async function loadAssignments() {
             allAssignments = result.data;
             updateStats();
             renderAssignments(allAssignments);
+        } else if (window.appLoading && tbody) {
+            tbody.innerHTML = window.appLoading.tableError(5, result.message || "Kh\u00f4ng th\u1ec3 t\u1ea3i d\u1eef li\u1ec7u.");
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error(e);
+        if (window.appLoading && tbody) {
+            tbody.innerHTML = window.appLoading.tableError(5, "L\u1ed7i k\u1ebft n\u1ed1i m\u00e1y ch\u1ee7.");
+        }
+    }
 }
 
 function updateStats() {
@@ -128,6 +137,10 @@ function renderAssignments(data) {
     if(!tbody) return;
 
     if (data.length === 0) {
+        if (window.appLoading) {
+            tbody.innerHTML = window.appLoading.tableEmpty(5, "Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u.");
+            return;
+        }
         tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center; padding:40px;">Không có dữ liệu</td></tr>';
         return;
     }
@@ -282,7 +295,7 @@ async function deleteAssignment(empId, clsId, start) {
             loadAssignments(); 
             if(window.showToast) window.showToast('Đã xóa', result.message, 'info'); 
         }
-        else alert('Lỗi: ' + result.message);
+        else if (window.showToast) window.showToast('Có lỗi', result.message, 'error');
     } catch(e) { console.error(e); }
 }
 

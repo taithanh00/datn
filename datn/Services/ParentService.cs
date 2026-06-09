@@ -56,6 +56,7 @@ namespace datn.Services
 
                 // 2. Create Parent
                 var dateOfBirth = ParseOptionalDateOfBirth(dto.DateOfBirth);
+                ValidateMinimumAge(dateOfBirth, 16, false, "Phụ huynh phải trên 16 tuổi.");
 
                 var parent = new Parent
                 {
@@ -127,6 +128,7 @@ namespace datn.Services
                 parent.LastName = dto.LastName.Trim();
                 parent.Gender = dto.Gender;
                 parent.DateOfBirth = ParseOptionalDateOfBirth(dto.DateOfBirth);
+                ValidateMinimumAge(parent.DateOfBirth, 16, false, "Phụ huynh phải trên 16 tuổi.");
                 parent.Phone = dto.Phone ?? "";
                 parent.Address = dto.Address ?? "";
 
@@ -257,6 +259,22 @@ namespace datn.Services
             }
 
             throw new ArgumentException("Ngày sinh không hợp lệ.");
+        }
+
+        private static void ValidateMinimumAge(DateOnly? dateOfBirth, int minimumAge, bool allowExactAge, string errorMessage)
+        {
+            if (!dateOfBirth.HasValue)
+            {
+                return;
+            }
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var ageBoundary = dateOfBirth.Value.AddYears(minimumAge);
+            var isValid = allowExactAge ? ageBoundary <= today : ageBoundary < today;
+            if (!isValid)
+            {
+                throw new ArgumentException(errorMessage);
+            }
         }
     }
 }

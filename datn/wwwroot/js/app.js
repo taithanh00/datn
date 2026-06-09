@@ -180,6 +180,85 @@
         if (modal) modal.classList.remove('show');
     };
 
+    // === Shared loading/empty/error states ===
+    const DEFAULT_LOADING_TEXT = '\u0110ang t\u1ea3i d\u1eef li\u1ec7u...';
+
+    function escapeStateText(value) {
+        return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function stateMarkup(kind, message, compact) {
+        const iconClass = kind === 'error'
+            ? 'fa-triangle-exclamation'
+            : kind === 'empty'
+                ? 'fa-folder-open'
+                : 'fa-circle-notch';
+        const stateClass = kind === 'error'
+            ? 'app-error-state'
+            : kind === 'empty'
+                ? 'app-empty-state'
+                : 'app-loading-state';
+
+        return `
+            <div class="${stateClass}${compact ? ' compact' : ''}">
+                <span class="app-loading-icon"><i class="fa-solid ${iconClass}"></i></span>
+                <span class="app-loading-text">${escapeStateText(message || DEFAULT_LOADING_TEXT)}</span>
+            </div>
+        `;
+    }
+
+    window.appLoading = {
+        tableRow(colspan, message) {
+            return `<tr class="app-loading-row"><td colspan="${Number(colspan) || 1}">${stateMarkup('loading', message, true)}</td></tr>`;
+        },
+        tableEmpty(colspan, message) {
+            return `<tr class="app-loading-row"><td colspan="${Number(colspan) || 1}">${stateMarkup('empty', message || 'Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u.', true)}</td></tr>`;
+        },
+        tableError(colspan, message) {
+            return `<tr class="app-loading-row"><td colspan="${Number(colspan) || 1}">${stateMarkup('error', message || 'Kh\u00f4ng th\u1ec3 t\u1ea3i d\u1eef li\u1ec7u.', true)}</td></tr>`;
+        },
+        content(message) {
+            return stateMarkup('loading', message, false);
+        },
+        empty(message) {
+            return stateMarkup('empty', message || 'Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u.', false);
+        },
+        error(message) {
+            return stateMarkup('error', message || 'Kh\u00f4ng th\u1ec3 t\u1ea3i d\u1eef li\u1ec7u.', false);
+        },
+        setTable(tbody, colspan, message) {
+            const target = typeof tbody === 'string' ? document.getElementById(tbody) : tbody;
+            if (target) target.innerHTML = this.tableRow(colspan, message);
+        },
+        setContent(container, message) {
+            const target = typeof container === 'string' ? document.getElementById(container) : container;
+            if (target) target.innerHTML = this.content(message);
+        }
+    };
+
+    // === Shared date-of-birth validation ===
+    window.appValidation = {
+        isAgeValid(dateValue, minimumAge, allowExactAge) {
+            if (!dateValue) return true;
+
+            const dateOfBirth = new Date(`${dateValue}T00:00:00`);
+            if (Number.isNaN(dateOfBirth.getTime())) return false;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const ageBoundary = new Date(dateOfBirth);
+            ageBoundary.setFullYear(ageBoundary.getFullYear() + Number(minimumAge || 0));
+
+            return allowExactAge ? ageBoundary <= today : ageBoundary < today;
+        }
+    };
+
     // === Init All ===
     document.addEventListener('DOMContentLoaded', function () {
         initTheme();

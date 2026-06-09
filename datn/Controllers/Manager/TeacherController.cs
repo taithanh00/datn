@@ -119,6 +119,9 @@ namespace datn.Controllers.Manager
             if (!TryParseOptionalDateOnly(model.DateOfBirth, out var dateOfBirth, out var dateError))
                 return Json(new { success = false, message = dateError });
 
+            if (!ValidateMinimumAge(dateOfBirth, 22, true, out var ageError))
+                return Json(new { success = false, message = ageError });
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -180,6 +183,9 @@ namespace datn.Controllers.Manager
             {
                 if (!TryParseOptionalDateOnly(model.DateOfBirth, out var dateOfBirth, out var dateError))
                     return Json(new { success = false, message = dateError });
+
+                if (!ValidateMinimumAge(dateOfBirth, 22, true, out var ageError))
+                    return Json(new { success = false, message = ageError });
 
                 var teacher = await _context.Employees.Include(e => e.Account).FirstOrDefaultAsync(e => e.Id == id);
                 if (teacher == null)
@@ -313,6 +319,27 @@ namespace datn.Controllers.Manager
             }
 
             error = "Ngày sinh không hợp lệ.";
+            return false;
+        }
+
+        private static bool ValidateMinimumAge(DateOnly? dateOfBirth, int minimumAge, bool allowExactAge, out string? error)
+        {
+            error = null;
+
+            if (!dateOfBirth.HasValue)
+            {
+                return true;
+            }
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var ageBoundary = dateOfBirth.Value.AddYears(minimumAge);
+            var isValid = allowExactAge ? ageBoundary <= today : ageBoundary < today;
+            if (isValid)
+            {
+                return true;
+            }
+
+            error = $"Giáo viên phải từ {minimumAge} tuổi trở lên.";
             return false;
         }
     }

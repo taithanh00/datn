@@ -118,6 +118,11 @@ function updateRequirementUI(id, isValid) {
 
 // ====== DATA LOADING ======
 async function loadParents() {
+  const tbody = document.getElementById("parentsTableBody");
+  if (window.appLoading && tbody) {
+    window.appLoading.setTable(tbody, 17);
+  }
+
   try {
     const t = new Date().getTime();
     const response = await fetch(`/Manager/Api/Parents?showInactive=${showInactiveParents}&_t=${t}`);
@@ -247,6 +252,10 @@ function renderParentsTable(parents) {
   tbody.innerHTML = "";
 
   if (!parents || parents.length === 0) {
+    if (window.appLoading) {
+      tbody.innerHTML = window.appLoading.tableEmpty(17, "Kh\u00f4ng t\u00ecm th\u1ea5y d\u1eef li\u1ec7u");
+      return;
+    }
     tbody.innerHTML = '<tr><td colspan="17" class="text-center">Không tìm thấy dữ liệu</td></tr>';
     return;
   }
@@ -304,6 +313,10 @@ function renderParentsTable(parents) {
 
 function showTableError(message) {
   const tbody = document.getElementById("parentsTableBody");
+  if (window.appLoading) {
+    tbody.innerHTML = window.appLoading.tableError(17, message);
+    return;
+  }
   tbody.innerHTML = `<tr><td colspan="17" style="text-align: center; padding: 20px; color: red;">${message}</td></tr>`;
 }
 
@@ -476,6 +489,12 @@ async function saveParent() {
   const form = document.getElementById("parentForm");
   if (!form.checkValidity()) {
     form.reportValidity();
+    return;
+  }
+
+  const dateOfBirth = document.getElementById("dateOfBirth").value;
+  if (window.appValidation && !window.appValidation.isAgeValid(dateOfBirth, 16, false)) {
+    showFormAlert("Phụ huynh phải trên 16 tuổi.", "error");
     return;
   }
 
@@ -785,12 +804,13 @@ async function unlinkStudent(studentId) {
 // ====== ALERT MANAGEMENT (sync với students.js) ======
 function showFormAlert(message, type) {
   const alertContainer = document.getElementById("formAlert");
-  const className = type === "success" ? "success" : "error";
-  const icon = type === "success" ? "fa-circle-check" : "fa-circle-exclamation";
-
-  alertContainer.className = `form-alert ${className}`;
-  alertContainer.innerHTML = `<i class="fa-solid ${icon}" style="margin-right: 8px;"></i>${message}`;
-  alertContainer.style.display = "block";
+  if (alertContainer) {
+    alertContainer.style.display = "none";
+    alertContainer.textContent = "";
+  }
+  if (window.showToast) {
+    window.showToast(type === "success" ? "Thành công" : "Có lỗi", message, type === "success" ? "success" : "error");
+  }
 }
 
 function hideFormAlert() {

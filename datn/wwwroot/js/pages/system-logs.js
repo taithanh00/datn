@@ -45,6 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function loadFilterOptions() {
+    if (window.appLoading) {
+        tableBody.innerHTML = window.appLoading.tableRow(5, "\u0110ang t\u1ea3i nh\u1eadt k\u00fd...");
+    }
+
     try {
         const response = await fetch('/Manager/SystemLog/GetFilterOptions');
         const options = await response.json();
@@ -91,6 +95,10 @@ async function loadLogs() {
         }
     } catch (error) {
         console.error('Error loading logs:', error);
+        if (window.appLoading) {
+            tableBody.innerHTML = window.appLoading.tableError(5, "L\u1ed7i khi t\u1ea3i d\u1eef li\u1ec7u. Vui l\u00f2ng th\u1eed l\u1ea1i.");
+            return;
+        }
         tableBody.innerHTML = `<tr><td colspan="5" class="text-danger" style="text-align:center; padding:40px;">Lỗi khi tải dữ liệu. Vui lòng thử lại.</td></tr>`;
     }
 }
@@ -98,6 +106,10 @@ async function loadLogs() {
 function renderTable(logs) {
     const tableBody = document.getElementById('logsTableBody');
     if (logs.length === 0) {
+        if (window.appLoading) {
+            tableBody.innerHTML = window.appLoading.tableEmpty(5, "Kh\u00f4ng t\u00ecm th\u1ea5y b\u1ea3n ghi n\u00e0o.");
+            return;
+        }
         tableBody.innerHTML = `<tr><td colspan="5" class="text-muted" style="text-align:center; padding:40px;">Không tìm thấy bản ghi nào.</td></tr>`;
         return;
     }

@@ -19,7 +19,6 @@
 
 <div class="profile-container">
     <form method="post" enctype="multipart/form-data" action="/Account/Profile" style="display: contents;">
-        <!-- Sidebar: Avatar & Basic Info -->
         <aside class="profile-sidebar">
             <div class="profile-avatar-card">
                 <div class="avatar-wrapper">
@@ -30,18 +29,15 @@
                     <input type="file" id="avatarInput" name="AvatarFile" accept="image/*" style="display: none;" onchange="previewAvatar(this)" />
                 </div>
                 <h2 class="profile-name">@ViewBag.FullName</h2>
-                <div class="profile-role-badge">
-                    @roleLabel
-                </div>
+                <div class="profile-role-badge">@roleLabel</div>
                 <p class="text-muted mt-2" style="font-size: 0.85rem;">@@@ViewBag.Username</p>
             </div>
         </aside>
 
-        <!-- Main Content: Detailed Forms -->
         <main class="profile-main-content">
             @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage))
             {
-                <div class="alert alert-success">
+                <div class="alert alert-success profile-message" data-toast-type="success">
                     <i class="fa-solid fa-circle-check"></i>
                     <span>@ViewBag.SuccessMessage</span>
                 </div>
@@ -49,13 +45,12 @@
 
             @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
             {
-                <div class="alert alert-danger">
+                <div class="alert alert-danger profile-message" data-toast-type="error">
                     <i class="fa-solid fa-circle-exclamation"></i>
                     <span>@ViewBag.ErrorMessage</span>
                 </div>
             }
 
-            <!-- Section: Account Settings -->
             <div class="profile-form-card mb-4">
                 <div class="section-header">
                     <h3 class="section-title">
@@ -79,7 +74,6 @@
                 </div>
             </div>
 
-            <!-- Section: Personal Details -->
             @if (isEmployee)
             {
                 <div class="profile-form-card mb-4">
@@ -136,7 +130,6 @@
                 </div>
             }
 
-            <!-- Profile Actions -->
             <div class="profile-footer">
                 <a href="/" class="btn btn-outline">Hủy bỏ</a>
                 <button type="submit" class="btn btn-primary">
@@ -154,21 +147,25 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById('avatarPreview').src = e.target.result;
-                }
+                };
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        // Tự động ẩn thông báo sau 5 giây
         document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                setTimeout(() => {
+            document.querySelectorAll('.profile-message').forEach(function(alert) {
+                const message = alert.innerText.trim();
+                const type = alert.dataset.toastType || 'success';
+                if (window.showToast && message) {
+                    window.showToast(type === 'success' ? 'Thành công' : 'Có lỗi', message, type);
+                }
+
+                window.setTimeout(function() {
                     alert.style.opacity = '0';
                     alert.style.transform = 'translateY(-10px)';
-                    alert.style.transition = 'all 0.5s ease';
-                    setTimeout(() => alert.remove(), 500);
-                }, 5000);
+                    alert.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                    window.setTimeout(function() { alert.remove(); }, 300);
+                }, 3500);
             });
         });
     </script>

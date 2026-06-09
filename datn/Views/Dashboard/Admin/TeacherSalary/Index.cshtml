@@ -5,59 +5,104 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">Quản lý Bảng lương</h1>
-        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Tính toán và chốt lương hàng tháng cho giáo viên</p>
+        <h1 class="page-title">Quản lý tiền lương</h1>
+        <p class="text-muted" style="font-size:0.9rem; margin-top:4px;">Tính lương, rà soát, chốt và ghi nhận thanh toán lương giáo viên theo kỳ.</p>
     </div>
 </div>
 
-<!-- Status Bar -->
-<div id="salaryStatusBar" class="page-alert" style="background: var(--bg-card); color: var(--text-muted); border-left: 4px solid var(--border);">
-    <i class="fa-solid fa-circle-info"></i> Vui lòng chọn kỳ lương để xem chi tiết.
+<div class="payroll-hero">
+    <div>
+        <div class="payroll-kicker">Quy trình bảng lương</div>
+        <h2>Tính lương bất cứ lúc nào, chốt khi dữ liệu đã đúng.</h2>
+        <p>Công thức vẫn dựa trên lương cơ bản, công đã duyệt, khoản phạt và phụ cấp dạy thay.</p>
+    </div>
+    <div class="payroll-steps">
+        <span><i class="fa-solid fa-calendar-check"></i> Chọn kỳ</span>
+        <span><i class="fa-solid fa-calculator"></i> Tính lương</span>
+        <span><i class="fa-solid fa-list-check"></i> Rà soát</span>
+        <span><i class="fa-solid fa-lock"></i> Chốt / Thanh toán</span>
+    </div>
 </div>
 
-<!-- Filter & Actions -->
+<div id="salaryStatusBar" class="page-alert" style="background: var(--bg-card); color: var(--text-muted); border-left: 4px solid var(--border);">
+    <i class="fa-solid fa-circle-info"></i> Chọn kỳ lương để xem dữ liệu.
+</div>
+
 <div class="card mb-4">
-    <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
-        <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
+    <div class="payroll-toolbar">
+        <div class="form-group">
             <label for="salaryMonth" class="form-label">Tháng</label>
             <select id="salaryMonth" class="form-select"></select>
         </div>
-        <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
+        <div class="form-group">
             <label for="salaryYear" class="form-label">Năm</label>
             <select id="salaryYear" class="form-select"></select>
         </div>
-        
-        <div style="display: flex; gap: 8px; flex: 1; justify-content: flex-end;">
-            <button id="btnLoadSalary" type="button" class="btn btn-primary" style="height: 42px;">
-                <i class="fa-solid fa-eye"></i> Xem bảng lương
+        <div class="form-group">
+            <label for="salaryStatus" class="form-label">Trạng thái</label>
+            <select id="salaryStatus" class="form-select">
+                <option value="">Tất cả</option>
+                <option value="Calculated">Đã tính</option>
+                <option value="Locked">Đã chốt</option>
+                <option value="Paid">Đã thanh toán</option>
+            </select>
+        </div>
+        <div class="payroll-actions">
+            <button id="btnLoadSalary" type="button" class="btn btn-outline">
+                <i class="fa-solid fa-eye"></i> Tải dữ liệu
             </button>
-            <button id="btnRecalculateSalary" type="button" class="btn btn-outline" style="border-color: var(--warning); color: var(--warning); height: 42px;">
-                <i class="fa-solid fa-arrows-rotate"></i> Tính lại
+            <button id="btnRecalculateSalary" type="button" class="btn btn-primary">
+                <i class="fa-solid fa-arrows-rotate"></i> Tính lại kỳ lương
             </button>
-            <button id="btnLockSalary" type="button" class="btn btn-outline" style="background: rgba(220,38,38,0.1); border-color: var(--danger); color: var(--danger); height: 42px;">
-                <i class="fa-solid fa-lock"></i> Chốt lương
+            <button id="btnLockSalary" type="button" class="btn btn-outline btn-danger-soft">
+                <i class="fa-solid fa-lock"></i> Chốt toàn bộ
             </button>
         </div>
     </div>
 </div>
 
-<!-- Salary Table -->
+<div class="payroll-summary-grid">
+    <div class="payroll-stat">
+        <span>Tổng giáo viên</span>
+        <strong id="statTotalTeachers">0</strong>
+    </div>
+    <div class="payroll-stat">
+        <span>Đã tính</span>
+        <strong id="statCalculated">0</strong>
+    </div>
+    <div class="payroll-stat">
+        <span>Đã chốt</span>
+        <strong id="statLocked">0</strong>
+    </div>
+    <div class="payroll-stat">
+        <span>Đã thanh toán</span>
+        <strong id="statPaid">0</strong>
+    </div>
+    <div class="payroll-stat payroll-stat-wide">
+        <span>Tổng thực nhận</span>
+        <strong id="statTotalAmount">0 đ</strong>
+    </div>
+</div>
+
 <div class="card">
-    <div class="table-container">
-        <table>
+    <div id="salaryTableContainer" class="table-container payroll-table-container">
+        <table class="payroll-table">
             <thead>
                 <tr>
-                    <th style="width: 80px;">Mã NV</th>
                     <th>Giáo viên</th>
-                    <th>Lương cơ bản</th>
-                    <th style="text-align: center;">Tổng đơn vị công</th>
-                    <th style="text-align: right;">Tổng thực nhận</th>
-                    <th style="text-align: right;">Thao tác</th>
+                    <th>Lương snapshot</th>
+                    <th>Ngày công chuẩn</th>
+                    <th>Công thực tế</th>
+                    <th>Phạt</th>
+                    <th>Phụ cấp</th>
+                    <th style="text-align:right;">Thực nhận</th>
+                    <th>Trạng thái</th>
+                    <th style="text-align:right;">Hành động</th>
                 </tr>
             </thead>
             <tbody id="salaryTableBody">
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">
+                    <td colspan="9" class="text-center py-5 text-muted">
                         <div class="empty-state">
                             <i class="fa-solid fa-money-bill-transfer"></i>
                             <p>Đang chuẩn bị dữ liệu lương...</p>
@@ -68,6 +113,104 @@
         </table>
     </div>
 </div>
+
+<div class="modal-overlay" id="salaryPanelOverlay"></div>
+<div class="slide-panel" id="salaryDetailPanel">
+    <div class="slide-panel-header">
+        <h3>Chi tiết lương</h3>
+        <button class="close-btn" id="closeSalaryPanelBtn">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <div class="slide-panel-body" id="salaryDetailBody"></div>
+</div>
+
+@section Styles {
+    <style>
+        .payroll-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+            gap: 20px;
+            padding: 28px;
+            margin-bottom: 20px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #fff7ed 0%, #fff 46%, #e0f2fe 100%);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        .payroll-kicker { color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: .75rem; }
+        .payroll-hero h2 { margin: 8px 0; font-size: clamp(1.4rem, 2vw, 2rem); }
+        .payroll-hero p { margin: 0; color: var(--text-muted); max-width: 700px; }
+        .payroll-steps { display: grid; gap: 10px; }
+        .payroll-steps span { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,.75); font-weight: 700; color: var(--text-main); }
+        .payroll-steps i { color: var(--primary); }
+        .payroll-toolbar { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+        .payroll-toolbar .form-group { margin-bottom: 0; min-width: 150px; }
+        .payroll-actions { display: flex; gap: 8px; flex: 1; justify-content: flex-end; flex-wrap: wrap; }
+        .btn-danger-soft { background: rgba(220,38,38,0.08); border-color: var(--danger); color: var(--danger); }
+        .payroll-summary-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+        .payroll-stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 18px; box-shadow: var(--shadow-sm); }
+        .payroll-stat span { display: block; color: var(--text-muted); font-weight: 700; font-size: .85rem; margin-bottom: 8px; }
+        .payroll-stat strong { font-size: 1.6rem; color: var(--text-main); }
+        .payroll-table-container {
+            overflow-x: auto;
+            position: relative;
+        }
+        .payroll-table { min-width: 1720px; table-layout: fixed; }
+        .payroll-table th { white-space: nowrap; }
+        .payroll-table th,
+        .payroll-table td {
+            vertical-align: middle;
+        }
+        .payroll-table th:nth-child(1), .payroll-table td:nth-child(1) { width: 240px; }
+        .payroll-table th:nth-child(2), .payroll-table td:nth-child(2) { width: 150px; }
+        .payroll-table th:nth-child(3), .payroll-table td:nth-child(3) { width: 150px; }
+        .payroll-table th:nth-child(4), .payroll-table td:nth-child(4) { width: 130px; }
+        .payroll-table th:nth-child(5), .payroll-table td:nth-child(5) { width: 110px; }
+        .payroll-table th:nth-child(6), .payroll-table td:nth-child(6) { width: 110px; }
+        .payroll-table th:nth-child(7), .payroll-table td:nth-child(7) { width: 150px; }
+        .payroll-table th:nth-child(8), .payroll-table td:nth-child(8) { width: 160px; }
+        .payroll-table th:nth-child(9), .payroll-table td:nth-child(9) { width: 440px; }
+        .payroll-table th:first-child,
+        .payroll-table td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 12;
+            background: var(--bg-card);
+            box-shadow: 12px 0 18px -18px rgba(15, 23, 42, 0.55);
+        }
+        .payroll-table th:first-child {
+            z-index: 20;
+            background: var(--bg-card);
+        }
+        .payroll-table tbody tr:nth-child(even) td:first-child {
+            background: #f8fafc;
+        }
+        .payroll-money,
+        .payroll-days,
+        .payroll-status,
+        .payroll-actions-cell,
+        .payroll-actions-cell .btn-table,
+        .payroll-table .badge { white-space: nowrap; }
+        .payroll-actions-cell .btn-table {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 64px;
+            padding: 6px 10px;
+        }
+        .payroll-actions-row { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: nowrap; }
+        .salary-breakdown { display: grid; gap: 12px; }
+        .salary-line { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px dashed var(--border); }
+        .salary-line strong { font-family: monospace; }
+        .salary-total { margin-top: 16px; padding: 18px; border-radius: 16px; background: var(--primary-soft); color: var(--primary); font-weight: 900; display: flex; justify-content: space-between; }
+        @@media (max-width: 900px) {
+            .payroll-hero { grid-template-columns: 1fr; }
+            .payroll-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .payroll-stat-wide { grid-column: span 2; }
+        }
+    </style>
+}
 
 @section Scripts {
     <script src="~/js/pages/salary.js" asp-append-version="true"></script>

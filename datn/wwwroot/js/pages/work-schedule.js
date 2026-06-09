@@ -86,6 +86,9 @@ async function loadManagedStudents(classId) {
         return;
     }
 
+    if (window.appLoading) {
+        window.appLoading.setTable('managedStudentsTableBody', 8);
+    }
     const result = await fetchJson(`/Employee/Api/ManagedStudents/${classId}`);
     if (!result.success) {
         showAlert(false, result.message || 'Không tải được danh sách học sinh.');
@@ -128,6 +131,10 @@ function renderAttendanceStatus(status) {
 }
 
 function renderEmptyStudentsState(message) {
+    if (window.appLoading) {
+        document.getElementById('managedStudentsTableBody').innerHTML = window.appLoading.tableEmpty(8, message);
+        return;
+    }
     document.getElementById('managedStudentsTableBody').innerHTML = `<tr><td colspan="8">${message}</td></tr>`;
 }
 
@@ -154,9 +161,11 @@ function parseFirstManagedClassId(result) {
 
 function showAlert(success, message) {
     const alert = document.getElementById('studentsAlert');
-    alert.className = `page-alert ${success ? 'success' : 'error'}`;
-    alert.textContent = message;
-    alert.style.display = 'block';
+    if (alert) {
+        alert.style.display = 'none';
+        alert.textContent = '';
+    }
+    if (window.showToast) window.showToast(success ? 'Thông tin' : 'Có lỗi', message, success ? 'info' : 'error');
 }
 
 async function fetchJson(url, options) {

@@ -25,12 +25,20 @@ async function fetchJson(url, options = {}) {
 }
 
 async function loadActivities() {
+    const loadingTbody = document.getElementById('activitiesTableBody');
+    if (window.appLoading && loadingTbody) {
+        window.appLoading.setTable(loadingTbody, 4);
+    }
     const result = await fetchJson('/Employee/Api/Activities');
     const tbody = document.getElementById('activitiesTableBody');
     if (!tbody) return;
     
     if (result.success) {
         if (result.data.length === 0) {
+            if (window.appLoading) {
+                tbody.innerHTML = window.appLoading.tableEmpty(4, "Kh\u00f4ng c\u00f3 ho\u1ea1t \u0111\u1ed9ng n\u00e0o \u0111\u01b0\u1ee3c g\u00e1n cho l\u1edbp.");
+                return;
+            }
             tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-5"><div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p>Không có hoạt động nào được gán cho lớp.</p></div></td></tr>';
             return;
         }
@@ -48,6 +56,10 @@ async function loadActivities() {
         `).join('');
         if(typeof initPagination === 'function') initPagination('activitiesTable', 10);
     } else {
+        if (window.appLoading) {
+            tbody.innerHTML = window.appLoading.tableError(4, result.message);
+            return;
+        }
         tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">${result.message}</td></tr>`;
     }
 }
@@ -61,7 +73,9 @@ async function viewParticipants(id, name) {
     document.getElementById('slidePanel').classList.add('active');
 
     const tbody = document.getElementById('participantsTableBody');
-    tbody.innerHTML = '<tr><td colspan="2" class="text-center py-4"><div class="spinner"></div></td></tr>';
+    tbody.innerHTML = window.appLoading
+        ? window.appLoading.tableRow(2)
+        : '<tr><td colspan="2" class="text-center py-4"><div class="spinner"></div></td></tr>';
     document.getElementById('selectAll').checked = false;
 
     const result = await fetchJson(`/Employee/Api/Activity/${id}/Participants`);
@@ -78,6 +92,10 @@ async function viewParticipants(id, name) {
         }
 
         if (result.data.length === 0) {
+            if (window.appLoading) {
+                tbody.innerHTML = window.appLoading.tableEmpty(2, "L\u1edbp kh\u00f4ng c\u00f3 h\u1ecdc sinh.");
+                return;
+            }
             tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted py-4">Lớp không có học sinh.</td></tr>';
             return;
         }
@@ -133,8 +151,9 @@ function closePanel() {
 
 function showAlert(id, success, message) {
     const alert = document.getElementById(id);
-    alert.textContent = message;
-    alert.className = `page-alert ${success ? 'success' : 'error'}`;
-    alert.style.display = 'block';
-    setTimeout(() => { alert.style.display = 'none'; }, 3000);
+    if (alert) {
+        alert.style.display = 'none';
+        alert.textContent = '';
+    }
+    if (window.showToast) window.showToast(success ? 'Thành công' : 'Có lỗi', message, success ? 'success' : 'error');
 }

@@ -41,6 +41,7 @@ function bindContractEvents() {
 
 async function loadContractTeachers() {
     if (contractState.isDetail) return;
+
     try {
         const res = await fetch('/Manager/Api/Teachers');
         const json = await res.json();
@@ -87,8 +88,12 @@ async function loadContractAlerts() {
 async function loadAllContracts() {
     const tbody = document.getElementById('contractsTableBody');
     if (!tbody) return;
+    if (window.appLoading) {
+        tbody.innerHTML = window.appLoading.tableRow(8);
+    } else {
 
     tbody.innerHTML = '<tr><td colspan="8" class="text-muted" style="text-align:center; padding:32px;">Đang tải...</td></tr>';
+    }
     const params = new URLSearchParams();
     const status = document.getElementById('contractStatusFilter')?.value;
     const employeeId = document.getElementById('contractTeacherFilter')?.value;
@@ -103,6 +108,10 @@ async function loadAllContracts() {
         if (!json.success) throw new Error(json.message || 'Không tải được danh sách hợp đồng.');
         renderContractsTable(json.data, tbody, true);
     } catch (error) {
+        if (window.appLoading) {
+            tbody.innerHTML = window.appLoading.tableError(8, error.message);
+            return;
+        }
         tbody.innerHTML = `<tr><td colspan="8" class="text-danger" style="text-align:center; padding:32px;">${escapeHtml(error.message)}</td></tr>`;
     }
 }
@@ -110,8 +119,12 @@ async function loadAllContracts() {
 async function loadTeacherContracts() {
     const tbody = document.getElementById('teacherContractsBody');
     if (!tbody || !contractState.teacherId) return;
+    if (window.appLoading) {
+        tbody.innerHTML = window.appLoading.tableRow(7);
+    } else {
 
     tbody.innerHTML = '<tr><td colspan="7" class="text-muted" style="text-align:center; padding:32px;">Đang tải...</td></tr>';
+    }
     try {
         const res = await fetch(`/Manager/Api/Teacher/${contractState.teacherId}/Contracts`);
         const json = await res.json();
@@ -119,6 +132,10 @@ async function loadTeacherContracts() {
         renderTeacherContractSummary(json.data);
         renderContractsTable(json.data, tbody, false);
     } catch (error) {
+        if (window.appLoading) {
+            tbody.innerHTML = window.appLoading.tableError(7, error.message);
+            return;
+        }
         tbody.innerHTML = `<tr><td colspan="7" class="text-danger" style="text-align:center; padding:32px;">${escapeHtml(error.message)}</td></tr>`;
     }
 }
@@ -160,6 +177,10 @@ function renderTeacherContractSummary(contracts) {
 function renderContractsTable(contracts, tbody, showTeacher) {
     const colspan = showTeacher ? 8 : 7;
     if (!contracts || contracts.length === 0) {
+        if (window.appLoading) {
+            tbody.innerHTML = window.appLoading.tableEmpty(colspan, "Kh\u00f4ng c\u00f3 h\u1ee3p \u0111\u1ed3ng.");
+            return;
+        }
         tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-muted" style="text-align:center; padding:32px;">Không có hợp đồng.</td></tr>`;
         return;
     }
@@ -357,9 +378,13 @@ function resetContractFilters() {
 
 function showContractAlert(message, type) {
     const alertBox = document.getElementById('contractFormAlert');
-    if (!alertBox) return;
-    alertBox.textContent = message;
-    alertBox.className = message ? `contract-alert active ${type}` : 'contract-alert';
+    if (alertBox) {
+        alertBox.textContent = '';
+        alertBox.className = 'contract-alert';
+    }
+    if (message && window.showToast) {
+        window.showToast(type === 'success' ? 'Thành công' : 'Có lỗi', message, type === 'success' ? 'success' : 'error');
+    }
 }
 
 function statusBadge(status) {

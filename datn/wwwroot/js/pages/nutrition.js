@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function getMonday(d) {
     d = new Date(d);
-    var day = d.getDay(),
-        diff = d.getDate() - day + (day == 0 ? -6 : 1);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(d.setDate(diff));
 }
 
@@ -43,14 +43,15 @@ function renderGrid(menuItems) {
         const itemDate = new Date(item.date);
         const diff = Math.floor((itemDate - currentWeekStart) / (1000 * 60 * 60 * 24)) + 1;
         const cell = document.querySelector(`.menu-cell[data-day="${diff}"][data-type="${item.mealType}"]`);
-        
+
         if (cell) {
             cell.classList.add('has-data');
             cell.innerHTML = `
                 <div class="dish-name">${item.dishName}</div>
                 <div class="ingredients-tag">${item.ingredients || ''}</div>
-                ${item.menuOverrides && item.menuOverrides.length > 0 ? 
-                    `<div class="allergy-badge" title="Có ${item.menuOverrides.length} suất ăn đặc biệt">${item.menuOverrides.length}</div>` : ''}
+                ${item.menuOverrides && item.menuOverrides.length > 0
+                    ? `<div class="allergy-badge" title="Có ${item.menuOverrides.length} suất ăn đặc biệt">${item.menuOverrides.length}</div>`
+                    : ''}
             `;
             cell.onclick = () => openMenuModal(diff, item.mealType, item);
         }
@@ -142,14 +143,18 @@ function updateAllergyAlerts(menuItems) {
     container.style.display = hasAlerts ? 'block' : 'none';
 }
 
-// Utility functions (Mocking common UI helpers if not available)
 function showToast(msg, type) {
-    console.log(`[${type.toUpperCase()}] ${msg}`);
-    // Giả sử có thư viện Toast trong project
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({ icon: type, title: msg, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-    }
+    const normalizedType = type === 'error' || type === 'warning' || type === 'success' ? type : 'info';
+    const title = normalizedType === 'success' ? 'Thành công' : normalizedType === 'error' ? 'Có lỗi' : normalizedType === 'warning' ? 'Cảnh báo' : 'Thông tin';
+    if (window.notifySuccess && normalizedType === 'success') return window.notifySuccess(msg, title);
+    if (window.notifyError && normalizedType === 'error') return window.notifyError(msg, title);
+    if (window.notifyWarning && normalizedType === 'warning') return window.notifyWarning(msg, title);
+    if (window.notifyInfo) return window.notifyInfo(msg, title);
 }
 
-function showLoading() { /* UI Loading */ }
-function hideLoading() { /* UI Loading */ }
+function showLoading() {
+    if (window.appLoading) {
+        window.appLoading.setTable('gridBody', 7);
+    }
+}
+function hideLoading() { }

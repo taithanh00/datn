@@ -16,9 +16,9 @@ namespace datn.Controllers.Teacher
     {
         private const string PendingStatus = "Pending";
         private const decimal LatePenaltyAmount = 20000m;
-        private static readonly TimeSpan WorkStart = new(6, 45, 0);
+        private static readonly TimeSpan WorkStart = new(6, 30, 0);
         private static readonly TimeSpan WorkEnd = new(17, 0, 0);
-        private static readonly TimeSpan GraceEnd = new(6, 55, 0);
+        private static readonly TimeSpan GraceEnd = new(6, 40, 0);
 
         private readonly IHubContext<RealtimeHub> _hubContext;
 
@@ -78,6 +78,8 @@ namespace datn.Controllers.Teacher
 
             var nowVnt = GetVntNow();
             if (!IsWithinWorkingWindow(nowVnt))
+                return Json(new { success = false, message = "Chỉ được chấm công từ Thứ 2 đến Thứ 7, 06:30 - 17:00 (VNT)." });
+            if (false && !IsWithinWorkingWindow(nowVnt))
                 return Json(new { success = false, message = "Chỉ được chấm công từ Thứ 2 đến Thứ 7, 08:00 - 17:00 (VNT)." });
 
             var today = DateOnly.FromDateTime(nowVnt.DateTime);
@@ -131,6 +133,8 @@ namespace datn.Controllers.Teacher
 
             var nowVnt = GetVntNow();
             if (!IsWithinWorkingWindow(nowVnt))
+                return Json(new { success = false, message = "Chỉ được chấm công từ Thứ 2 đến Thứ 7, 06:30 - 17:00 (VNT)." });
+            if (false && !IsWithinWorkingWindow(nowVnt))
                 return Json(new { success = false, message = "Chỉ được chấm công từ Thứ 2 đến Thứ 7, 08:00 - 17:00 (VNT)." });
 
             var today = DateOnly.FromDateTime(nowVnt.DateTime);
@@ -146,7 +150,8 @@ namespace datn.Controllers.Teacher
             var checkInVnt = ToVnt(record.CheckInAtUtc.Value);
             var workedMinutes = (int)Math.Max(0, (nowVnt - checkInVnt).TotalMinutes);
             record.WorkedMinutes = workedMinutes;
-            record.WorkUnit = Math.Round((decimal)workedMinutes / 480m, 2, MidpointRounding.AwayFromZero);
+            var calculatedWorkUnit = Math.Round((decimal)workedMinutes / 480m, 2, MidpointRounding.AwayFromZero);
+            record.WorkUnit = Math.Min(1.0m, calculatedWorkUnit);
             record.Status = PendingStatus;
 
             _context.WorkAttendances.Update(record);

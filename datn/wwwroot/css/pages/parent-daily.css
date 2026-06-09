@@ -1,94 +1,191 @@
+.daily-hero {
+    background: linear-gradient(135deg, rgba(232, 62, 140, 0.1), rgba(32, 201, 151, 0.1));
+    border-radius: 16px;
+    padding: 30px;
+}
+
+.daily-hero .page-title {
+    color: var(--primary);
+}
+
+.daily-control {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    min-width: 200px;
+}
+
+.daily-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.daily-card .section-title {
+    color: var(--text-main);
+}
+
 .timeline {
-    position: relative;
+    min-height: 140px;
     padding-left: 30px;
+    position: relative;
 }
 
 .timeline::before {
-    content: '';
-    position: absolute;
-    left: 7px;
-    top: 5px;
-    bottom: 5px;
-    width: 2px;
     background: var(--primary-soft);
+    bottom: 5px;
+    content: '';
+    left: 7px;
+    position: absolute;
+    top: 5px;
+    width: 2px;
 }
 
 .timeline-item {
-    position: relative;
     padding-bottom: 30px;
-}
-
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: -30px;
-    top: 5px;
-    width: 2px; /* fallback line if needed */
-    display: none; /* Hide the old circle because we use timeline-icon now */
+    position: relative;
 }
 
 .timeline-icon {
-    position: absolute;
-    left: -40px;
-    top: 0px;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
+    align-items: center;
     background: white;
     border: 2px solid var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     color: var(--primary);
-    z-index: 2;
+    display: flex;
     font-size: 0.8rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    height: 30px;
+    justify-content: center;
+    left: -40px;
+    position: absolute;
+    top: 0;
+    width: 30px;
+    z-index: 2;
 }
 
 .timeline-content {
     background: var(--bg-body);
-    padding: 15px;
-    border-radius: var(--radius-md);
     border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 15px;
     transition: all 0.3s ease;
 }
 
 .timeline-content:hover {
     background: white;
-    box-shadow: var(--shadow-sm);
     border-color: var(--primary-soft);
+    box-shadow: var(--shadow-sm);
 }
 
 .timeline-time {
-    font-size: 0.75rem;
     color: var(--text-muted);
+    font-size: 0.75rem;
     font-weight: 700;
     margin-bottom: 5px;
 }
 
 .timeline-title {
-    font-weight: 700;
     color: var(--text-main);
+    font-weight: 700;
     margin-bottom: 5px;
 }
 
+.health-stat-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .health-stat-card {
-    background: var(--primary-soft);
-    padding: 15px;
+    background: linear-gradient(180deg, var(--primary-soft), rgba(255, 255, 255, 0.75));
+    border: 1px solid rgba(232, 62, 140, 0.12);
     border-radius: var(--radius-md);
+    padding: 16px 12px;
     text-align: center;
 }
 
-.health-stat-value {
-    font-size: 1.5rem;
-    font-weight: 800;
+.health-stat-icon {
+    align-items: center;
+    background: white;
+    border-radius: 999px;
     color: var(--primary);
+    display: inline-flex;
+    height: 34px;
+    justify-content: center;
+    margin-bottom: 10px;
+    width: 34px;
+}
+
+.health-stat-value {
+    color: var(--primary);
+    font-size: 1.35rem;
+    font-weight: 800;
 }
 
 .health-stat-label {
-    font-size: 0.75rem;
     color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
     text-transform: uppercase;
+}
+
+.growth-chart {
+    min-height: 250px;
+}
+
+.daily-empty {
+    align-items: center;
+    background: linear-gradient(135deg, rgba(232, 62, 140, 0.06), rgba(32, 201, 151, 0.06));
+    border: 1px dashed rgba(232, 62, 140, 0.22);
+    border-radius: 18px;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 170px;
+    padding: 28px;
+    text-align: center;
+    width: 100%;
+}
+
+.daily-empty.compact {
+    flex-direction: row;
+    gap: 14px;
+    justify-content: flex-start;
+    min-height: 96px;
+    padding: 18px;
+    text-align: left;
+}
+
+.daily-empty-icon {
+    align-items: center;
+    background: white;
+    border-radius: 22px;
+    box-shadow: var(--shadow-sm);
+    color: var(--primary);
+    display: flex;
+    font-size: 1.45rem;
+    height: 54px;
+    justify-content: center;
+    margin-bottom: 14px;
+    width: 54px;
+}
+
+.daily-empty.compact .daily-empty-icon {
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+.daily-empty h4 {
+    color: var(--text-main);
+    font-size: 1rem;
+    font-weight: 800;
+    margin: 0 0 6px;
+}
+
+.daily-empty p {
+    margin: 0;
+    max-width: 360px;
 }
 
 .photo-item {
@@ -98,12 +195,22 @@
 }
 
 .photo-item img {
-    width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease;
+    width: 100%;
 }
 
 .photo-item:hover img {
     transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+    .health-stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .daily-control {
+        min-width: 100%;
+    }
 }

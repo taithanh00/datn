@@ -146,11 +146,11 @@
         }
 
         .comment-quote {
-            font-family: 'Georgia', serif;
+            font-family: inherit;
             font-size: 1.2rem;
             line-height: 1.8;
             color: var(--text-main);
-            font-style: italic;
+            font-style: normal;
             padding: 32px;
             background: var(--bg-main);
             border-radius: 16px;
@@ -193,7 +193,7 @@
             <select class="form-select" style="min-width: 220px;" onchange="location.href='?year=@selectedYear&studentId=' + this.value">
                 @foreach (var child in children)
                 {
-                    <option value="@child.Id" selected="@(child.Id == selectedStudentId)">Bé: @child.LastName @child.FirstName </option>
+                    <option value="@child.Id" selected="@(child.Id == selectedStudentId)">Bé: @child.FullName</option>
                 }
             </select>
         }
@@ -214,8 +214,8 @@
                  class="student-avatar" 
                  onerror="this.src='/images/lion_orange.png'">
             <div class="student-info">
-                <h2>@selectedStudent.FirstName @selectedStudent.LastName</h2>
-                <p style="margin: 0; font-size: 0.85rem; opacity: 0.8;">Lớp @(selectedStudent.Class?.Name ?? "N/A") • Niên khóa @selectedYear</p>
+                <h2>@selectedStudent.FullName</h2>
+                <p style="margin: 0; font-size: 0.85rem; opacity: 0.8;">Lớp @(selectedStudent.Class?.Name ?? "Chưa phân lớp") • Niên khóa @(selectedStudent.Class?.SchoolYear ?? "Chưa cập nhật")</p>
             </div>
         </div>
         <div class="badge" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px;">

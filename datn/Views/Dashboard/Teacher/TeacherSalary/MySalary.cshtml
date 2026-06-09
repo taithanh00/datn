@@ -6,60 +6,56 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">Lịch sử nhận lương</h1>
-        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Theo dõi thu nhập hàng tháng của bạn</p>
+        <h1 class="page-title">Lương của tôi</h1>
+        <p class="text-muted" style="font-size:0.9rem; margin-top:4px;">Theo dõi phiếu lương đã chốt và trạng thái thanh toán.</p>
     </div>
 </div>
 
-<div class="card">
-    @if (!Model.Any())
-    {
+@if (!Model.Any())
+{
+    <div class="card">
         <div class="empty-state py-5">
             <i class="fa-solid fa-box-open"></i>
-            <p>Bạn chưa có dữ liệu lương trong hệ thống.</p>
+            <p>Bạn chưa có phiếu lương đã chốt trong hệ thống.</p>
         </div>
-    }
-    else
-    {
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Kỳ lương</th>
-                        <th>Ngày công</th>
-                        <th>Thực nhận</th>
-                        <th>Trạng thái</th>
-                        <th style="text-align: right;">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var s in Model)
-                    {
-                        <tr>
-                            <td>
-                                <div class="badge badge-info"><i class="fa-regular fa-calendar me-1"></i> Tháng @s.PayrollPeriod.Month/@s.PayrollPeriod.Year</div>
-                            </td>
-                            <td><span style="font-weight: 600;">@s.WorkingDays</span> <span class="text-muted">ngày</span></td>
-                            <td><span style="color: var(--success); font-weight: 700; font-size: 1.1rem;">@string.Format("{0:N0}", s.SalaryAmount) đ</span></td>
-                            <td>
-                                @if (s.PayrollPeriod.IsLocked)
-                                {
-                                    <span class="badge badge-success"><i class="fa-solid fa-check-double"></i> Đã thanh toán</span>
-                                }
-                                else
-                                {
-                                    <span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Đang chờ chốt</span>
-                                }
-                            </td>
-                            <td style="text-align: right;">
-                                <a asp-action="SalarySlip" asp-route-employeeId="@s.EmployeeId" asp-route-periodId="@s.PayrollPeriodId" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">
-                                    <i class="fa-solid fa-file-invoice"></i> Xem chi tiết
-                                </a>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-</div>
+    </div>
+}
+else
+{
+    <div class="salary-card-grid">
+        @foreach (var s in Model)
+        {
+            var statusText = s.Status == datn.Models.SalaryStatus.Paid ? "Đã thanh toán" : "Đã chốt";
+            var statusClass = s.Status == datn.Models.SalaryStatus.Paid ? "badge-success" : "badge-info";
+            <div class="salary-card">
+                <div class="salary-card-top">
+                    <div>
+                        <span class="text-muted">Kỳ lương</span>
+                        <h3>Tháng @s.PayrollPeriod.Month/@s.PayrollPeriod.Year</h3>
+                    </div>
+                    <span class="badge @statusClass">@statusText</span>
+                </div>
+                <div class="salary-amount">@string.Format("{0:N0}", s.SalaryAmount) đ</div>
+                <div class="salary-meta">
+                    <span><i class="fa-regular fa-calendar-check"></i> @(s.WorkingDays ?? 0) công</span>
+                    <span><i class="fa-solid fa-money-check-dollar"></i> @(s.PaymentMethod ?? "Chưa ghi nhận thanh toán")</span>
+                </div>
+                <a asp-action="SalarySlip" asp-route-employeeId="@s.EmployeeId" asp-route-periodId="@s.PayrollPeriodId" class="btn btn-primary" style="justify-content:center;">
+                    <i class="fa-solid fa-file-invoice"></i> Xem phiếu lương
+                </a>
+            </div>
+        }
+    </div>
+}
+
+@section Styles {
+    <style>
+        .salary-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+        .salary-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 22px; box-shadow: var(--shadow-sm); }
+        .salary-card-top { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+        .salary-card h3 { margin: 6px 0 0; font-size: 1.2rem; }
+        .salary-amount { margin: 28px 0 18px; font-size: 2rem; font-weight: 900; color: var(--primary); }
+        .salary-meta { display: grid; gap: 8px; color: var(--text-muted); margin-bottom: 20px; }
+        .salary-meta span { display: flex; gap: 8px; align-items: center; }
+    </style>
+}

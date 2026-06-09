@@ -153,6 +153,11 @@ function previewAvatar(input) {
 
 // ====== DATA LOADING ======
 async function loadTeachers() {
+  const tbody = document.getElementById("teachersTableBody");
+  if (window.appLoading && tbody) {
+    window.appLoading.setTable(tbody, TEACHERS_TABLE_COLS);
+  }
+
   try {
     const t = new Date().getTime();
     const response = await fetch(
@@ -189,6 +194,11 @@ function renderTeachersTable(teachers) {
   tbody.innerHTML = "";
 
   if (teachers.length === 0) {
+    if (window.appLoading) {
+      tbody.innerHTML = window.appLoading.tableEmpty(TEACHERS_TABLE_COLS, "Kh\u00f4ng c\u00f3 gi\u00e1o vi\u00ean n\u00e0o");
+      refreshTeachersTablePagination(true);
+      return;
+    }
     tbody.innerHTML =
       `<tr><td colspan="${TEACHERS_TABLE_COLS}" style="text-align: center; padding: 20px;">Không có giáo viên nào</td></tr>`;
     refreshTeachersTablePagination(true);
@@ -396,12 +406,18 @@ async function handleFormSubmit(e) {
     return;
   }
 
+  const dateOfBirth = document.getElementById("dateOfBirth").value;
+  if (window.appValidation && !window.appValidation.isAgeValid(dateOfBirth, 22, true)) {
+    showAlert("error", "Giáo viên phải từ 22 tuổi trở lên.");
+    return;
+  }
+
   const formData = new FormData();
   formData.append("FirstName", firstName);
   formData.append("LastName", lastName);
   formData.append("Email", document.getElementById("email").value);
   formData.append("Phone", document.getElementById("phone").value);
-  formData.append("DateOfBirth", document.getElementById("dateOfBirth").value);
+  formData.append("DateOfBirth", dateOfBirth);
   formData.append("Gender", document.querySelector('input[name="Gender"]:checked')?.value || "true");
   formData.append("TeacherType", document.getElementById("teacherType").value);
   formData.append("BaseSalary", document.getElementById("baseSalary").value);
@@ -462,11 +478,13 @@ async function handleFormSubmit(e) {
 // ====== ALERT MANAGEMENT ======
 function showAlert(type, message) {
   const alertDiv = document.getElementById("editFormAlert");
-  const icon = type === "success" ? "fa-circle-check" : "fa-circle-exclamation";
-  
-  alertDiv.className = `form-alert ${type}`;
-  alertDiv.innerHTML = `<i class="fa-solid ${icon}" style="margin-right: 8px;"></i>${message}`;
-  alertDiv.style.display = "block";
+  if (alertDiv) {
+    alertDiv.style.display = "none";
+    alertDiv.textContent = "";
+  }
+  if (window.showToast) {
+    window.showToast(type === "success" ? "Thành công" : "Có lỗi", message, type === "success" ? "success" : "error");
+  }
 }
 
 function clearAlert() {
@@ -478,6 +496,11 @@ function clearAlert() {
 // ====== ERROR HANDLING ======
 function showTableError(message) {
   const tbody = document.getElementById("teachersTableBody");
+  if (window.appLoading) {
+    tbody.innerHTML = window.appLoading.tableError(TEACHERS_TABLE_COLS, message);
+    refreshTeachersTablePagination(true);
+    return;
+  }
   tbody.innerHTML = `<tr><td colspan="${TEACHERS_TABLE_COLS}" style="text-align: center; padding: 20px; color: #d32f2f;">${message}</td></tr>`;
   refreshTeachersTablePagination(true);
 }

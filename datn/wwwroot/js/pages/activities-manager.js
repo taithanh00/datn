@@ -169,6 +169,10 @@ function closeLocationPanel() {
 
 // ====== DATA ======
 async function loadActivities() {
+  const activitiesTbody = document.getElementById("activitiesTableBody");
+  if (window.appLoading && activitiesTbody) {
+    window.appLoading.setTable(activitiesTbody, 6);
+  }
   const result = await fetchJson(
     `/Manager/Api/Activities?showInactive=${showInactiveActivities}`,
   );
@@ -176,6 +180,10 @@ async function loadActivities() {
   tbody.innerHTML = "";
 
   if (!result.success) {
+    if (window.appLoading) {
+      tbody.innerHTML = window.appLoading.tableError(6, "L\u1ed7i t\u1ea3i d\u1eef li\u1ec7u.");
+      return;
+    }
     tbody.innerHTML =
       '<tr><td colspan="6" class="text-center text-muted" style="padding:24px;">Lỗi tải dữ liệu.</td></tr>';
     return;
@@ -184,6 +192,12 @@ async function loadActivities() {
   activitiesCache = result.data;
 
   if (result.data.length === 0) {
+    if (window.appLoading) {
+      tbody.innerHTML = window.appLoading.tableEmpty(6, showInactiveActivities
+        ? "Kh\u00f4ng c\u00f3 ho\u1ea1t \u0111\u1ed9ng n\u00e0o trong kho l\u01b0u tr\u1eef."
+        : "Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u.");
+      return;
+    }
     const emptyMsg = showInactiveActivities
       ? "Không có hoạt động nào trong kho lưu trữ."
       : "Không có dữ liệu.";
@@ -210,6 +224,10 @@ async function loadActivities() {
 }
 
 async function loadLocations() {
+  const locationsTbody = document.getElementById("locationsTableBody");
+  if (window.appLoading && locationsTbody) {
+    window.appLoading.setTable(locationsTbody, 3);
+  }
   const result = await fetchJson(
     `/Manager/Api/Locations?showInactive=${showInactiveLocations}`,
   );
@@ -221,6 +239,12 @@ async function loadLocations() {
   if (result.success) {
     locationsCache = result.data;
     if (result.data.length === 0) {
+      if (window.appLoading) {
+        tbody.innerHTML = window.appLoading.tableEmpty(3, showInactiveLocations
+          ? "Kh\u00f4ng c\u00f3 \u0111\u1ecba \u0111i\u1ec3m n\u00e0o trong kho l\u01b0u tr\u1eef."
+          : "Kh\u00f4ng c\u00f3 \u0111\u1ecba \u0111i\u1ec3m n\u00e0o \u0111ang s\u1eed d\u1ee5ng.");
+        return;
+      }
       const emptyMsg = showInactiveLocations
         ? "Không có địa điểm nào trong kho lưu trữ."
         : "Không có địa điểm nào đang sử dụng.";
@@ -372,10 +396,11 @@ async function reactivateLocation(id) {
 
 function showActivityFormAlert(message, type) {
   const el = document.getElementById("activityFormAlert");
-  const icon = type === "success" ? "fa-circle-check" : "fa-circle-exclamation";
-  el.className = `form-alert ${type}`;
-  el.innerHTML = `<i class="fa-solid ${icon}" style="margin-right:8px;"></i>${message}`;
-  el.style.display = "block";
+  if (el) {
+    el.style.display = "none";
+    el.textContent = "";
+  }
+  if (window.showToast) window.showToast(type === "success" ? "Thành công" : "Có lỗi", message, type === "success" ? "success" : "error");
 }
 
 function hideActivityFormAlert() {
@@ -384,10 +409,11 @@ function hideActivityFormAlert() {
 
 function showLocationFormAlert(message, type) {
   const el = document.getElementById("locationFormAlert");
-  const icon = type === "success" ? "fa-circle-check" : "fa-circle-exclamation";
-  el.className = `form-alert ${type}`;
-  el.innerHTML = `<i class="fa-solid ${icon}" style="margin-right:8px;"></i>${message}`;
-  el.style.display = "block";
+  if (el) {
+    el.style.display = "none";
+    el.textContent = "";
+  }
+  if (window.showToast) window.showToast(type === "success" ? "Thành công" : "Có lỗi", message, type === "success" ? "success" : "error");
 }
 
 function hideLocationFormAlert() {
@@ -396,13 +422,11 @@ function hideLocationFormAlert() {
 
 function showPageAlert(id, success, message) {
   const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = message;
-  el.className = `page-alert ${success ? "success" : "error"}`;
-  el.style.display = "block";
-  setTimeout(() => {
+  if (el) {
     el.style.display = "none";
-  }, 3000);
+    el.textContent = "";
+  }
+  if (window.showToast) window.showToast(success ? "Thành công" : "Có lỗi", message, success ? "success" : "error");
 }
 
 // Global handlers for inline onclick

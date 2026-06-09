@@ -1,6 +1,7 @@
 @{
     ViewData["Title"] = "Theo dõi nộp học phí";
     Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+    var currentYear = DateTime.Now.Year;
 }
 
 <div class="page-header">
@@ -9,43 +10,68 @@
         <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Kiểm tra và xác nhận tình trạng đóng phí của học sinh</p>
     </div>
     <div class="page-actions">
+        <div class="search-bar">
+            <i class="fa-solid fa-search"></i>
+            <input id="tuitionSearch" type="search" placeholder="Tìm học sinh theo tên hoặc ID..." autocomplete="off" />
+        </div>
+        <button id="btnToggleFilter" type="button" class="btn-filter-toggle">
+            <i class="fa-solid fa-filter"></i>
+            Bộ lọc
+        </button>
         <a href="/Tuition" class="btn btn-outline" style="border-color: var(--border-focus);">
             <i class="fa-solid fa-arrow-left"></i> Quay lại
         </a>
     </div>
 </div>
 
-<div class="card mb-4">
-    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-        <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
-            <label class="form-label">Tháng</label>
-            <select id="monMonth" class="form-select" onchange="loadMonitoring()">
-                @for (int i = 1; i <= 12; i++) {
+<div id="filterPanel" class="filter-panel">
+    <div class="filter-grid">
+        <div class="filter-group">
+            <label>Tháng</label>
+            <select id="monMonth" class="form-control">
+                @for (int i = 1; i <= 12; i++)
+                {
                     var isSelected = DateTime.Now.Month == i;
                     <option value="@i" selected="@isSelected">Tháng @i</option>
                 }
             </select>
         </div>
-        <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
-            <label class="form-label">Năm</label>
-            <select id="monYear" class="form-select" onchange="loadMonitoring()">
-                <option value="2026" selected>2026</option>
-                <option value="2027">2027</option>
+        <div class="filter-group">
+            <label>Năm</label>
+            <select id="monYear" class="form-control">
+                @for (int year = currentYear - 1; year <= currentYear + 1; year++)
+                {
+                    var isSelected = currentYear == year;
+                    <option value="@year" selected="@isSelected">@year</option>
+                }
             </select>
         </div>
-        <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
-            <label class="form-label">Trạng thái</label>
-            <select id="monStatus" class="form-select" onchange="loadMonitoring()">
-                <option value="">Tất cả trạng thái</option>
-                <option value="true">Đã hoàn thành</option>
-                <option value="false">Chưa thanh toán</option>
+        <div class="filter-group">
+            <label>Lớp học</label>
+            <select id="monClass" class="form-control">
+                <option value="">-- Tất cả --</option>
             </select>
+        </div>
+        <div class="filter-group">
+            <label>Trạng thái</label>
+            <select id="monStatus" class="form-control">
+                <option value="">-- Tất cả --</option>
+                <option value="true">Đã nộp</option>
+                <option value="false">Chờ nộp</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button id="btnApplyFilter" type="button" class="btn btn-primary">Áp dụng</button>
+            <button id="btnResetFilter" type="button" class="btn btn-outline">Đặt lại</button>
         </div>
     </div>
 </div>
 
 <div class="card">
-    <div class="table-container">
+    <div class="tuition-table-meta">
+        <span id="tuitionResultCount">Đang tải dữ liệu...</span>
+    </div>
+    <div class="table-container tuition-monitor-table">
         <table id="monitoringTableEl">
             <thead>
                 <tr>

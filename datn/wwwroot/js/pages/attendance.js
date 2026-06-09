@@ -37,7 +37,9 @@ function changeClass(classId) {
 }
 
 function loadStudents(classId) {
-    document.getElementById('attendanceContent').innerHTML = '<div style="text-align:center; padding:40px;"><div class="spinner"></div></div>';
+    document.getElementById('attendanceContent').innerHTML = window.appLoading
+        ? window.appLoading.content("\u0110ang t\u1ea3i danh s\u00e1ch h\u1ecdc sinh...")
+        : '<div style="text-align:center; padding:40px;"><div class="spinner"></div></div>';
     document.getElementById('footerActions').style.display = 'none';
     fetch(`/Employee/Api/ClassStudents/${classId}`).then(r=>r.json()).then(response => {
         if (response.success) {

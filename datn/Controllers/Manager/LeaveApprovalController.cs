@@ -209,6 +209,8 @@ namespace datn.Controllers.Manager
                                 EmployeeId = record.EmployeeId,
                                 Date = date,
                                 Status = "Approved", // Tự động duyệt vì là nghỉ phép đã được Manager đồng ý
+                                WorkUnit = 1.0m,
+                                PenaltyAmount = 0m,
                                 ReviewedByEmployeeId = managerEmployeeId,
                                 ReviewedAtUtc = DateTime.UtcNow,
                                 Note = $"Nghỉ phép có lương: {record.Reason}",
@@ -219,6 +221,11 @@ namespace datn.Controllers.Manager
                         {
                             // Nếu đã có bản ghi chấm công (ví dụ: quên CheckOut hoặc Pending), ghi đè bằng Approved nghỉ phép
                             existing.Status = "Approved";
+                            existing.WorkUnit = 1.0m;
+                            existing.PenaltyAmount = 0m;
+                            existing.ReviewedByEmployeeId = managerEmployeeId;
+                            existing.ReviewedAtUtc = DateTime.UtcNow;
+                            existing.ReviewNote = "Hệ thống tự động duyệt công từ đơn nghỉ phép có lương";
                             existing.Note = (existing.Note ?? "") + $" | Nghỉ phép có lương: {record.Reason}";
                         }
                     }

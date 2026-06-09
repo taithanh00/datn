@@ -2,19 +2,31 @@
 @{
     ViewData["Title"] = "Phiếu lương chi tiết";
     Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+
     var penalties = ViewBag.Penalties as IEnumerable<datn.Models.WorkAttendance> ?? new List<datn.Models.WorkAttendance>();
     var coverageBonuses = ViewBag.CoverageBonuses as IEnumerable<datn.Models.ClassCoverageBonus> ?? new List<datn.Models.ClassCoverageBonus>();
-    var totalPenalty = penalties.Sum(p => p.PenaltyAmount);
-    var totalBonus = coverageBonuses.Sum(b => b.Amount);
-    var baseSalary = Model.Employee.BaseSalary ?? 0m;
-    var dailyRate = baseSalary / 22m;
-    var grossFromDays = (Model.WorkingDays ?? 0) * dailyRate;
+    var baseSalary = Model.BaseSalarySnapshot ?? Model.Employee.BaseSalary ?? 0m;
+    var standardWorkingDays = Model.StandardWorkingDays.GetValueOrDefault(0);
+    var workingDays = Model.WorkingDays ?? 0m;
+    var dailyRate = standardWorkingDays > 0 ? baseSalary / standardWorkingDays : 0m;
+    var grossFromDays = workingDays * dailyRate;
+    var salaryAmount = Model.SalaryAmount ?? 0m;
+    var statusText = Model.Status switch
+    {
+        datn.Models.SalaryStatus.Paid => "Đã thanh toán",
+        datn.Models.SalaryStatus.Locked => "Đã chốt",
+        datn.Models.SalaryStatus.Calculated => "Đã tính",
+        datn.Models.SalaryStatus.Cancelled => "Đã hủy",
+        _ => "Bản nháp"
+    };
 }
 
 <div class="page-header d-print-none">
     <div>
-        <h1 class="page-title">Phiếu thanh toán tiền lương</h1>
-        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Chi tiết thu nhập tháng @Model.PayrollPeriod.Month/@Model.PayrollPeriod.Year</p>
+        <h1 class="page-title">Phiếu lương chi tiết</h1>
+        <p class="text-muted" style="font-size:0.9rem; margin-top:4px;">
+            Kỳ lương tháng @Model.PayrollPeriod.Month/@Model.PayrollPeriod.Year
+        </p>
     </div>
     <div class="d-flex gap-2">
         <a asp-action="@(User.IsInRole("Manager") ? "Index" : "MySalary")" class="btn btn-outline">
@@ -26,146 +38,332 @@
     </div>
 </div>
 
-<div class="card" style="max-width: 800px; margin: 0 auto; padding: 40px;">
-    <!-- Slip Header -->
-    <div style="text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 24px; margin-bottom: 32px;">
-        <div style="font-weight: 800; font-size: 1.25rem; color: var(--text-main); margin-bottom: 8px;">HỆ THỐNG QUẢN LÝ TRƯỜNG HỌC DATN</div>
-        <h2 style="color: var(--primary); text-transform: uppercase; font-size: 1.8rem; margin: 0 0 8px 0; font-weight: 800;">Phiếu thanh toán tiền lương</h2>
-        <div class="badge badge-info" style="font-size: 1rem; font-weight: 600;">Tháng @Model.PayrollPeriod.Month Năm @Model.PayrollPeriod.Year</div>
+<div class="salary-slip">
+    <div class="slip-header">
+        <div class="school-name">SEN HỒNG KINDERGARTEN</div>
+        <h2>Phiếu thanh toán tiền lương</h2>
+        <div class="slip-period">Tháng @Model.PayrollPeriod.Month năm @Model.PayrollPeriod.Year</div>
     </div>
 
-    <!-- Employee Info -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; background: var(--bg-body); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
-            <span class="text-muted">Mã nhân viên:</span>
-            <span style="font-weight: 700; color: var(--primary);">#@Model.EmployeeId</span>
+    <section class="slip-section employee-grid">
+        <div>
+            <span>Mã giáo viên</span>
+            <strong>#@Model.EmployeeId</strong>
         </div>
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
-            <span class="text-muted">Họ và tên:</span>
-            <span style="font-weight: 600;">@Model.Employee.FullName</span>
+        <div>
+            <span>Họ và tên</span>
+            <strong>@Model.Employee.FullName</strong>
         </div>
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
-            <span class="text-muted">Vai trò:</span>
-            <span style="font-weight: 600;">@((Model.Employee.TeacherType == datn.Models.TeacherType.Lead) ? "Giáo viên chủ nhiệm" : "Giáo viên bộ môn")</span>
+        <div>
+            <span>Vai trò</span>
+            <strong>@((Model.Employee.TeacherType == datn.Models.TeacherType.Lead) ? "Giáo viên phụ trách" : "Giáo viên")</strong>
         </div>
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
-            <span class="text-muted">Trạng thái:</span>
-            <span style="font-weight: 600;">
-                @if (Model.PayrollPeriod.IsLocked)
-                {
-                    <span style="color: var(--success);"><i class="fa-solid fa-check-double"></i> Đã chốt</span>
-                }
-                else
-                {
-                    <span style="color: var(--warning);"><i class="fa-solid fa-clock"></i> Dự toán</span>
-                }
-            </span>
+        <div>
+            <span>Trạng thái</span>
+            <strong class="status-pill status-@Model.Status.ToString().ToLowerInvariant()">@statusText</strong>
         </div>
-    </div>
+    </section>
 
-    <!-- Calculation Table -->
-    <div class="table-container" style="margin-bottom: 32px;">
-        <table style="margin: 0;">
+    <section class="slip-section">
+        <table class="salary-table">
             <thead>
                 <tr>
-                    <th>Mô tả</th>
-                    <th style="text-align: center;">Số lượng / Tỷ lệ</th>
-                    <th style="text-align: right;">Thành tiền</th>
+                    <th>Khoản mục</th>
+                    <th class="text-center">Số lượng / tỷ lệ</th>
+                    <th class="text-right">Thành tiền</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>Lương cơ bản tháng (22 ngày công)</td>
-                    <td style="text-align: center;"><div class="badge badge-info">100%</div></td>
-                    <td style="text-align: right; font-family: monospace; font-size: 1.1rem; font-weight: 600;">@string.Format("{0:N0}", baseSalary) đ</td>
+                    <td>Lương cơ bản snapshot</td>
+                    <td class="text-center">100%</td>
+                    <td class="text-right money">@string.Format("{0:N0}", baseSalary) đ</td>
                 </tr>
                 <tr>
-                    <td>Ngày công thực tế (Duyệt)</td>
-                    <td style="text-align: center;"><div class="badge" style="background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main);">@Model.WorkingDays / 22</div></td>
-                    <td style="text-align: right; font-family: monospace; font-size: 1.1rem; font-weight: 600;">@string.Format("{0:N0}", grossFromDays) đ</td>
+                    <td>Ngày công thực tế</td>
+                    <td class="text-center">@workingDays / @standardWorkingDays ngày</td>
+                    <td class="text-right money">@string.Format("{0:N0}", grossFromDays) đ</td>
                 </tr>
                 <tr>
-                    <td style="color: var(--danger);">Tổng các khoản giảm trừ (Phạt đi muộn/về sớm)</td>
-                    <td style="text-align: center;">-</td>
-                    <td style="text-align: right; font-family: monospace; font-size: 1.1rem; font-weight: 600; color: var(--danger);">- @string.Format("{0:N0}", totalPenalty) đ</td>
+                    <td>Khoản phạt đi muộn/về sớm</td>
+                    <td class="text-center">@penalties.Count() lượt</td>
+                    <td class="text-right money danger">- @string.Format("{0:N0}", Model.PenaltyAmount) đ</td>
                 </tr>
-                @if (totalBonus > 0)
-                {
                 <tr>
-                    <td style="color: var(--success);">Thưởng phụ trách lớp (đồng nghiệp nghỉ)</td>
-                    <td style="text-align: center;"><div class="badge badge-success">@coverageBonuses.Count() ngày</div></td>
-                    <td style="text-align: right; font-family: monospace; font-size: 1.1rem; font-weight: 600; color: var(--success);">+ @string.Format("{0:N0}", totalBonus) đ</td>
+                    <td>Thưởng phụ trách thay lớp</td>
+                    <td class="text-center">@coverageBonuses.Count() lượt</td>
+                    <td class="text-right money success">+ @string.Format("{0:N0}", Model.CoverageBonusAmount) đ</td>
                 </tr>
-                }
-                <tr style="background: var(--primary-soft);">
-                    <td style="font-weight: 800; color: var(--primary); font-size: 1.1rem;">TỔNG THỰC NHẬN</td>
-                    <td style="text-align: center;">-</td>
-                    <td style="text-align: right; font-family: monospace; font-size: 1.25rem; font-weight: 800; color: var(--primary);">@string.Format("{0:N0}", Model.SalaryAmount) đ</td>
+                <tr class="total-row">
+                    <td>Tổng thực nhận</td>
+                    <td></td>
+                    <td class="text-right money">@string.Format("{0:N0}", salaryAmount) đ</td>
                 </tr>
             </tbody>
         </table>
-    </div>
+    </section>
+
+    @if (Model.Status == datn.Models.SalaryStatus.Paid)
+    {
+        <section class="slip-section payment-box">
+            <div>
+                <span>Ngày thanh toán</span>
+                <strong>@Model.PaidAtUtc?.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</strong>
+            </div>
+            <div>
+                <span>Phương thức</span>
+                <strong>@(string.IsNullOrWhiteSpace(Model.PaymentMethod) ? "Không ghi nhận" : Model.PaymentMethod)</strong>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.PaymentNote))
+            {
+                <div class="full">
+                    <span>Ghi chú</span>
+                    <strong>@Model.PaymentNote</strong>
+                </div>
+            }
+        </section>
+    }
 
     @if (coverageBonuses.Any())
     {
-        <div style="background: rgba(34,197,94,0.1); border-left: 4px solid var(--success); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 32px;">
-            <h4 style="color: var(--success); font-size: 1rem; font-weight: 700; margin-bottom: 12px; border-bottom: 1px solid rgba(34,197,94,0.2); padding-bottom: 8px;">
-                <i class="fa-solid fa-gift"></i> Thưởng phụ trách lớp trong tháng
-            </h4>
-            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-                @foreach (var b in coverageBonuses)
+        <section class="detail-box bonus-box">
+            <h3><i class="fa-solid fa-gift"></i> Chi tiết thưởng thay lớp</h3>
+            <ul>
+                @foreach (var item in coverageBonuses)
                 {
                     <li>
-                        <strong>@b.Date.ToString("dd/MM/yyyy")</strong> — Lớp @(b.Class?.Name ?? ("#" + b.ClassId)):
-                        <span style="color: var(--success); font-weight: 600;">+@string.Format("{0:N0}", b.Amount) đ</span>
+                        <span>@item.Date.ToString("dd/MM/yyyy") - @(item.Class?.Name ?? $"Lớp #{item.ClassId}")</span>
+                        <strong>+@string.Format("{0:N0}", item.Amount) đ</strong>
                     </li>
                 }
             </ul>
-        </div>
+        </section>
     }
 
-    <!-- Penalties Detail -->
     @if (penalties.Any())
     {
-        <div style="background: rgba(248,113,113,0.1); border-left: 4px solid var(--danger); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 32px;">
-            <h4 style="color: var(--danger); font-size: 1rem; font-weight: 700; margin-bottom: 12px; border-bottom: 1px solid rgba(248,113,113,0.2); padding-bottom: 8px;">
-                <i class="fa-solid fa-triangle-exclamation"></i> Chi tiết vi phạm trong tháng
-            </h4>
-            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-                @foreach (var p in penalties)
+        <section class="detail-box penalty-box">
+            <h3><i class="fa-solid fa-triangle-exclamation"></i> Chi tiết khoản phạt</h3>
+            <ul>
+                @foreach (var item in penalties)
                 {
                     <li>
-                        <strong>@p.Date.ToString("dd/MM/yyyy"):</strong> 
-                        Phạt <span style="color: var(--danger); font-weight: 600;">@string.Format("{0:N0}", p.PenaltyAmount) đ</span> 
-                        <em>(@(string.IsNullOrEmpty(p.Note) ? "Đi muộn hoặc về sớm" : p.Note))</em>
+                        <span>@item.Date.ToString("dd/MM/yyyy") - @(string.IsNullOrWhiteSpace(item.Note) ? "Đi muộn/về sớm" : item.Note)</span>
+                        <strong>-@string.Format("{0:N0}", item.PenaltyAmount) đ</strong>
                     </li>
                 }
             </ul>
-        </div>
+        </section>
     }
 
-    <!-- Footer -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; text-align: center; margin-top: 60px;">
+    <footer class="slip-signatures">
         <div>
-            <div style="font-weight: 700; color: var(--text-main);">Người lập biểu</div>
-            <div class="text-muted" style="font-size: 0.8rem; margin-top: 4px;">(Ký và ghi rõ họ tên)</div>
-            <div style="height: 120px;"></div>
+            <strong>Người lập phiếu</strong>
+            <span>(Ký và ghi rõ họ tên)</span>
         </div>
         <div>
-            <div style="font-weight: 700; color: var(--text-main);">Nhân viên xác nhận</div>
-            <div class="text-muted" style="font-size: 0.8rem; margin-top: 4px;">(Ký và ghi rõ họ tên)</div>
-            <div style="height: 120px;"></div>
+            <strong>Giáo viên xác nhận</strong>
+            <span>(Ký và ghi rõ họ tên)</span>
         </div>
-    </div>
+    </footer>
 </div>
 
 @section Styles {
     <style>
+        .salary-slip {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 40px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        .slip-header {
+            text-align: center;
+            padding-bottom: 26px;
+            margin-bottom: 28px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .school-name {
+            color: var(--text-main);
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+        }
+
+        .slip-header h2 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .slip-period {
+            display: inline-flex;
+            margin-top: 12px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .slip-section {
+            margin-bottom: 28px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .employee-grid,
+        .payment-box {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0;
+            background: var(--bg-body);
+        }
+
+        .employee-grid > div,
+        .payment-box > div {
+            padding: 18px 20px;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .employee-grid span,
+        .payment-box span {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.86rem;
+            margin-bottom: 6px;
+        }
+
+        .employee-grid strong,
+        .payment-box strong {
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+
+        .payment-box .full {
+            grid-column: 1 / -1;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #3730a3;
+        }
+
+        .status-paid {
+            background: #dcfce7;
+            color: #047857;
+        }
+
+        .status-locked {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .salary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .salary-table th,
+        .salary-table td {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .salary-table th {
+            background: #f8fafc;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+        }
+
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .money { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-weight: 800; }
+        .danger { color: var(--danger); }
+        .success { color: var(--success); }
+
+        .total-row td {
+            background: var(--primary-soft);
+            color: var(--primary);
+            font-size: 1.15rem;
+            font-weight: 900;
+        }
+
+        .detail-box {
+            margin-bottom: 24px;
+            padding: 18px 20px;
+            border-radius: 18px;
+        }
+
+        .detail-box h3 {
+            margin: 0 0 14px;
+            font-size: 1rem;
+        }
+
+        .detail-box ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .detail-box li {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 10px 0;
+            border-top: 1px solid rgba(15, 23, 42, 0.08);
+        }
+
+        .bonus-box {
+            background: rgba(34, 197, 94, 0.08);
+            border-left: 4px solid var(--success);
+        }
+
+        .penalty-box {
+            background: rgba(248, 113, 113, 0.08);
+            border-left: 4px solid var(--danger);
+        }
+
+        .slip-signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            margin-top: 56px;
+            text-align: center;
+        }
+
+        .slip-signatures span {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 6px;
+            padding-bottom: 110px;
+        }
+
         @@media print {
-            body { background: white !important; }
+            body { background: #fff !important; }
             .d-print-none { display: none !important; }
-            .card { box-shadow: none !important; border: none !important; padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
+            .salary-slip { box-shadow: none !important; border: none !important; padding: 0 !important; max-width: 100% !important; }
             * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+
+        @@media (max-width: 768px) {
+            .salary-slip { padding: 24px; }
+            .employee-grid,
+            .payment-box,
+            .slip-signatures { grid-template-columns: 1fr; }
         }
     </style>
 }

@@ -202,7 +202,10 @@ function updateCompletionRate() {
 }
 
 function showToast(msg, type) {
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({ icon: type, title: msg, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-    }
+    const normalizedType = type === 'error' || type === 'warning' || type === 'success' ? type : 'info';
+    const title = normalizedType === 'success' ? 'Thành công' : normalizedType === 'error' ? 'Có lỗi' : normalizedType === 'warning' ? 'Cảnh báo' : 'Thông tin';
+    if (window.notifySuccess && normalizedType === 'success') return window.notifySuccess(msg, title);
+    if (window.notifyError && normalizedType === 'error') return window.notifyError(msg, title);
+    if (window.notifyWarning && normalizedType === 'warning') return window.notifyWarning(msg, title);
+    if (window.notifyInfo) return window.notifyInfo(msg, title);
 }

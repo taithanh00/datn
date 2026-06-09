@@ -130,6 +130,16 @@
                 <label class="form-label">Nhiệt độ cơ thể (°C)</label>
                 <input type="number" step="0.1" id="temperature" class="form-input" placeholder="36.5" />
             </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="form-group">
+                    <label class="form-label">Cân nặng (kg)</label>
+                    <input type="number" step="0.1" min="0" id="weight" class="form-input" placeholder="15.5" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Chiều cao (cm)</label>
+                    <input type="number" step="0.1" min="0" id="height" class="form-input" placeholder="95" />
+                </div>
+            </div>
             <div class="form-group">
                 <label class="form-label">Tâm trạng</label>
                 <input type="text" id="moodNote" class="form-input" placeholder="Ví dụ: Vui vẻ, hay quấy khóc..." />
@@ -402,6 +412,8 @@
 
         // Fill health
         document.getElementById('temperature').value = health?.temperature || '';
+        document.getElementById('weight').value = health?.weight || '';
+        document.getElementById('height').value = health?.height || '';
         document.getElementById('moodNote').value = report?.moodNote || '';
         document.getElementById('activityNote').value = report?.activityNote || '';
 
@@ -424,6 +436,21 @@
         const studentId = parseInt(document.getElementById('editStudentId').value);
         const date = document.getElementById('reportDate').value;
         const temp = parseFloat(document.getElementById('temperature').value);
+        const weight = parseFloat(document.getElementById('weight').value);
+        const height = parseFloat(document.getElementById('height').value);
+
+        if (!isNaN(temp) && (temp < 34 || temp > 42)) {
+            if (window.showToast) window.showToast('Lỗi', 'Nhiệt độ phải nằm trong khoảng 34 - 42°C.', 'error');
+            return;
+        }
+        if (!isNaN(weight) && (weight < 5 || weight > 80)) {
+            if (window.showToast) window.showToast('Lỗi', 'Cân nặng phải nằm trong khoảng 5 - 80 kg.', 'error');
+            return;
+        }
+        if (!isNaN(height) && (height < 50 || height > 160)) {
+            if (window.showToast) window.showToast('Lỗi', 'Chiều cao phải nằm trong khoảng 50 - 160 cm.', 'error');
+            return;
+        }
 
         const dto = {
             reportId: parseInt(document.getElementById('editReportId').value) || 0,
@@ -436,7 +463,9 @@
             sleepingNote: document.getElementById('sleepingNote').value.trim(),
             moodNote: document.getElementById('moodNote').value.trim(),
             activityNote: document.getElementById('activityNote').value.trim(),
-            temperature: isNaN(temp) ? null : temp
+            temperature: isNaN(temp) ? null : temp,
+            weight: isNaN(weight) ? null : weight,
+            height: isNaN(height) ? null : height
         };
 
         try {

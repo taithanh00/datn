@@ -7,16 +7,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadFeeItems() {
     const tbody = document.getElementById('feeItemsTableBody');
+    if (window.appLoading && tbody) {
+        window.appLoading.setTable(tbody, 6);
+    }
     try {
         const response = await fetch('/Tuition/Api/FeeItems');
         const result = await response.json();
 
         if (!result.success) {
+            if (window.appLoading) {
+                tbody.innerHTML = window.appLoading.tableError(6, result.message || "Kh\u00f4ng th\u1ec3 t\u1ea3i d\u1eef li\u1ec7u.");
+                return;
+            }
             tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Lỗi: ${result.message}</td></tr>`;
             return;
         }
 
         if (result.data.length === 0) {
+            if (window.appLoading) {
+                tbody.innerHTML = window.appLoading.tableEmpty(6, "Ch\u01b0a c\u00f3 kho\u1ea3n thu n\u00e0o.");
+                return;
+            }
             tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Chưa có khoản thu nào.</td></tr>`;
             return;
         }
@@ -50,6 +61,10 @@ async function loadFeeItems() {
 
     } catch (error) {
         console.error('Error loading fee items:', error);
+        if (window.appLoading) {
+            tbody.innerHTML = window.appLoading.tableError(6, "L\u1ed7i k\u1ebft n\u1ed1i m\u00e1y ch\u1ee7.");
+            return;
+        }
         tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Lỗi kết nối máy chủ.</td></tr>`;
     }
 }
@@ -195,8 +210,11 @@ function escapeHtml(text) {
 
 function showGlobalAlert(message, type) {
     const alert = document.getElementById('feeAlert');
-    alert.className = `alert alert-${type}`;
-    alert.textContent = message;
-    alert.style.display = 'block';
-    setTimeout(() => { alert.style.display = 'none'; }, 3000);
+    if (alert) {
+        alert.style.display = 'none';
+        alert.textContent = '';
+    }
+    if (window.showToast) {
+        window.showToast(type === 'success' ? 'Thành công' : 'Có lỗi', message, type === 'success' ? 'success' : 'error');
+    }
 }

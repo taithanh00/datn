@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using datn.Data;
 
@@ -11,9 +12,11 @@ using datn.Data;
 namespace datn.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260606104700_ImportStudentData")]
+    partial class ImportStudentData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -921,38 +924,8 @@ namespace datn.Migrations
                     b.Property<int>("PayrollPeriodId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("BaseSalarySnapshot")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("CalculatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("CoverageBonusAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("LockedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("PaidAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PaymentMethod")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PaymentNote")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("PenaltyAmount")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal?>("SalaryAmount")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("StandardWorkingDays")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.Property<decimal?>("WorkingDays")
                         .HasColumnType("decimal(18,2)");
@@ -960,8 +933,6 @@ namespace datn.Migrations
                     b.HasKey("EmployeeId", "PayrollPeriodId");
 
                     b.HasIndex("PayrollPeriodId");
-
-                    b.HasIndex("Status");
 
                     b.ToTable("Salaries");
                 });

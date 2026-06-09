@@ -290,6 +290,12 @@ namespace datn.Data
                 .HasForeignKey(s => s.PayrollPeriodId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Salary>().Property(s => s.SalaryAmount).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Salary>().Property(s => s.WorkingDays).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Salary>().Property(s => s.BaseSalarySnapshot).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Salary>().Property(s => s.PenaltyAmount).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Salary>().Property(s => s.CoverageBonusAmount).HasColumnType("decimal(18,2)");
+
             // ── Activity ──────────────────────────────────────────
             modelBuilder.Entity<Activity>()
                 .HasOne(a => a.Location)

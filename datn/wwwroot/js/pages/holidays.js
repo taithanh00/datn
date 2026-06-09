@@ -20,11 +20,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadHolidays() {
     const body = document.getElementById("holidayTableBody");
+    if (window.appLoading && body) {
+        window.appLoading.setTable(body, 4);
+    }
     try {
         const res = await fetch(`/HolidayManagement/Api/List?showInactive=${showInactiveHolidays}`);
         const payload = await res.json();
         
         if (!payload.data.length) {
+            if (window.appLoading) {
+                body.innerHTML = window.appLoading.tableEmpty(4, "Ch\u01b0a c\u00f3 ng\u00e0y l\u1ec5 n\u00e0o \u0111\u01b0\u1ee3c thi\u1ebft l\u1eadp.");
+                return;
+            }
             body.innerHTML = "<tr><td colspan='4' class='text-center py-5 text-muted'>Chưa có ngày lễ nào được thiết lập.</td></tr>";
             return;
         }
@@ -55,6 +62,10 @@ async function loadHolidays() {
             `;
         }).join("");
     } catch(e) {
+        if (window.appLoading) {
+            body.innerHTML = window.appLoading.tableError(4, "L\u1ed7i k\u1ebft n\u1ed1i.");
+            return;
+        }
         body.innerHTML = "<tr><td colspan='4' class='text-center text-danger py-4'>Lỗi kết nối.</td></tr>";
     }
 }
@@ -131,8 +142,9 @@ async function reactivateHoliday(id) {
 
 function setAlert(msg, isError) {
     const alert = document.getElementById("holidayAlert");
-    alert.className = `page-alert ${isError ? 'error' : 'success'} mt-3`;
-    alert.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-xmark' : 'fa-circle-check'}"></i> ${msg}`;
-    alert.style.display = "block";
-    setTimeout(() => { alert.style.display = "none"; }, 5000);
+    if (alert) {
+        alert.style.display = "none";
+        alert.textContent = "";
+    }
+    if (window.showToast) window.showToast(isError ? "Có lỗi" : "Thành công", msg, isError ? "error" : "success");
 }

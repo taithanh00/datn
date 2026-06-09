@@ -106,6 +106,7 @@ builder.Services.AddSignalR()
 builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, CustomUserIdProvider>();
 builder.Services.AddScoped<JwtService>();                               // Dịch vụ tạo JWT
 builder.Services.AddScoped<INotificationService, NotificationService>();   // Dịch vụ thông báo
+builder.Services.AddScoped<IPayrollService, PayrollService>();
 builder.Services.Configure<ClassCoverageOptions>(
     builder.Configuration.GetSection(ClassCoverageOptions.SectionName));
 builder.Services.AddScoped<IClassCoverageService, ClassCoverageService>();

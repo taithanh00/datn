@@ -87,6 +87,7 @@ namespace datn.Controllers.Parent
             // Lấy danh sách con của phụ huynh này
             var children = await _context.ParentStudents
                 .Include(ps => ps.Student)
+                    .ThenInclude(s => s.Class)
                 .Where(ps => ps.ParentId == parentId)
                 .Select(ps => ps.Student)
                 .ToListAsync();

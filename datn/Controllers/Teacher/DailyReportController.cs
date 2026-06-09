@@ -112,7 +112,7 @@ namespace datn.Controllers.Teacher
 
             await _context.SaveChangesAsync();
 
-            if (dto.Temperature.HasValue)
+            if (dto.Temperature.HasValue || dto.Weight.HasValue || dto.Height.HasValue)
             {
                 var health = await _context.HealthRecords
                     .FirstOrDefaultAsync(h => h.StudentId == dto.StudentId && h.Date == d);
@@ -122,7 +122,9 @@ namespace datn.Controllers.Teacher
                     health = new HealthRecord { StudentId = dto.StudentId, Date = d };
                     _context.HealthRecords.Add(health);
                 }
-                health.Temperature = (decimal)dto.Temperature.Value;
+                health.Temperature = dto.Temperature.HasValue ? (decimal)dto.Temperature.Value : null;
+                health.Weight = dto.Weight.HasValue ? (decimal)dto.Weight.Value : null;
+                health.Height = dto.Height.HasValue ? (decimal)dto.Height.Value : null;
                 await _context.SaveChangesAsync();
             }
 
@@ -214,7 +216,9 @@ namespace datn.Controllers.Teacher
             if (!DateOnly.TryParse(date, out var d)) d = DateOnly.FromDateTime(DateTime.Now);
 
             var report = await _reportService.GetReportAsync(studentId, d);
-            var health = await _healthService.GetLatestRecordAsync(studentId);
+            var health = await _context.HealthRecords
+                .AsNoTracking()
+                .FirstOrDefaultAsync(hr => hr.StudentId == studentId && hr.Date == d);
             var history = await _healthService.GetHistoryAsync(studentId);
 
             return Json(new { report, health, history });
@@ -234,6 +238,8 @@ namespace datn.Controllers.Teacher
         public string? MoodNote { get; set; }
         public string? ActivityNote { get; set; }
         public double? Temperature { get; set; }
+        public double? Weight { get; set; }
+        public double? Height { get; set; }
     }
 }
 

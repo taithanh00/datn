@@ -222,27 +222,45 @@ namespace datn.Controllers
 
         [Authorize(Roles = "Manager")]
         [HttpGet("Api/Monitoring")]
-        public async Task<IActionResult> GetTuitionMonitoring(int month, int year, bool? isPaid)
+        public async Task<IActionResult> GetTuitionMonitoring(int month, int year, bool? isPaid, string? search, int? classId)
         {
             var query = _context.Tuitions
-                .Include(t => t.Student).ThenInclude(s => s.Class)
-                .Include(t => t.TuitionDetails)
+                .AsNoTracking()
                 .Where(t => t.Month == month && t.Year == year && t.Student != null);
 
             if (isPaid.HasValue)
                 query = query.Where(t => t.IsPaid == isPaid.Value);
 
-            var data = await query.OrderBy(t => t.Student!.LastName).ThenBy(t => t.Student!.FirstName).ToListAsync();
-            
-            var result = data.Select(t => new {
-                id = t.Id,
-                studentName = ((t.Student?.FirstName ?? "") + " " + (t.Student?.LastName ?? "")).Trim(),
-                className = t.Student?.Class?.Name ?? "ChÆ°a phÃ¢n lá»›p",
-                amount = t.TuitionDetails.Sum(d => d.TotalAmount),
-                extraFee = t.ExtraFee ?? 0,
-                total = t.TuitionDetails.Sum(d => d.TotalAmount) + (t.ExtraFee ?? 0),
-                isPaid = t.IsPaid
-            });
+            if (classId.HasValue && classId.Value > 0)
+                query = query.Where(t => t.Student!.ClassId == classId.Value);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var keyword = search.Trim();
+                var namePattern = $"%{keyword}%";
+                var isNumericSearch = int.TryParse(keyword.TrimStart('#'), out var searchedId);
+
+                query = query.Where(t =>
+                    EF.Functions.Like((t.Student!.FirstName + " " + t.Student.LastName).Trim(), namePattern) ||
+                    EF.Functions.Like((t.Student.LastName + " " + t.Student.FirstName).Trim(), namePattern) ||
+                    (isNumericSearch && t.Student.Id == searchedId));
+            }
+
+            var result = await query
+                .OrderBy(t => t.Student!.LastName)
+                .ThenBy(t => t.Student!.FirstName)
+                .Select(t => new
+                {
+                    id = t.Id,
+                    studentId = t.Student!.Id,
+                    studentName = ((t.Student.FirstName ?? "") + " " + (t.Student.LastName ?? "")).Trim(),
+                    className = t.Student.Class != null ? t.Student.Class.Name : "Chưa phân lớp",
+                    amount = t.TuitionDetails.Sum(d => d.TotalAmount),
+                    extraFee = t.ExtraFee ?? 0,
+                    total = t.TuitionDetails.Sum(d => d.TotalAmount) + (t.ExtraFee ?? 0),
+                    isPaid = t.IsPaid
+                })
+                .ToListAsync();
 
             return Json(new { success = true, data = result });
         }
@@ -407,18 +425,18 @@ namespace datn.Controllers
             tuition.IsPaid = true;
             await _context.SaveChangesAsync();
 
-            // ThÃ´ng bÃ¡o cho phá»¥ huynh
+            // Thông báo cho phụ huynh
             var parentStudent = await _context.ParentStudents.Include(ps => ps.Parent)
                 .FirstOrDefaultAsync(ps => ps.StudentId == tuition.StudentId);
             if (parentStudent != null)
             {
                 await _notificationService.SendToUserAsync(parentStudent.Parent.AccountId, 
-                    "XÃ¡c nháº­n Ä‘Ã£ Ä‘Ã³ng há»c phÃ­", 
-                    $"Há»‡ thá»‘ng Ä‘Ã£ nháº­n Ä‘Æ°á»£c há»c phÃ­ thÃ¡ng {tuition.Month}/{tuition.Year} cho bÃ© {tuition.Student.FirstName} {tuition.Student.LastName}. Cáº£m Æ¡n quÃ½ phá»¥ huynh.",
+                    "Xác nhận đã đóng học phí", 
+                    $"Hệ thống đã nhận được học phí tháng {tuition.Month}/{tuition.Year} cho bé {tuition.Student.FirstName} {tuition.Student.LastName}. Cảm ơn quý phụ huynh.",
                     "success", "/Tuition/MyTuition");
             }
 
-            return Json(new { success = true, message = "ÄÃ£ xÃ¡c nháº­n thanh toÃ¡n." });
+            return Json(new { success = true, message = "Đã xác nhận thanh toán." });
         }
 
         // ============ FEE ITEM API ============
