@@ -1,5 +1,5 @@
-@{
-    ViewData["Title"] = "Lịch làm việc";
+﻿@{
+    ViewData["Title"] = "Lá»‹ch lÃ m viá»‡c";
     Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
     var selectedClassId = ViewBag.SelectedClassId as int?;
 }
@@ -8,10 +8,10 @@
 
 <div class="card mb-4">
     <div class="d-flex align-center justify-between mb-3">
-        <h3 style="margin: 0;">Thời khóa biểu tuần</h3>
+        <h3 style="margin: 0;">Thá»i khÃ³a biá»ƒu tuáº§n</h3>
         <div class="d-flex align-center gap-3">
-            <span class="text-muted" style="font-size: 0.85rem;"><i class="fa-solid fa-circle-info"></i> Lịch dạy các lớp bạn đang phụ trách</span>
-            <button class="btn btn-primary btn-sm" onclick="loadWeeklyTimetable()"><i class="fa-solid fa-sync"></i> Làm mới</button>
+            <span class="text-muted" style="font-size: 0.85rem;"><i class="fa-solid fa-circle-info"></i> Lá»‹ch dáº¡y cÃ¡c lá»›p báº¡n Ä‘ang phá»¥ trÃ¡ch</span>
+            <button class="btn btn-primary btn-sm" onclick="loadWeeklyTimetable()"><i class="fa-solid fa-sync"></i> LÃ m má»›i</button>
         </div>
     </div>
 
@@ -19,13 +19,13 @@
         <table class="timetable-grid">
             <thead>
                 <tr>
-                    <th style="width: 100px;">Khung giờ</th>
-                    <th>Thứ 2</th>
-                    <th>Thứ 3</th>
-                    <th>Thứ 4</th>
-                    <th>Thứ 5</th>
-                    <th>Thứ 6</th>
-                    <th>Thứ 7</th>
+                    <th style="width: 100px;">Khung giá»</th>
+                    <th>Thá»© 2</th>
+                    <th>Thá»© 3</th>
+                    <th>Thá»© 4</th>
+                    <th>Thá»© 5</th>
+                    <th>Thá»© 6</th>
+                    <th>Thá»© 7</th>
                 </tr>
             </thead>
             <tbody id="weeklyTimetableBody"></tbody>
@@ -35,16 +35,16 @@
 
 <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-top: 24px;">
     <div class="card">
-        <h3 class="mb-3">Lịch dạy hôm nay</h3>
-        <p id="todayLabel" class="text-muted" style="font-size: 0.85rem; margin-bottom: 16px;">Đang tải lịch dạy...</p>
+        <h3 class="mb-3">Lá»‹ch dáº¡y hÃ´m nay</h3>
+        <p id="todayLabel" class="text-muted" style="font-size: 0.85rem; margin-bottom: 16px;">Äang táº£i lá»‹ch dáº¡y...</p>
         <div id="todayScheduleContainer"></div>
     </div>
 
     <div class="card">
         <div class="d-flex align-center justify-between mb-3">
             <h3 style="margin: 0;">Học sinh lớp đang quản lý</h3>
-            <div class="d-flex align-center gap-2">
-                <label for="managedClassSelect" class="form-label" style="margin-bottom: 0;">Chọn lớp</label>
+            <div class="d-flex align-center gap-2 managed-class-picker">
+                <label for="managedClassSelect" class="form-label managed-class-label">Chọn lớp</label>
                 <select id="managedClassSelect" class="form-select" style="min-width: 150px;"></select>
             </div>
         </div>
@@ -67,7 +67,7 @@
                     <tr>
                         <td colspan="6" style="text-align: center; padding: 40px;">
                             <div class="spinner"></div>
-                            <p class="text-muted mt-2">Đang tải...</p>
+                            <p class="text-muted mt-2">Äang táº£i...</p>
                         </td>
                     </tr>
                 </tbody>
@@ -144,6 +144,16 @@
             white-space: nowrap;
             line-height: 1.2;
         }
+
+        .managed-class-picker {
+            flex-wrap: nowrap;
+        }
+
+        .managed-class-label {
+            margin-bottom: 0;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
     </style>
 }
 
@@ -166,7 +176,7 @@
                 const response = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...options });
                 return await response.json();
             } catch (e) {
-                return { success: false, message: 'Lỗi kết nối.' };
+                return { success: false, message: 'Lá»—i káº¿t ná»‘i.' };
             }
         }
 
@@ -177,37 +187,37 @@
 
             if (result.success) {
                 if (result.data.length === 0) {
-                    label.textContent = "Bạn không có tiết dạy nào được xếp trong ngày hôm nay.";
+                    label.textContent = "Báº¡n khÃ´ng cÃ³ tiáº¿t dáº¡y nÃ o Ä‘Æ°á»£c xáº¿p trong ngÃ y hÃ´m nay.";
                     container.innerHTML = `
                         <div class="empty-state">
                             <i class="fa-solid fa-calendar-xmark"></i>
-                            <p>Không có lịch dạy hôm nay</p>
+                            <p>KhÃ´ng cÃ³ lá»‹ch dáº¡y hÃ´m nay</p>
                         </div>
                     `;
                     return;
                 }
 
-                label.textContent = `Bạn có ${result.data.length} tiết dạy trong ngày hôm nay.`;
+                label.textContent = `Báº¡n cÃ³ ${result.data.length} tiáº¿t dáº¡y trong ngÃ y hÃ´m nay.`;
 
                 const now = new Date();
                 const currentTimeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
 
                 container.innerHTML = result.data.map(s => {
                     let statusClass = 'pending';
-                    let statusText = 'Sắp diễn ra';
+                    let statusText = 'Sáº¯p diá»…n ra';
 
                     if (s.endTime < currentTimeStr) {
                         statusClass = 'past';
-                        statusText = 'Đã kết thúc';
+                        statusText = 'ÄÃ£ káº¿t thÃºc';
                     } else if (s.startTime <= currentTimeStr && s.endTime >= currentTimeStr) {
                         statusClass = 'active';
-                        statusText = 'Đang diễn ra';
+                        statusText = 'Äang diá»…n ra';
                     }
 
                     let subBadge = '';
                     if (s.isSubstitute) {
-                        subBadge = '<div class="badge" style="background:rgba(139,92,246,0.15); color:#8b5cf6; font-size:0.7rem; margin-top:4px; display:inline-block;">TIẾT DẠY THAY</div>';
-                        statusText = "Dạy thay: " + statusText;
+                        subBadge = '<div class="badge" style="background:rgba(139,92,246,0.15); color:#8b5cf6; font-size:0.7rem; margin-top:4px; display:inline-block;">TIáº¾T Dáº Y THAY</div>';
+                        statusText = "Dáº¡y thay: " + statusText;
                     }
 
                     return `
@@ -216,7 +226,7 @@
                             <div style="flex: 1;">
                                 <div class="schedule-subject">${s.subjectName}</div>
                                 <div class="schedule-class">
-                                    <i class="fa-solid fa-school" style="margin-right: 4px;"></i> Lớp: ${s.className}
+                                    <i class="fa-solid fa-school" style="margin-right: 4px;"></i> Lá»›p: ${s.className}
                                 </div>
                                 ${subBadge}
                             </div>
@@ -225,7 +235,7 @@
                     `;
                 }).join('');
             } else {
-                label.textContent = "Lỗi khi tải lịch dạy.";
+                label.textContent = "Lá»—i khi táº£i lá»‹ch dáº¡y.";
                 container.innerHTML = `<div class="page-alert error">${result.message}</div>`;
             }
         }
@@ -237,7 +247,7 @@
             const result = await fetchJson('/Employee/Api/WeeklyTimetable');
             if (result.success) {
                 if (result.data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding: 40px;">Bạn chưa có lịch dạy nào trong tuần này.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding: 40px;">Báº¡n chÆ°a cÃ³ lá»‹ch dáº¡y nÃ o trong tuáº§n nÃ y.</td></tr>';
                     return;
                 }
 
@@ -255,7 +265,7 @@
                             html += `
                                 <div class="grid-lesson">
                                     <div class="grid-lesson-subject">${l.subjectName}</div>
-                                    <div class="grid-lesson-class">Lớp: ${l.className}</div>
+                                    <div class="grid-lesson-class">Lá»›p: ${l.className}</div>
                                     ${l.locationName ? `<div class="grid-lesson-location"><i class="fa-solid fa-location-dot"></i> ${l.locationName}</div>` : ''}
                                 </div>
                             `;
@@ -280,14 +290,14 @@
                 let html = '';
 
                 if (result.data.length === 0) {
-                    select.innerHTML = '<option value="">-- Không có lớp --</option>';
-                    document.getElementById('managedStudentsTableBody').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Bạn chưa được phân công lớp nào.</td></tr>';
+                    select.innerHTML = '<option value="">-- KhÃ´ng cÃ³ lá»›p --</option>';
+                    document.getElementById('managedStudentsTableBody').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Báº¡n chÆ°a Ä‘Æ°á»£c phÃ¢n cÃ´ng lá»›p nÃ o.</td></tr>';
                     return;
                 }
 
                 result.data.forEach(item => {
                     const isSelected = (initialClassId && initialClassId == item.classId) || (!initialClassId && html === '');
-                    html += `<option value="${item.classId}" ${isSelected ? 'selected' : ''}>${item.className} (${item.role})</option>`;
+                    html += `<option value="${item.classId}" ${isSelected ? 'selected' : ''}>${item.className}</option>`;
                 });
                 select.innerHTML = html;
 
@@ -305,15 +315,15 @@
 
             if (result.success) {
                 if (result.data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding: 40px;">Lớp này chưa có học sinh nào.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding: 40px;">Lá»›p nÃ y chÆ°a cÃ³ há»c sinh nÃ o.</td></tr>';
                     return;
                 }
 
                 tbody.innerHTML = result.data.map(s => {
-                    let attBadge = '<span class="badge" style="background:var(--bg-body);color:var(--text-muted); border:1px solid var(--border);">Chưa điểm danh</span>';
-                    if (s.attendanceStatus === 'Present') attBadge = '<span class="badge badge-success"><i class="fa-solid fa-check"></i> Có mặt</span>';
-                    else if (s.attendanceStatus === 'Excused') attBadge = '<span class="badge badge-warning"><i class="fa-solid fa-info"></i> Có phép</span>';
-                    else if (s.attendanceStatus === 'Absent') attBadge = '<span class="badge badge-danger"><i class="fa-solid fa-xmark"></i> Vắng mặt</span>';
+                    let attBadge = '<span class="badge" style="background:var(--bg-body);color:var(--text-muted); border:1px solid var(--border);">ChÆ°a Ä‘iá»ƒm danh</span>';
+                    if (s.attendanceStatus === 'Present') attBadge = '<span class="badge badge-success"><i class="fa-solid fa-check"></i> CÃ³ máº·t</span>';
+                    else if (s.attendanceStatus === 'Excused') attBadge = '<span class="badge badge-warning"><i class="fa-solid fa-info"></i> CÃ³ phÃ©p</span>';
+                    else if (s.attendanceStatus === 'Absent') attBadge = '<span class="badge badge-danger"><i class="fa-solid fa-xmark"></i> Váº¯ng máº·t</span>';
 
                     return `
                         <tr>

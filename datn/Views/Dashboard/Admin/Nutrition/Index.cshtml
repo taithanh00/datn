@@ -128,6 +128,14 @@
         color: var(--primary);
         font-size: 0.85rem;
     }
+
+    #menuForm input:disabled,
+    #menuForm textarea:disabled {
+        background: var(--bg-body);
+        color: var(--text-muted);
+        cursor: not-allowed;
+        opacity: 1;
+    }
 </style>
 }
 
@@ -209,6 +217,14 @@
         });
     }
 
+    function setEditorDisabled(isDisabled) {
+        document.querySelectorAll('#menuForm input:not([type="hidden"]), #menuForm textarea')
+            .forEach(input => {
+                input.disabled = isDisabled;
+                input.setAttribute('aria-disabled', isDisabled.toString());
+            });
+    }
+
     function openWeeklyEditor(dayOfWeek, mealType, item) {
         const day = DAYS.find(d => d.value === dayOfWeek);
         const meal = MEALS.find(m => m.type === mealType);
@@ -222,15 +238,18 @@
         document.getElementById('menuType').value = mealType;
         document.getElementById('dishName').value = item ? item.dishName : '';
         document.getElementById('menuNote').value = item ? (item.note || '') : '';
-        document.getElementById('deleteBtn').style.display = (item && IS_MANAGER) ? 'block' : 'none';
 
-        document.querySelectorAll('#menuForm input, #menuForm textarea')
-            .forEach(input => input.readOnly = !IS_MANAGER);
+        const deleteBtn = document.getElementById('deleteBtn');
+        if (deleteBtn) {
+            deleteBtn.style.display = (item && IS_MANAGER) ? 'block' : 'none';
+        }
 
+        setEditorDisabled(!IS_MANAGER);
     }
 
     async function saveMenu(e) {
         e.preventDefault();
+        if (!IS_MANAGER) return;
 
         const payload = {
             id: parseInt(document.getElementById('menuId').value),
@@ -263,6 +282,8 @@
     }
 
     async function deleteMenu() {
+        if (!IS_MANAGER) return;
+
         const id = parseInt(document.getElementById('menuId').value);
         if (!id) return;
 
@@ -281,6 +302,7 @@
         document.getElementById('nutritionModalOverlay').classList.remove('active');
         document.getElementById('editCard').classList.remove('active');
         document.body.style.overflow = 'auto';
+        setEditorDisabled(false);
         document.getElementById('menuForm').reset();
     }
 
