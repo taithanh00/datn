@@ -58,7 +58,7 @@ namespace datn.Controllers
 
             try
             {
-                var senderEmail = _config["EmailSettings:SenderEmail"] ?? "taithanh421@gmail.com";
+                var senderEmail = _config["EmailSettings:SenderEmail"] ?? "thanhbinhngh@gmail.com";
                 var subject = "[Sen Hồng] Yêu cầu tư vấn mới từ Landing Page";
                 
                 var body = $@"
@@ -66,7 +66,7 @@ namespace datn.Controllers
     <table align='center' border='0' cellpadding='0' cellspacing='0' width='600' style='background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);'>
         <tr>
             <td align='center' style='padding: 30px 0; background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);'>
-                <h1 style='color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;'>HỆ THỐNG MẦM NON SENHỒNG</h1>
+                <h1 style='color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;'>HỆ THỐNG MẦM NON SEN HỒNG</h1>
             </td>
         </tr>
         <tr>

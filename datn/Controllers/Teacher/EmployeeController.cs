@@ -39,6 +39,21 @@ namespace datn.Controllers.Teacher
             return employee?.Id;
         }
 
+        private static string FormatVntTime(DateTime? utc)
+        {
+            if (!utc.HasValue) return "--:--";
+
+            var normalizedUtc = utc.Value.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(utc.Value, DateTimeKind.Utc)
+                : utc.Value.ToUniversalTime();
+
+            TimeZoneInfo tz;
+            try { tz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); }
+            catch { tz = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh"); }
+
+            return TimeZoneInfo.ConvertTime(new DateTimeOffset(normalizedUtc), tz).ToString("HH:mm");
+        }
+
         [HttpGet("")]
         public IActionResult Index()
         {
@@ -133,7 +148,7 @@ namespace datn.Controllers.Teacher
                     className,
                     classSize,
                     presentToday,
-                    checkInTime = myAttendance?.CheckInAtUtc?.ToString("HH:mm") ?? "--:--",
+                    checkInTime = FormatVntTime(myAttendance?.CheckInAtUtc),
                     lastSalary
                 },
                 charts = new { ranking = rankingData },
@@ -162,6 +177,27 @@ namespace datn.Controllers.Teacher
             ViewData["Title"] = "Lịch làm việc";
             ViewBag.SelectedClassId = classId;
             return View("~/Views/Dashboard/Teacher/Employee/WorkSchedule.cshtml");
+        }
+
+        [HttpGet("StudentDetail/{id:int}")]
+        public async Task<IActionResult> StudentDetail(int id, [FromServices] IStudentService studentService)
+        {
+            var employeeId = await GetCurrentEmployeeId();
+            if (employeeId == null)
+                return Forbid();
+
+            var student = await studentService.GetStudentByIdAsync(id);
+            if (student == null)
+                return NotFound();
+
+            var today = GetTodayVnt();
+            if (!student.ClassId.HasValue || !await HasActiveAssignmentAsync(employeeId.Value, student.ClassId.Value, today))
+                return Forbid();
+
+            ViewData["Title"] = $"Hồ sơ học sinh - {student.FullName}";
+            ViewBag.BackUrl = "/Employee/WorkSchedule";
+            ViewBag.BackText = "Quay lại lịch làm việc";
+            return View("~/Views/Dashboard/Admin/Manager/StudentDetail.cshtml", student);
         }
 
         // ============ API ENDPOINTS ============

@@ -29,6 +29,7 @@ namespace datn.Controllers.Teacher
 
         [Authorize(Roles = "Employee")]
         [HttpGet("MySalary")]
+        [HttpGet("/Employee/Salary")]
         public async Task<IActionResult> MySalary()
         {
             ViewData["Title"] = "Lương của tôi";

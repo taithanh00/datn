@@ -17,10 +17,10 @@
             <div class="text-muted mb-4">Thời gian hệ thống (VNT)</div>
 
             <div style="display: flex; gap: 16px; width: 100%;">
-                <button id="btnCheckIn" type="button" class="btn btn-primary" style="flex: 1; justify-content: center; height: 48px; font-size: 1rem;">
+                <button id="btnCheckIn" type="button" class="btn btn-primary attendance-action" style="flex: 1; justify-content: center; height: 48px; font-size: 1rem;" disabled>
                     <i class="fa-solid fa-right-to-bracket"></i> Check-in
                 </button>
-                <button id="btnCheckOut" type="button" class="btn btn-outline" style="flex: 1; justify-content: center; height: 48px; font-size: 1rem;">
+                <button id="btnCheckOut" type="button" class="btn btn-outline attendance-action" style="flex: 1; justify-content: center; height: 48px; font-size: 1rem;" disabled>
                     <i class="fa-solid fa-right-from-bracket"></i> Check-out
                 </button>
             </div>
@@ -62,6 +62,31 @@
         <i class="fa-solid fa-circle-info me-2 text-primary"></i> <strong>Quy định:</strong> Chấm công từ Thứ 2 đến Thứ 7, trong khung giờ 06:30 - 17:00 (VNT). Thời gian châm chước là 10 phút.
     </div>
 </div>
+
+@section Styles {
+    <style>
+        .attendance-action:disabled,
+        .attendance-action[aria-disabled="true"] {
+            background: #e5e7eb !important;
+            border-color: #cbd5e1 !important;
+            color: #64748b !important;
+            cursor: not-allowed !important;
+            opacity: 1 !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .attendance-action:disabled:hover,
+        .attendance-action[aria-disabled="true"]:hover {
+            background: #e5e7eb !important;
+            border-color: #cbd5e1 !important;
+            color: #64748b !important;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+    </style>
+}
 
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>

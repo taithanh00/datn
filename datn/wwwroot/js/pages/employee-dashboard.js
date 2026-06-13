@@ -57,11 +57,14 @@ function renderRankingChart(data) {
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     if (!data.length) {
         ctx.font = "14px Plus Jakarta Sans";
         ctx.fillStyle = isDark ? "#64748B" : "#9ca3af";
         ctx.textAlign = "center";
-        ctx.fillText("Chưa có dữ liệu", 150, 150);
+        ctx.textBaseline = "middle";
+        ctx.fillText("Chưa có dữ liệu", canvas.width / 2, canvas.height / 2);
         return;
     }
 

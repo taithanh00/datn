@@ -9,6 +9,16 @@ namespace datn.Data
     public class AppDbContext : DbContext
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private static readonly HashSet<string> SensitiveAuditFields = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "PasswordHash",
+            "PasswordSalt",
+            "PasswordResetToken",
+            "ResetTokenExpires",
+            "Token",
+            "RefreshToken",
+            "AccessToken"
+        };
 
         public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor httpContextAccessor)
             : base(options) 
@@ -501,11 +511,10 @@ namespace datn.Data
             var user = _httpContextAccessor.HttpContext?.User;
             var userId = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var userName = user?.FindFirst("FullName")?.Value ?? user?.Identity?.Name;
-            var ipAddress = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString();
 
             foreach (var entry in ChangeTracker.Entries())
             {
-                if (entry.Entity is AuditLog || entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
+                if (entry.Entity is AuditLog || entry.Entity is RefreshToken || entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
                     continue;
 
                 Console.WriteLine($"[Audit] Detected change on {entry.Entity.GetType().Name} - State: {entry.State}");
@@ -515,7 +524,6 @@ namespace datn.Data
                     EntityName = entry.Metadata.ClrType.Name,
                     UserId = userId,
                     UserName = userName ?? "System", // Fallback
-                    IpAddress = ipAddress,
                     AuditType = entry.State.ToString()
                 };
                 auditEntries.Add(auditEntry);
@@ -535,6 +543,9 @@ namespace datn.Data
                         auditEntry.KeyValues[propertyName] = property.CurrentValue;
                         continue;
                     }
+
+                    if (SensitiveAuditFields.Contains(propertyName))
+                        continue;
 
                     switch (entry.State)
                     {
@@ -558,6 +569,11 @@ namespace datn.Data
                             }
                             break;
                     }
+                }
+
+                if (entry.State == EntityState.Modified && auditEntry.ChangedColumns.Count == 0)
+                {
+                    auditEntries.Remove(auditEntry);
                 }
             }
 
@@ -605,7 +621,6 @@ namespace datn.Data
             public string? UserName { get; set; }
             public string EntityName { get; set; }
             public string AuditType { get; set; }
-            public string IpAddress { get; set; }
             public Dictionary<string, object> KeyValues { get; } = new Dictionary<string, object>();
             public Dictionary<string, object> OldValues { get; } = new Dictionary<string, object>();
             public Dictionary<string, object> NewValues { get; } = new Dictionary<string, object>();
@@ -625,7 +640,6 @@ namespace datn.Data
                 audit.EntityId = JsonSerializer.Serialize(KeyValues);
                 audit.OldValues = OldValues.Count == 0 ? null : JsonSerializer.Serialize(OldValues);
                 audit.NewValues = NewValues.Count == 0 ? null : JsonSerializer.Serialize(NewValues);
-                audit.IpAddress = IpAddress;
                 return audit;
             }
         }

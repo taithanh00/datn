@@ -1,6 +1,7 @@
 using datn.Data;
 using datn.Hubs;
 using datn.Models;
+using datn.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -14,20 +15,23 @@ namespace datn.Controllers.Teacher
     [Route("[controller]")]
     public class TimeAttendanceController : BaseController
     {
-        private const string PendingStatus = "Pending";
         private const decimal LatePenaltyAmount = 20000m;
-        private static readonly TimeSpan WorkStart = new(6, 30, 0);
-        private static readonly TimeSpan WorkEnd = new(17, 0, 0);
         private static readonly TimeSpan GraceEnd = new(6, 40, 0);
 
         private readonly IHubContext<RealtimeHub> _hubContext;
+        private readonly ITimeAttendanceWindowService _attendanceWindowService;
 
-        public TimeAttendanceController(AppDbContext context, IHubContext<RealtimeHub> hubContext) : base(context)
+        public TimeAttendanceController(
+            AppDbContext context,
+            IHubContext<RealtimeHub> hubContext,
+            ITimeAttendanceWindowService attendanceWindowService) : base(context)
         {
             _hubContext = hubContext;
+            _attendanceWindowService = attendanceWindowService;
         }
 
         [HttpGet("")]
+        [HttpGet("/Employee/TimeAttendance")]
         public IActionResult Index()
         {
             ViewData["Title"] = "Chấm công";
@@ -41,27 +45,30 @@ namespace datn.Controllers.Teacher
             if (employeeId == null)
                 return Json(new { success = false, message = "Không tìm thấy thông tin giáo viên" });
 
-            var nowVnt = GetVntNow();
+            var nowVnt = _attendanceWindowService.GetVntNow();
             var today = DateOnly.FromDateTime(nowVnt.DateTime);
             var attendance = await _context.WorkAttendances
                 .FirstOrDefaultAsync(w => w.EmployeeId == employeeId.Value && w.Date == today);
 
-            var isAllowedNow = IsWithinWorkingWindow(nowVnt);
+            var attendanceWindow = _attendanceWindowService.GetWindowState(nowVnt);
             return Json(new
             {
                 success = true,
                 data = new
                 {
                     serverTimeVnt = nowVnt.ToString("dd/MM/yyyy HH:mm:ss"),
-                    isAllowedNow,
-                    canCheckIn = isAllowedNow && attendance?.CheckInAtUtc == null,
-                    canCheckOut = isAllowedNow && attendance?.CheckInAtUtc != null && attendance?.CheckOutAtUtc == null,
+                    isAllowedNow = attendanceWindow.IsAllowed,
+                    attendanceWindowMessage = attendanceWindow.Message,
+                    canCheckIn = attendanceWindow.IsAllowed
+                        && attendance?.CheckInAtUtc == null
+                        && attendance?.Status != WorkAttendanceStatuses.UnauthorizedAbsent,
+                    canCheckOut = attendanceWindow.IsAllowed && attendance?.CheckInAtUtc != null && attendance?.CheckOutAtUtc == null,
                     status = attendance?.Status ?? "Chưa chấm công",
                     checkInAt = attendance?.CheckInAtUtc != null
-                        ? ToVnt(attendance.CheckInAtUtc.Value).ToString("HH:mm:ss")
+                        ? _attendanceWindowService.ToVnt(attendance.CheckInAtUtc.Value).ToString("HH:mm:ss")
                         : null,
                     checkOutAt = attendance?.CheckOutAtUtc != null
-                        ? ToVnt(attendance.CheckOutAtUtc.Value).ToString("HH:mm:ss")
+                        ? _attendanceWindowService.ToVnt(attendance.CheckOutAtUtc.Value).ToString("HH:mm:ss")
                         : null,
                     isLate = attendance?.IsLate ?? false,
                     penaltyAmount = attendance?.PenaltyAmount ?? 0
@@ -76,15 +83,17 @@ namespace datn.Controllers.Teacher
             if (employeeId == null)
                 return Json(new { success = false, message = "Không tìm thấy thông tin giáo viên" });
 
-            var nowVnt = GetVntNow();
-            if (!IsWithinWorkingWindow(nowVnt))
-                return Json(new { success = false, message = "Chỉ được chấm công từ Thứ 2 đến Thứ 7, 06:30 - 17:00 (VNT)." });
-            if (false && !IsWithinWorkingWindow(nowVnt))
-                return Json(new { success = false, message = "Chỉ được chấm công từ Thứ 2 đến Thứ 7, 08:00 - 17:00 (VNT)." });
+            var nowVnt = _attendanceWindowService.GetVntNow();
+            var attendanceWindow = _attendanceWindowService.GetWindowState(nowVnt);
+            if (!attendanceWindow.IsAllowed)
+                return Json(new { success = false, message = attendanceWindow.Message });
 
             var today = DateOnly.FromDateTime(nowVnt.DateTime);
             var existing = await _context.WorkAttendances
                 .FirstOrDefaultAsync(w => w.EmployeeId == employeeId.Value && w.Date == today);
+
+            if (existing?.Status == WorkAttendanceStatuses.UnauthorizedAbsent)
+                return Json(new { success = false, message = "Bạn đã được ghi nhận nghỉ không phép hôm nay. Vui lòng liên hệ quản lý." });
 
             if (existing?.CheckInAtUtc != null)
                 return Json(new { success = false, message = "Bạn đã check-in hôm nay rồi." });
@@ -99,7 +108,7 @@ namespace datn.Controllers.Teacher
             record.CheckInAtUtc = nowVnt.UtcDateTime;
             record.IsLate = isLate;
             record.PenaltyAmount = isLate ? LatePenaltyAmount : 0m;
-            record.Status = PendingStatus;
+            record.Status = WorkAttendanceStatuses.Pending;
 
             if (existing == null)
                 _context.WorkAttendances.Add(record);
@@ -131,11 +140,10 @@ namespace datn.Controllers.Teacher
             if (employeeId == null)
                 return Json(new { success = false, message = "Không tìm thấy thông tin giáo viên" });
 
-            var nowVnt = GetVntNow();
-            if (!IsWithinWorkingWindow(nowVnt))
-                return Json(new { success = false, message = "Chỉ được chấm công từ Thứ 2 đến Thứ 7, 06:30 - 17:00 (VNT)." });
-            if (false && !IsWithinWorkingWindow(nowVnt))
-                return Json(new { success = false, message = "Chỉ được chấm công từ Thứ 2 đến Thứ 7, 08:00 - 17:00 (VNT)." });
+            var nowVnt = _attendanceWindowService.GetVntNow();
+            var attendanceWindow = _attendanceWindowService.GetWindowState(nowVnt);
+            if (!attendanceWindow.IsAllowed)
+                return Json(new { success = false, message = attendanceWindow.Message });
 
             var today = DateOnly.FromDateTime(nowVnt.DateTime);
             var record = await _context.WorkAttendances
@@ -147,12 +155,12 @@ namespace datn.Controllers.Teacher
                 return Json(new { success = false, message = "Bạn đã check-out hôm nay rồi." });
 
             record.CheckOutAtUtc = nowVnt.UtcDateTime;
-            var checkInVnt = ToVnt(record.CheckInAtUtc.Value);
+            var checkInVnt = _attendanceWindowService.ToVnt(record.CheckInAtUtc.Value);
             var workedMinutes = (int)Math.Max(0, (nowVnt - checkInVnt).TotalMinutes);
             record.WorkedMinutes = workedMinutes;
             var calculatedWorkUnit = Math.Round((decimal)workedMinutes / 480m, 2, MidpointRounding.AwayFromZero);
             record.WorkUnit = Math.Min(1.0m, calculatedWorkUnit);
-            record.Status = PendingStatus;
+            record.Status = WorkAttendanceStatuses.Pending;
 
             _context.WorkAttendances.Update(record);
             await _context.SaveChangesAsync();
@@ -189,40 +197,6 @@ namespace datn.Controllers.Teacher
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.AccountId == accountId);
             return employee?.Id;
-        }
-
-        private static bool IsWithinWorkingWindow(DateTimeOffset vntNow)
-        {
-            var day = vntNow.DayOfWeek;
-            var isWorkingDay = day is >= DayOfWeek.Monday and <= DayOfWeek.Saturday;
-            var time = vntNow.TimeOfDay;
-            return isWorkingDay && time >= WorkStart && time <= WorkEnd;
-        }
-
-        private static DateTimeOffset GetVntNow()
-        {
-            var utcNow = DateTimeOffset.UtcNow;
-            var tz = ResolveVntTimeZone();
-            return TimeZoneInfo.ConvertTime(utcNow, tz);
-        }
-
-        private static DateTimeOffset ToVnt(DateTime utc)
-        {
-            var tz = ResolveVntTimeZone();
-            var normalizedUtc = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
-            return TimeZoneInfo.ConvertTime(new DateTimeOffset(normalizedUtc), tz);
-        }
-
-        private static TimeZoneInfo ResolveVntTimeZone()
-        {
-            try
-            {
-                return TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-            }
-            catch
-            {
-                return TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
-            }
         }
 
         private Task NotifyManagersAsync(string eventType, int employeeId, string workDate)

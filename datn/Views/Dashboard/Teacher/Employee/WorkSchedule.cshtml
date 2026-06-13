@@ -14,7 +14,7 @@
             <button class="btn btn-primary btn-sm" onclick="loadWeeklyTimetable()"><i class="fa-solid fa-sync"></i> Làm mới</button>
         </div>
     </div>
-    
+
     <div class="table-container" style="overflow-x: auto;">
         <table class="timetable-grid">
             <thead>
@@ -28,24 +28,18 @@
                     <th>Thứ 7</th>
                 </tr>
             </thead>
-            <tbody id="weeklyTimetableBody">
-                <!-- Grid will be injected here -->
-            </tbody>
+            <tbody id="weeklyTimetableBody"></tbody>
         </table>
     </div>
 </div>
 
 <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-top: 24px;">
-    <!-- Today's Schedule -->
     <div class="card">
         <h3 class="mb-3">Lịch dạy hôm nay</h3>
         <p id="todayLabel" class="text-muted" style="font-size: 0.85rem; margin-bottom: 16px;">Đang tải lịch dạy...</p>
-        <div id="todayScheduleContainer">
-            <!-- Timeline will be injected here -->
-        </div>
+        <div id="todayScheduleContainer"></div>
     </div>
 
-    <!-- Managed Students -->
     <div class="card">
         <div class="d-flex align-center justify-between mb-3">
             <h3 style="margin: 0;">Học sinh lớp đang quản lý</h3>
@@ -56,7 +50,7 @@
         </div>
 
         <div id="studentsAlert" class="page-alert" style="display:none;"></div>
-        
+
         <div class="table-container">
             <table id="managedStudentsTable">
                 <thead>
@@ -84,47 +78,72 @@
 
 @section Styles {
     <style>
-        /* Timetable Grid */
         .timetable-grid { width: 100%; border-collapse: collapse; border: 1px solid var(--border); table-layout: fixed; }
         .timetable-grid th, .timetable-grid td { border: 1px solid var(--border); padding: 12px; vertical-align: top; text-align: left; }
         .timetable-grid th { background: var(--bg-body); color: var(--text-main); font-weight: 700; text-align: center; }
         .timetable-grid .time-col { background: var(--bg-body); font-weight: 600; color: var(--primary); text-align: center; font-size: 0.85rem; }
-        
-        .grid-lesson { 
-            background: rgba(13, 110, 253, 0.05); 
-            border-left: 3px solid var(--primary); 
-            padding: 8px; border-radius: 4px; margin-bottom: 6px;
+
+        .grid-lesson {
+            background: rgba(13, 110, 253, 0.05);
+            border-left: 3px solid var(--primary);
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 6px;
             font-size: 0.85rem;
         }
         .grid-lesson-subject { font-weight: 700; color: var(--text-main); margin-bottom: 2px; }
         .grid-lesson-class { font-size: 0.75rem; color: var(--text-muted); }
         .grid-lesson-location { font-size: 0.75rem; color: var(--primary); font-weight: 600; margin-top: 2px; }
 
-        /* Timeline specific to schedule */
-        .schedule-item { 
-            display: flex; gap: 16px; padding: 16px; 
+        .schedule-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
             border-left: 3px solid var(--border);
-            margin-left: 8px; position: relative;
-            background: var(--bg-body); border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin-left: 8px;
+            position: relative;
+            background: var(--bg-body);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
             margin-bottom: 12px;
         }
         .schedule-item::before {
-            content: ''; position: absolute; left: -9px; top: 20px;
-            width: 14px; height: 14px; border-radius: 50%;
-            background: var(--primary); border: 3px solid var(--bg-card);
+            content: '';
+            position: absolute;
+            left: -9px;
+            top: 20px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 3px solid var(--bg-card);
         }
-        .schedule-time { 
-            font-size: 0.85rem; font-weight: 700; color: var(--primary); min-width: 90px; 
-        }
+        .schedule-time { font-size: 0.85rem; font-weight: 700; color: var(--primary); min-width: 90px; }
         .schedule-subject { font-weight: 700; font-size: 1rem; color: var(--text-main); margin-bottom: 4px; }
         .schedule-class { font-size: 0.85rem; color: var(--text-muted); }
-        .schedule-badge { 
-            position: absolute; right: 16px; top: 16px; 
-            padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;
+        .schedule-badge {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
         .schedule-badge.active { background: rgba(52,211,153,0.15); color: var(--success); }
         .schedule-badge.pending { background: rgba(251,191,36,0.15); color: var(--warning); }
         .schedule-badge.past { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border); }
+
+        .student-profile-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-width: 92px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            line-height: 1.2;
+        }
     </style>
 }
 
@@ -154,9 +173,8 @@
         async function loadTodaySchedule() {
             const container = document.getElementById('todayScheduleContainer');
             const label = document.getElementById('todayLabel');
-            
             const result = await fetchJson('/Employee/Api/TodaySchedule');
-            
+
             if (result.success) {
                 if (result.data.length === 0) {
                     label.textContent = "Bạn không có tiết dạy nào được xếp trong ngày hôm nay.";
@@ -170,14 +188,14 @@
                 }
 
                 label.textContent = `Bạn có ${result.data.length} tiết dạy trong ngày hôm nay.`;
-                
+
                 const now = new Date();
                 const currentTimeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
 
                 container.innerHTML = result.data.map(s => {
                     let statusClass = 'pending';
                     let statusText = 'Sắp diễn ra';
-                    
+
                     if (s.endTime < currentTimeStr) {
                         statusClass = 'past';
                         statusText = 'Đã kết thúc';
@@ -223,14 +241,13 @@
                     return;
                 }
 
-                // Nhóm theo khung giờ
                 const timeSlots = [...new Set(result.data.map(s => s.startTime + ' - ' + s.endTime))].sort();
-                
                 let html = '';
+
                 timeSlots.forEach(slot => {
                     const [start, end] = slot.split(' - ');
                     html += `<tr><td class="time-col">${slot}</td>`;
-                    
+
                     for (let day = 1; day <= 6; day++) {
                         const lessons = result.data.filter(s => s.dayOfWeek === day && s.startTime === start && s.endTime === end);
                         html += '<td>';
@@ -247,20 +264,21 @@
                     }
                     html += '</tr>';
                 });
+
                 tbody.innerHTML = html;
             } else {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${result.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">${result.message}</td></tr>`;
             }
         }
 
         async function loadManagedClasses() {
             const result = await fetchJson('/Employee/Api/MyClasses');
             const select = document.getElementById('managedClassSelect');
-            
+
             if (result.success) {
                 const initialClassId = document.getElementById('initialClassId').value;
                 let html = '';
-                
+
                 if (result.data.length === 0) {
                     select.innerHTML = '<option value="">-- Không có lớp --</option>';
                     document.getElementById('managedStudentsTableBody').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Bạn chưa được phân công lớp nào.</td></tr>';
@@ -272,20 +290,19 @@
                     html += `<option value="${item.classId}" ${isSelected ? 'selected' : ''}>${item.className} (${item.role})</option>`;
                 });
                 select.innerHTML = html;
-                
-                // Load students for the first/selected class
+
                 loadManagedStudents(select.value);
             }
         }
 
         async function loadManagedStudents(classId) {
             if (!classId) return;
-            
+
             const tbody = document.getElementById('managedStudentsTableBody');
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;"><div class="spinner"></div></td></tr>';
-            
+
             const result = await fetchJson(`/Employee/Api/ClassStudents/${classId}`);
-            
+
             if (result.success) {
                 if (result.data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding: 40px;">Lớp này chưa có học sinh nào.</td></tr>';
@@ -308,7 +325,7 @@
                             <td>${new Date(s.dateOfBirth).toLocaleDateString('vi-VN')}</td>
                             <td>${attBadge}</td>
                             <td>
-                                <a href="/Parent/Children/Details/${s.id}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" target="_blank">
+                                <a href="/Employee/StudentDetail/${s.id}" class="btn btn-outline student-profile-link" target="_blank">
                                     <i class="fa-solid fa-eye"></i> Hồ sơ
                                 </a>
                             </td>

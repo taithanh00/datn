@@ -1,4 +1,4 @@
-﻿using datn.Data;
+using datn.Data;
 using datn.Models;
 using datn.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -29,6 +29,7 @@ namespace datn.Controllers.Teacher
         // ────── EMPLOYEE VIEWS ──────────────────────────────────────
 
         [Authorize(Policy = "EmployeeOnly")]
+        [HttpGet("/Employee/ClassReports")]
         public IActionResult ClassReports()
         {
             ViewData["Title"] = "Nhật ký lớp học";

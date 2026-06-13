@@ -1,6 +1,8 @@
-@model datn.Models.Student
+﻿@model datn.Models.Student
 @{
     Layout = "_DashboardLayout";
+    var backUrl = ViewBag.BackUrl as string ?? "/Manager/Students";
+    var backText = ViewBag.BackText as string ?? "Quay lại danh sách";
 }
 
 <div class="page-header">
@@ -9,13 +11,13 @@
             <i class="fa-solid fa-user-graduate"></i>
         </div>
         <div>
-            <h2 class="page-title">Hồ sơ học sinh</h2>
-            <p class="page-subtitle">Quản lý thông tin chi tiết của học sinh</p>
+            <h2 class="page-title">HÃ´Ì€ sÆ¡ hoÌ£c sinh</h2>
+            <p class="page-subtitle">Quáº£n lÃ½ thÃ´ng tin chi tiáº¿t cá»§a há»c sinh</p>
         </div>
     </div>
     <div class="header-actions">
-        <a href="/Manager/Students" class="btn btn-secondary">
-            <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách
+        <a href="@backUrl" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> @backText
         </a>
     </div>
 </div>
@@ -33,30 +35,30 @@
             
             <div class="quick-stats">
                 <div class="stat-item">
-                    <span class="stat-label" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">Lớp</span>
+                    <span class="stat-label" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">Lá»›p</span>
                     <span class="stat-value">@(Model.Class?.Name ?? "N/A")</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">Giới tính</span>
-                    <span class="stat-value">@(Model.Gender ? "Nam" : "Nữ")</span>
+                    <span class="stat-label" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">Giá»›i tÃ­nh</span>
+                    <span class="stat-value">@(Model.Gender ? "Nam" : "Ná»¯")</span>
                 </div>
             </div>
         </div>
 
         <div class="card info-card mt-4">
-            <h4>Thông tin liên hệ</h4>
+            <h4>ThÃ´ng tin liÃªn hÃªÌ£</h4>
             <div class="info-list">
                 <div class="info-item">
                     <i class="fa-solid fa-location-dot"></i>
                     <div>
-                        <label>Địa chỉ</label>
-                        <p>@(Model.Address ?? "Chưa cập nhật")</p>
+                        <label>Äá»‹a chá»‰</label>
+                        <p>@(Model.Address ?? "ChÆ°a cáº­p nháº­t")</p>
                     </div>
                 </div>
                 <div class="info-item">
                     <i class="fa-solid fa-calendar-day"></i>
                     <div>
-                        <label>Ngày nhập học</label>
+                        <label>NgÃ y nháº­p há»c</label>
                         <p>@(Model.EnrollDate?.ToString("dd/MM/yyyy") ?? "N/A")</p>
                     </div>
                 </div>
@@ -68,41 +70,41 @@
     <div class="profile-main">
         <div class="card main-card">
             <div class="card-header-tabs">
-                <button class="tab-btn active" data-tab="basic">Thông tin cá nhân</button>
-                <button class="tab-btn" data-tab="parents">Phụ huynh</button>
-                <button class="tab-btn" data-tab="history">Lịch sử học tập</button>
+                <button class="tab-btn active" data-tab="basic">ThÃ´ng tin cÃ¡ nhÃ¢n</button>
+                <button class="tab-btn" data-tab="parents">Phá»¥ huynh</button>
+                <button class="tab-btn" data-tab="history">Lá»‹ch sá»­ há»c táº­p</button>
             </div>
             
             <div class="tab-content active" id="basic">
                 <div class="detail-grid">
                     <div class="detail-group">
-                        <label>Họ</label>
+                        <label>Há»</label>
                         <p>@Model.LastName</p>
                     </div>
                     <div class="detail-group">
-                        <label>Tên</label>
+                        <label>TÃªn</label>
                         <p>@Model.FirstName</p>
                     </div>
                     <div class="detail-group">
-                        <label>Ngày sinh</label>
+                        <label>NgÃ y sinh</label>
                         <p>@Model.DateOfBirth.ToString("dd/MM/yyyy")</p>
                     </div>
                     <div class="detail-group">
-                        <label>Giới tính</label>
-                        <p>@(Model.Gender ? "Nam" : "Nữ")</p>
+                        <label>Giá»›i tÃ­nh</label>
+                        <p>@(Model.Gender ? "Nam" : "Ná»¯")</p>
                     </div>
 
                     @{
                         var father = Model.ParentStudents?
-                            .FirstOrDefault(ps => ps.Relationship == "Bố")?.Parent;
+                            .FirstOrDefault(ps => ps.Relationship == "Bá»‘")?.Parent;
                         var mother = Model.ParentStudents?
-                            .FirstOrDefault(ps => ps.Relationship == "Mẹ")?.Parent;
+                            .FirstOrDefault(ps => ps.Relationship == "Máº¹")?.Parent;
                     }
 
                     @if (father != null)
                     {
                         <div class="detail-group">
-                            <label>Họ tên bố</label>
+                            <label>Há» tÃªn bá»‘</label>
                             <p>@($"{father.LastName} {father.FirstName}")</p>
                         </div>
                     }
@@ -110,14 +112,14 @@
                     @if (mother != null)
                     {
                         <div class="detail-group">
-                            <label>Họ tên mẹ</label>
+                            <label>Há» tÃªn máº¹</label>
                             <p>@($"{mother.LastName} {mother.FirstName}")</p>
                         </div>
                     }
 
                     <div class="detail-group full-width">
-                        <label>Ghi chú</label>
-                        <p class="text-muted">Chưa có ghi chú nào cho học sinh này.</p>
+                        <label>Ghi chÃº</label>
+                        <p class="text-muted">ChÆ°a cÃ³ ghi chÃº nÃ o cho há»c sinh nÃ y.</p>
                     </div>
                 </div>
             </div>
@@ -127,7 +129,7 @@
     {
         <div class="empty-state">
             <i class="fa-solid fa-users"></i>
-            <p>Chưa có phụ huynh được liên kết</p>
+            <p>ChÆ°a cÃ³ phá»¥ huynh Ä‘Æ°á»£c liÃªn káº¿t</p>
         </div>
     }
     else
@@ -136,7 +138,7 @@
             @foreach (var link in Model.ParentStudents)
             {
                 <div class="detail-group">
-                    <label>@(string.IsNullOrWhiteSpace(link.Relationship) ? "Phụ huynh" : link.Relationship)</label>
+                    <label>@(string.IsNullOrWhiteSpace(link.Relationship) ? "Phá»¥ huynh" : link.Relationship)</label>
                     <p>@($"{link.Parent.LastName} {link.Parent.FirstName}".Trim())</p>
                 </div>
             }
@@ -146,15 +148,15 @@
 <div class="tab-content" id="history">
                 <div class="empty-state">
                     <i class="fa-solid fa-clock-rotate-left"></i>
-                    <p>Chưa có dữ liệu lịch sử học tập</p>
+                    <p>ChÆ°a cÃ³ dá»¯ liá»‡u lá»‹ch sá»­ há»c táº­p</p>
                 </div>
             </div>
 
             <div class="tab-content" id="finance">
                 <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h4 style="margin:0;">Cấu hình các khoản thu riêng cho học sinh</h4>
+                    <h4 style="margin:0;">Cáº¥u hÃ¬nh cÃ¡c khoáº£n thu riÃªng cho há»c sinh</h4>
                     <button class="btn btn-primary btn-sm" onclick="showAddFeeConfigModal()">
-                        <i class="fa-solid fa-plus"></i> Đăng ký khoản thu
+                        <i class="fa-solid fa-plus"></i> ÄÄƒng kÃ½ khoáº£n thu
                     </button>
                 </div>
                 
@@ -162,15 +164,15 @@
                     <table id="studentFinanceTable">
                         <thead>
                             <tr>
-                                <th>Khoản thu</th>
-                                <th>Số tiền (VNĐ)</th>
-                                <th>Giảm trừ</th>
-                                <th>Thành tiền</th>
-                                <th class="text-end">Hành động</th>
+                                <th>Khoáº£n thu</th>
+                                <th>Sá»‘ tiá»n (VNÄ)</th>
+                                <th>Giáº£m trá»«</th>
+                                <th>ThÃ nh tiá»n</th>
+                                <th class="text-end">HÃ nh Ä‘á»™ng</th>
                             </tr>
                         </thead>
                         <tbody id="studentFinanceBody">
-                            <tr><td colspan="5" class="text-center">Đang tải dữ liệu...</td></tr>
+                            <tr><td colspan="5" class="text-center">Äang táº£i dá»¯ liá»‡u...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -179,11 +181,11 @@
     </div>
 </div>
 
-<!-- Modal Đăng ký khoản thu cho học sinh -->
+<!-- Modal ÄÄƒng kÃ½ khoáº£n thu cho há»c sinh -->
 <div class="modal-overlay" id="financeModalOverlay">
     <div class="modal-card" style="width: 500px; max-width: 95vw;">
         <div class="modal-header">
-            <div class="modal-title" id="financeModalTitle">Đăng ký khoản thu</div>
+            <div class="modal-title" id="financeModalTitle">ÄÄƒng kÃ½ khoáº£n thu</div>
             <button class="modal-close" onclick="closeFinanceModal()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div>
@@ -192,37 +194,37 @@
                 <input type="hidden" id="configId" />
                 
                 <div class="form-group" id="feeItemSelectGroup">
-                    <label class="form-label">Chọn khoản thu <span class="text-danger">*</span></label>
+                    <label class="form-label">Chá»n khoáº£n thu <span class="text-danger">*</span></label>
                     <select id="feeItemIdSelect" class="form-select" required onchange="onFeeItemChanged()">
-                        <option value="">-- Chọn khoản thu --</option>
+                        <option value="">-- Chá»n khoáº£n thu --</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Số tiền (VNĐ) <span class="text-muted">(Để trống nếu dùng giá mặc định)</span></label>
+                    <label class="form-label">Sá»‘ tiá»n (VNÄ) <span class="text-muted">(Äá»ƒ trá»‘ng náº¿u dÃ¹ng giÃ¡ máº·c Ä‘á»‹nh)</span></label>
                     <input type="number" id="configAmount" class="form-input" placeholder="VD: 500000">
                 </div>
                 
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
                     <div class="form-group">
-                        <label class="form-label">Giảm trừ (Số tiền)</label>
+                        <label class="form-label">Giáº£m trá»« (Sá»‘ tiá»n)</label>
                         <input type="number" id="configDiscountAmount" class="form-input" value="0">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Giảm trừ (%)</label>
+                        <label class="form-label">Giáº£m trá»« (%)</label>
                         <input type="number" id="configDiscountPercentage" class="form-input" value="0" min="0" max="100">
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Ghi chú</label>
+                    <label class="form-label">Ghi chÃº</label>
                     <textarea id="configNote" class="form-input" rows="2"></textarea>
                 </div>
             </form>
         </div>
         <div class="d-flex justify-end mt-4 gap-2">
-            <button type="button" class="btn btn-outline" onclick="closeFinanceModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="saveStudentFeeConfig()">Lưu cấu hình</button>
+            <button type="button" class="btn btn-outline" onclick="closeFinanceModal()">Há»§y</button>
+            <button type="button" class="btn btn-primary" onclick="saveStudentFeeConfig()">LÆ°u cáº¥u hÃ¬nh</button>
         </div>
     </div>
 </div>

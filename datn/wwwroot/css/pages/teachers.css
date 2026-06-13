@@ -222,3 +222,50 @@ thead th.sticky-col {
     white-space: nowrap;
     flex-shrink: 0;
 }
+
+.collapsible-section {
+    padding-top: 0;
+}
+
+.collapsible-header {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-main);
+    font: inherit;
+    font-weight: 800;
+    text-align: left;
+    cursor: pointer;
+}
+
+.collapsible-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary);
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.collapsible-action i {
+    transition: transform 0.2s ease;
+}
+
+.collapsible-section:not(.is-collapsed) .collapsible-action i {
+    transform: rotate(180deg);
+}
+
+.collapsible-content {
+    margin-top: 16px;
+}
+
+.collapsible-section.is-collapsed .collapsible-content {
+    display: none;
+}

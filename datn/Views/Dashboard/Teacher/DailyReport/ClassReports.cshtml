@@ -63,12 +63,11 @@
                 <tr>
                     <th style="width:40px;">#</th>
                     <th>Học sinh</th>
-                    <th style="width:160px;">Dị ứng</th>
                     <th style="width:90px; text-align:center;">Ăn uống</th>
                     <th style="width:90px; text-align:center;">Ngủ nghỉ</th>
                     <th style="width:90px; text-align:center;">Nhiệt độ</th>
                     <th style="width:120px; text-align:center;">Trạng thái</th>
-                    <th style="width:80px;"></th>
+                    <th style="width:120px; text-align:center;">Thao tác</th>
                 </tr>
             </thead>
             <tbody id="studentTableBody"></tbody>
@@ -202,16 +201,6 @@
         border: 2px solid var(--border);
         flex-shrink: 0;
     }
-    .allergy-tag {
-        display: inline-block;
-        background: #fff3e0;
-        color: #e65100;
-        border-radius: 4px;
-        padding: 2px 7px;
-        font-size: 0.72rem;
-        font-weight: 600;
-        margin: 1px;
-    }
     .status-emoji {
         font-size: 1.3rem;
         text-align: center;
@@ -239,6 +228,14 @@
     }
     .done-badge.done { background: #e8f5e9; color: #2e7d32; }
     .done-badge.pending { background: var(--bg-body); color: var(--text-muted); border: 1px solid var(--border); }
+    #studentTable .btn-table {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 92px;
+        white-space: nowrap;
+        line-height: 1.2;
+    }
 
     @@media (max-width: 768px) {
         .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -264,7 +261,6 @@
         document.getElementById('reportDate').value = localDateStr(today);
 
         await loadMyClasses();
-        showEmptyState();
 
         document.getElementById('classSelector').addEventListener('change', function () {
             currentClassId = parseInt(this.value) || 0;
@@ -290,6 +286,7 @@
             const sel = document.getElementById('classSelector');
             if (classes.length === 0) {
                 sel.innerHTML = '<option value="">Không có lớp được phân công</option>';
+                showEmptyState();
                 return;
             }
             classes.forEach(c => {
@@ -323,7 +320,7 @@
         tbody.innerHTML = '';
 
         if (allStudents.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted" style="padding:32px;">Lớp này chưa có học sinh.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted" style="padding:32px;">Lớp này chưa có học sinh.</td></tr>`;
             document.getElementById('quickActionsBar').style.display = 'none';
             document.getElementById('studentTableCard').style.display = 'block';
             document.getElementById('emptyState').style.display = 'none';
@@ -339,9 +336,6 @@
             const health = allHealth.find(h => h.studentId === s.id);
             const temp = health ? health.temperature : null;
             const isFever = temp && temp >= 37.5;
-            const allergies = s.allergies
-                ? s.allergies.split(',').map(a => `<span class="allergy-tag">${a.trim()}</span>`).join('')
-                : '<span style="color:var(--text-muted); font-size:0.8rem;">--</span>';
 
             tbody.innerHTML += `
                 <tr id="row-${s.id}">
@@ -351,11 +345,9 @@
                             <img src="${s.avatarPath || '/images/lion_orange.png'}" class="student-avatar-sm" onerror="this.src='/images/lion_orange.png'" />
                             <div>
                                 <div style="font-weight:600; font-size:0.9rem;">${s.lastName} ${s.firstName}</div>
-                                ${s.allergies ? '<div style="font-size:0.72rem; color:var(--danger);">⚠ Có dị ứng</div>' : ''}
                             </div>
                         </div>
                     </td>
-                    <td>${allergies}</td>
                     <td class="status-emoji">${report ? EATING_EMOJI[report.eatingStatus] || '?' : '<span style="color:var(--border);">--</span>'}</td>
                     <td class="status-emoji">${report ? SLEEPING_EMOJI[report.sleepingStatus] || '?' : '<span style="color:var(--border);">--</span>'}</td>
                     <td style="text-align:center;">

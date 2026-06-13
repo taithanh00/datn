@@ -1,4 +1,4 @@
-﻿var currentClassId = window.selectedClassId || 0;
+var currentClassId = Number(window.selectedClassId || 0);
 var rankings = [];
 
 function setSaveButtonVisible(isVisible) {
@@ -20,7 +20,9 @@ async function loadRankings() {
         if (result.success) {
             rankings = result.data;
         }
-    } catch (e) { console.error("Load rankings failed", e); }
+    } catch (e) {
+        console.error("Load rankings failed", e);
+    }
 }
 
 async function loadMyClasses() {
@@ -32,13 +34,22 @@ async function loadMyClasses() {
             result.data.forEach(item => {
                 html += `<option value="${item.classId}" ${item.classId == currentClassId ? 'selected' : ''}>${item.className}</option>`;
             });
-            document.getElementById('classSelect').innerHTML = html;
 
-            if (document.getElementById('classSelect').value) {
+            const classSelect = document.getElementById('classSelect');
+            classSelect.innerHTML = html;
+
+            if (result.data.length === 1 && !currentClassId) {
+                currentClassId = Number(result.data[0].classId);
+                classSelect.value = currentClassId;
+            }
+
+            if (classSelect.value) {
                 loadStudents();
             }
         }
-    } catch(e) { console.error(e); }
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 async function loadStudents() {
@@ -53,14 +64,14 @@ async function loadStudents() {
     }
 
     document.getElementById('reportContent').innerHTML = window.appLoading
-        ? window.appLoading.content("\u0110ang t\u1ea3i danh s\u00e1ch h\u1ecdc sinh...")
+        ? window.appLoading.content("Đang tải danh sách học sinh...")
         : '<div style="text-align:center; padding:40px;"><div class="spinner"></div><p class="text-muted mt-2">Đang tải danh sách học sinh...</p></div>';
     setSaveButtonVisible(false);
 
     try {
         const response = await fetch(`/Employee/Api/ManagedStudentsForReport/${classId}?month=${month}&year=${year}`);
         const result = await response.json();
-        
+
         if (result.success) {
             if (result.data.length === 0) {
                 document.getElementById('reportContent').innerHTML = '<div class="empty-state"><i class="fa-solid fa-user-slash"></i><p>Lớp này chưa có học sinh nào.</p></div>';
@@ -115,8 +126,8 @@ async function loadStudents() {
                             </select>
                         </td>
                         <td>
-                            <textarea class="form-input comment-area report-comment" 
-                                      data-student-id="${student.id}" 
+                            <textarea class="form-input comment-area report-comment"
+                                      data-student-id="${student.id}"
                                       rows="2" placeholder="Nhập nhận xét..." ${isLocked ? 'disabled' : ''}>${comment}</textarea>
                         </td>
                     </tr>
@@ -167,13 +178,13 @@ async function submitReports() {
         const btnSave = document.getElementById('btnSave');
         btnSave.disabled = true;
         btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang gửi...';
-        
+
         const response = await fetch('/Employee/Api/SubmitStudyReport', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ classId, month, year, records })
         });
-        
+
         const result = await response.json();
         if (result.success) {
             if (window.showToast) window.showToast('Thành công', result.message, 'success');
@@ -191,4 +202,3 @@ async function submitReports() {
         btnSave.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi đánh giá cho Phụ huynh';
     }
 }
-

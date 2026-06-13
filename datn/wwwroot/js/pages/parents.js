@@ -253,7 +253,7 @@ function renderParentsTable(parents) {
 
   if (!parents || parents.length === 0) {
     if (window.appLoading) {
-      tbody.innerHTML = window.appLoading.tableEmpty(17, "Kh\u00f4ng t\u00ecm th\u1ea5y d\u1eef li\u1ec7u");
+      tbody.innerHTML = window.appLoading.tableEmpty(17, "Không tìm thấy dữ liệu");
       return;
     }
     tbody.innerHTML = '<tr><td colspan="17" class="text-center">Không tìm thấy dữ liệu</td></tr>';

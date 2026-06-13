@@ -45,10 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function loadFilterOptions() {
-    if (window.appLoading) {
-        tableBody.innerHTML = window.appLoading.tableRow(5, "\u0110ang t\u1ea3i nh\u1eadt k\u00fd...");
-    }
-
     try {
         const response = await fetch('/Manager/SystemLog/GetFilterOptions');
         const options = await response.json();
@@ -57,10 +53,23 @@ async function loadFilterOptions() {
         const userSelect = document.getElementById('filterUser');
         const actionSelect = document.getElementById('filterAction');
 
-        options.entities.forEach(e => entitySelect.innerHTML += `<option value="${e}">${e}</option>`);
-        options.users.forEach(u => userSelect.innerHTML += `<option value="${u}">${u}</option>`);
-        options.actions.forEach(a => actionSelect.innerHTML += `<option value="${a}">${a}</option>`);
+        appendOptions(entitySelect, options.entities);
+        appendOptions(userSelect, options.users);
+        appendOptions(actionSelect, options.actions);
     } catch (e) { console.error('Error loading filter options:', e); }
+}
+
+function appendOptions(select, values) {
+    if (!select || !Array.isArray(values)) return;
+
+    values
+        .filter(value => value !== null && value !== undefined && value !== '')
+        .forEach(value => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            select.appendChild(option);
+        });
 }
 
 async function loadLogs() {
@@ -123,15 +132,15 @@ function renderTable(logs) {
             <td>
                 <div class="d-flex align-center gap-2">
                     <div class="avatar-sm" style="background: var(--primary-soft); color: var(--primary); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700;">
-                        ${(log.userName || 'AD').substring(0, 2).toUpperCase()}
+                        ${escapeHtml((log.userName || 'AD').substring(0, 2).toUpperCase())}
                     </div>
-                    <span>${log.userName || 'Hệ thống'}</span>
+                    <span>${escapeHtml(log.userName || 'Hệ thống')}</span>
                 </div>
             </td>
             <td>
-                <span class="action-badge badge-${log.action.toLowerCase()}">${log.action}</span>
+                <span class="action-badge badge-${(log.action || '').toLowerCase()}">${escapeHtml(log.action || '')}</span>
             </td>
-            <td><span class="entity-badge">${log.entityName}</span></td>
+            <td><span class="entity-badge">${escapeHtml(log.entityName || '')}</span></td>
             <td class="text-end">
                 <button class="btn-table" onclick='showDetails(${JSON.stringify(log).replace(/'/g, "&#39;")})'>Xem chi tiết</button>
             </td>
@@ -187,7 +196,6 @@ function showDetails(log) {
     document.getElementById('detailUser').innerText = log.userName || 'Hệ thống';
     document.getElementById('detailTime').innerText = formatDate(log.createdAtUtc) + ' ' + formatTime(log.createdAtUtc);
     document.getElementById('detailEntity').innerText = log.entityName;
-    document.getElementById('detailIp').innerText = log.ipAddress || 'Internal';
     
     // Parse EntityId if it's JSON
     let entityIdDisplay = log.entityId;
@@ -198,15 +206,16 @@ function showDetails(log) {
     document.getElementById('detailEntityId').innerText = entityIdDisplay;
 
     // Action Badge
-    document.getElementById('detailActionBadge').innerHTML = `<span class="action-badge badge-${log.action.toLowerCase()}">${log.action}</span>`;
+    document.getElementById('detailActionBadge').innerHTML = `<span class="action-badge badge-${(log.action || '').toLowerCase()}">${escapeHtml(log.action || '')}</span>`;
     
     const diffBody = document.getElementById('diffTableBody');
     diffBody.innerHTML = '';
 
-    const oldVals = log.oldValues ? JSON.parse(log.oldValues) : {};
-    const newVals = log.newValues ? JSON.parse(log.newValues) : {};
+    const oldVals = parseJsonObject(log.oldValues);
+    const newVals = parseJsonObject(log.newValues);
 
-    const allKeys = [...new Set([...Object.keys(oldVals), ...Object.keys(newVals)])];
+    const allKeys = [...new Set([...Object.keys(oldVals), ...Object.keys(newVals)])]
+        .filter(key => !isHiddenAuditField(key, log.entityName));
 
     if (allKeys.length === 0) {
         diffBody.innerHTML = `<tr><td colspan="2" class="text-center text-muted" style="padding: 30px;">Không có dữ liệu thay đổi chi tiết</td></tr>`;
@@ -218,7 +227,7 @@ function showDetails(log) {
             if (oldVal !== newVal || log.action === 'Added' || log.action === 'Deleted') {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="width: 35%;"><span class="font-bold">${localizeKey(key)}</span></td>
+                    <td style="width: 35%;"><span class="font-bold">${escapeHtml(localizeKey(key))}</span></td>
                     <td style="width: 65%;">
                         <div class="d-flex align-center flex-wrap gap-1">
                             ${log.action !== 'Added' ? `<span class="val-old">${formatValue(oldVal)}</span>` : ''}
@@ -266,7 +275,7 @@ function formatValue(val) {
     if (val === null || val === undefined) return '<span class="text-muted italic">Trống</span>';
     if (typeof val === 'boolean') return val ? 'Bật/Nam' : 'Tắt/Nữ';
     if (typeof val === 'string' && val.includes('T00:00:00')) return formatDate(val);
-    return val;
+    return escapeHtml(String(val));
 }
 
 function closePanel() {
@@ -284,12 +293,65 @@ function formatJson(jsonStr) {
     }
 }
 
+function parseAuditDate(dateStr) {
+    if (!dateStr) return null;
+    const normalized = typeof dateStr === 'string' && !/[zZ]|[+-]\d{2}:\d{2}$/.test(dateStr)
+        ? `${dateStr}Z`
+        : dateStr;
+    return new Date(normalized);
+}
+
 function formatDate(dateStr) {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('vi-VN');
+    const d = parseAuditDate(dateStr);
+    if (!d || Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
 }
 
 function formatTime(dateStr) {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const d = parseAuditDate(dateStr);
+    if (!d || Number.isNaN(d.getTime())) return '';
+    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' });
+}
+
+function parseJsonObject(jsonStr) {
+    if (!jsonStr) return {};
+    try {
+        const parsed = JSON.parse(jsonStr);
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch (e) {
+        console.error('Error parsing audit values:', e);
+        return {};
+    }
+}
+
+function isHiddenAuditField(key, entityName) {
+    const hiddenFields = new Set([
+        'PasswordHash',
+        'PasswordSalt',
+        'PasswordResetToken',
+        'ResetTokenExpires',
+        'Token',
+        'RefreshToken',
+        'AccessToken',
+        'CreatedAtUtc',
+        'RevokedAtUtc'
+    ]);
+
+    if (hiddenFields.has(key)) return true;
+
+    return entityName === 'RefreshToken' && [
+        'AccountId',
+        'CreatedAt',
+        'ExpiresAt',
+        'IsRevoked'
+    ].includes(key);
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }

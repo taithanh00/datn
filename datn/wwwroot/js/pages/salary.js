@@ -244,7 +244,7 @@ function openSalaryDetail(employeeId) {
   detailBody.innerHTML = `
     <div class="salary-breakdown">
       <h4>${escapeHtml(row.employeeName)}</h4>
-      <div class="salary-line"><span>Lương cơ bản snapshot</span><strong>${fmtMoney(row.baseSalary)}</strong></div>
+      <div class="salary-line"><span>Lương cơ bản</span><strong>${fmtMoney(row.baseSalary)}</strong></div>
       <div class="salary-line"><span>Ngày công chuẩn</span><strong>${standardDays}</strong></div>
       <div class="salary-line"><span>Công thực tế đã duyệt</span><strong>${row.workingDays || 0}</strong></div>
       <div class="salary-line"><span>Đơn giá/ngày</span><strong>${fmtMoney(dailyRate)}</strong></div>

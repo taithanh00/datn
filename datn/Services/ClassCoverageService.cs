@@ -264,7 +264,7 @@ namespace datn.Services
 
         private async Task<List<int>> GetAbsentTeacherIdsAsync(List<int> activeTeacherIds, DateOnly date)
         {
-            return await _context.EmployeeLeaveRequests
+            var approvedLeaveTeacherIds = await _context.EmployeeLeaveRequests
                 .Where(r => r.Status == "Approved"
                             && activeTeacherIds.Contains(r.EmployeeId)
                             && r.StartDate <= date
@@ -272,6 +272,18 @@ namespace datn.Services
                 .Select(r => r.EmployeeId)
                 .Distinct()
                 .ToListAsync();
+
+            var unauthorizedAbsentTeacherIds = await _context.WorkAttendances
+                .Where(w => w.Date == date
+                            && activeTeacherIds.Contains(w.EmployeeId)
+                            && w.Status == WorkAttendanceStatuses.UnauthorizedAbsent)
+                .Select(w => w.EmployeeId)
+                .Distinct()
+                .ToListAsync();
+
+            return approvedLeaveTeacherIds
+                .Union(unauthorizedAbsentTeacherIds)
+                .ToList();
         }
 
         private async Task<List<int>> GetPresentTeacherIdsAsync(List<int> activeTeacherIds, DateOnly date)
@@ -279,7 +291,7 @@ namespace datn.Services
             return await _context.WorkAttendances
                 .Where(w => w.Date == date
                             && activeTeacherIds.Contains(w.EmployeeId)
-                            && w.Status == "Approved"
+                            && w.Status == WorkAttendanceStatuses.Approved
                             && w.CheckInAtUtc != null)
                 .Select(w => w.EmployeeId)
                 .Distinct()
@@ -291,7 +303,7 @@ namespace datn.Services
             return await _context.WorkAttendances.AnyAsync(w =>
                 w.EmployeeId == employeeId
                 && w.Date == date
-                && w.Status == "Approved"
+                && w.Status == WorkAttendanceStatuses.Approved
                 && w.CheckInAtUtc != null);
         }
 

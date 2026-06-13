@@ -18,6 +18,7 @@ namespace datn.Controllers.Manager
         }
 
         [HttpGet]
+        [HttpGet("/Employee/Nutrition")]
         public IActionResult Index()
         {
             ViewData["Title"] = "Quản lý Dinh dưỡng & Thực đơn";

@@ -139,6 +139,21 @@
             return;
         }
 
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        if (start < today) {
+            setAlert("⚠️ Ngày bắt đầu không được là ngày trong quá khứ. Vui lòng chọn từ hôm nay trở đi.", true);
+            return;
+        }
+
+        if (end < start) {
+            setAlert("⚠️ Ngày kết thúc phải sau hoặc trùng với ngày bắt đầu.", true);
+            return;
+        }
+
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang gửi...';
 
@@ -169,6 +184,20 @@
     }
 
     document.getElementById("btnCreateLeave").addEventListener("click", createRequest);
+
+    // Thiết lập ngày tối thiểu cho các ô chọn ngày là hôm nay
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById("startDate").setAttribute("min", todayStr);
+    document.getElementById("endDate").setAttribute("min", todayStr);
+
+    // Khi ngày bắt đầu thay đổi, cập nhật ngày kết thúc tối thiểu = ngày bắt đầu
+    document.getElementById("startDate").addEventListener("change", function() {
+        const minEnd = this.value || todayStr;
+        document.getElementById("endDate").setAttribute("min", minEnd);
+        if (document.getElementById("endDate").value < minEnd) {
+            document.getElementById("endDate").value = minEnd;
+        }
+    });
 
     const connection = new signalR.HubConnectionBuilder().withUrl("/hubs/realtime").build();
     connection.on("leaveRequestChanged", () => loadMyRequests());

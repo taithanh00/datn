@@ -264,13 +264,8 @@ if (typeof signalR !== 'undefined') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const filterBtn = document.getElementById("btnApplyFilter");
-    if(filterBtn) {
-        filterBtn.addEventListener("click", () => {
-            loadAllPending();
-        });
-    }
-
     initFilters();
+    filterMonthEl?.addEventListener("change", loadAllPending);
+    filterYearEl?.addEventListener("change", loadAllPending);
     loadAllPending();
 });

@@ -1,4 +1,4 @@
-﻿// ====== TEACHER MANAGEMENT PAGE ======
+// ====== TEACHER MANAGEMENT PAGE ======
 // Xử lý tất cả tương tác: tải dữ liệu, render table, quản lý form
 const TEACHERS_PAGE_SIZE = 10;
 const TEACHERS_TABLE_COLS = 16;
@@ -70,9 +70,16 @@ function updateTeachersTableStt(table) {
   const tbody = table.querySelector("tbody");
   if (!tbody) return;
   const rows = tbody.querySelectorAll("tr:not(.searching-hidden)");
-  rows.forEach((row, index) => {
+  
+  let sttIndex = 1;
+  rows.forEach((row) => {
+    if (row.classList.contains("app-loading-row") || row.querySelector("td[colspan]")) return;
+    
     const sttCell = row.querySelector("td:first-child");
-    if (sttCell) sttCell.textContent = String(index + 1);
+    if (sttCell) {
+      sttCell.textContent = String(sttIndex);
+      sttIndex++;
+    }
   });
 }
 
@@ -95,6 +102,14 @@ function setupEventListeners() {
   document
     .getElementById("editTeacherForm")
     .addEventListener("submit", handleFormSubmit);
+
+  const landingPageToggle = document.getElementById("landingPageToggle");
+  if (landingPageToggle) {
+    landingPageToggle.addEventListener("click", () => {
+      const section = document.getElementById("landingPageSection");
+      setLandingPageSectionExpanded(section?.classList.contains("is-collapsed") === true);
+    });
+  }
 
   // Status Tabs
   document.querySelectorAll(".status-tab").forEach((tab) => {
@@ -138,6 +153,17 @@ function updateRequirementUI(id, isValid) {
     el.classList.remove("valid");
     icon.className = "fa-solid fa-circle-dot";
   }
+}
+
+function setLandingPageSectionExpanded(isExpanded) {
+  const section = document.getElementById("landingPageSection");
+  const toggle = document.getElementById("landingPageToggle");
+  const toggleText = document.getElementById("landingPageToggleText");
+  if (!section || !toggle) return;
+
+  section.classList.toggle("is-collapsed", !isExpanded);
+  toggle.setAttribute("aria-expanded", isExpanded.toString());
+  if (toggleText) toggleText.textContent = isExpanded ? "Thu gọn" : "Mở rộng";
 }
 
 // Preview Avatar
@@ -195,12 +221,12 @@ function renderTeachersTable(teachers) {
 
   if (teachers.length === 0) {
     if (window.appLoading) {
-      tbody.innerHTML = window.appLoading.tableEmpty(TEACHERS_TABLE_COLS, "Kh\u00f4ng c\u00f3 gi\u00e1o vi\u00ean n\u00e0o");
+      tbody.innerHTML = window.appLoading.tableEmpty(TEACHERS_TABLE_COLS, "Kh\u00f4ng t\u00ecm th\u1ea5y d\u1eef li\u1ec7u");
       refreshTeachersTablePagination(true);
       return;
     }
     tbody.innerHTML =
-      `<tr><td colspan="${TEACHERS_TABLE_COLS}" style="text-align: center; padding: 20px;">Không có giáo viên nào</td></tr>`;
+      `<tr><td colspan="${TEACHERS_TABLE_COLS}" style="text-align: center; padding: 20px;">Không tìm thấy dữ liệu</td></tr>`;
     refreshTeachersTablePagination(true);
     return;
   }
@@ -262,6 +288,7 @@ function openCreatePanel() {
 
   document.getElementById("password").value = "";
   validatePasswordUI("");
+  setLandingPageSectionExpanded(false);
   clearAlert();
   showPanel();
 }
@@ -279,6 +306,7 @@ async function openEditPanel(teacherId) {
   document.getElementById("password").required = false;
   document.getElementById("username").required = false;
 
+  setLandingPageSectionExpanded(false);
   clearAlert();
   showPanel();
 

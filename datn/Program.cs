@@ -110,11 +110,14 @@ builder.Services.AddScoped<IPayrollService, PayrollService>();
 builder.Services.Configure<ClassCoverageOptions>(
     builder.Configuration.GetSection(ClassCoverageOptions.SectionName));
 builder.Services.AddScoped<IClassCoverageService, ClassCoverageService>();
+builder.Services.AddScoped<ITimeAttendanceWindowService, TimeAttendanceWindowService>();
+builder.Services.AddScoped<IUnauthorizedAbsenceService, UnauthorizedAbsenceService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IParentService, ParentService>();           // Dịch vụ quản lý học sinh
 builder.Services.AddHttpClient<IMoMoService, MoMoService>();            // Dịch vụ MoMo Payment
 builder.Services.AddHostedService<TokenCleanupService>();               // Dịch vụ dọn dẹp token hết hạn
 builder.Services.AddHostedService<PayrollAutoCalculationService>();     // Tự động tính lương ngày 5 hàng tháng
+builder.Services.AddHostedService<UnauthorizedAbsenceHostedService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<INutritionService, NutritionService>();
 builder.Services.AddScoped<IHealthService, HealthService>();

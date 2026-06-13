@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function loadAssignments() {
     const tbody = document.getElementById('assignmentTableBody');
     if (window.appLoading && tbody) {
-        window.appLoading.setTable(tbody, 5);
+        window.appLoading.setTable(tbody, 6);
     }
     try {
         const response = await fetch('/Manager/Api/Assignments');
@@ -103,12 +103,12 @@ async function loadAssignments() {
             updateStats();
             renderAssignments(allAssignments);
         } else if (window.appLoading && tbody) {
-            tbody.innerHTML = window.appLoading.tableError(5, result.message || "Kh\u00f4ng th\u1ec3 t\u1ea3i d\u1eef li\u1ec7u.");
+            tbody.innerHTML = window.appLoading.tableError(6, result.message || "Kh\u00f4ng th\u1ec3 t\u1ea3i d\u1eef li\u1ec7u.");
         }
     } catch (e) {
         console.error(e);
         if (window.appLoading && tbody) {
-            tbody.innerHTML = window.appLoading.tableError(5, "L\u1ed7i k\u1ebft n\u1ed1i m\u00e1y ch\u1ee7.");
+            tbody.innerHTML = window.appLoading.tableError(6, "L\u1ed7i k\u1ebft n\u1ed1i m\u00e1y ch\u1ee7.");
         }
     }
 }
@@ -138,20 +138,27 @@ function renderAssignments(data) {
 
     if (data.length === 0) {
         if (window.appLoading) {
-            tbody.innerHTML = window.appLoading.tableEmpty(5, "Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u.");
+            tbody.innerHTML = window.appLoading.tableEmpty(6, "Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u.");
             return;
         }
-        tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center; padding:40px;">Không có dữ liệu</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-muted" style="text-align:center; padding:40px;">Không có dữ liệu</td></tr>';
         return;
     }
     tbody.innerHTML = data.map(item => {
         const initial = item.employeeName.charAt(0).toUpperCase();
         const avatar = item.avatarPath || '/images/lion_blue.png';
+        const timeText = item.endDate
+            ? `${formatDate(item.startDate)} - ${formatDate(item.endDate)}`
+            : formatDate(item.startDate);
+        const statusText = item.endDate
+            ? '<span class="text-muted">--</span>'
+            : '<span class="badge badge-success">Hiện tại</span>';
         return `<tr>
             <td><div class="d-flex align-center gap-1"><img src="${avatar}" alt="Avatar" class="avatar" style="width:36px; height:36px; object-fit:cover; border-radius:50%; border:1px solid var(--border);" onerror="this.src='/images/lion_blue.png'"><div><div style="font-weight:600;">${item.employeeName}</div></div></div></td>
             <td><strong>${item.className}</strong></td>
             <td><span class="badge badge-info">${item.roleInClass || 'Giáo viên phụ trách'}</span></td>
-            <td>${formatDate(item.startDate)} ${item.endDate ? '- '+formatDate(item.endDate) : '<span class="text-success">Hiện tại</span>'}</td>
+            <td>${timeText}</td>
+            <td>${statusText}</td>
             <td style="text-align:right;">
                 <button class="btn-table" onclick="editAssignment(${item.employeeId},${item.classId},'${item.startDate}')">Sửa</button>
                 <button class="btn-table delete" onclick="deleteAssignment(${item.employeeId},${item.classId},'${item.startDate}')">Xóa</button>

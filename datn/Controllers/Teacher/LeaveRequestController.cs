@@ -23,6 +23,7 @@ namespace datn.Controllers.Teacher
         }
 
         [HttpGet("")]
+        [HttpGet("/Employee/LeaveRequest")]
         public IActionResult Index()
         {
             ViewData["Title"] = "Tạo đơn nghỉ phép";
@@ -73,6 +74,11 @@ namespace datn.Controllers.Teacher
 
             if (endDate < startDate)
                 return Json(new { success = false, message = "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu." });
+
+            // Chặn ngày trong quá khứ
+            var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7)); // Giờ Việt Nam (UTC+7)
+            if (startDate < today)
+                return Json(new { success = false, message = "Ngày bắt đầu không được là ngày trong quá khứ. Vui lòng chọn từ hôm nay trở đi." });
 
             // Ràng buộc: Mỗi tháng chỉ được nghỉ phép CÓ LƯƠNG tối đa 1 lần (dựa trên ngày bắt đầu)
             if (model.IsPaid)

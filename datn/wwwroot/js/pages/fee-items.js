@@ -62,7 +62,7 @@ async function loadFeeItems() {
     } catch (error) {
         console.error('Error loading fee items:', error);
         if (window.appLoading) {
-            tbody.innerHTML = window.appLoading.tableError(6, "L\u1ed7i k\u1ebft n\u1ed1i m\u00e1y ch\u1ee7.");
+            tbody.innerHTML = window.appLoading.tableError(6, "Lỗi kết nối máy chủ.");
             return;
         }
         tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Lỗi kết nối máy chủ.</td></tr>`;

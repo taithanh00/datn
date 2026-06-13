@@ -41,7 +41,7 @@ else
                     <span><i class="fa-solid fa-money-check-dollar"></i> @(s.PaymentMethod ?? "Chưa ghi nhận thanh toán")</span>
                 </div>
                 <a asp-action="SalarySlip" asp-route-employeeId="@s.EmployeeId" asp-route-periodId="@s.PayrollPeriodId" class="btn btn-primary" style="justify-content:center;">
-                    <i class="fa-solid fa-file-invoice"></i> Xem phiếu lương
+                    <i class="fa-solid fa-file-invoice" style="text-decoration:none;"></i> Xem phiếu lương
                 </a>
             </div>
         }

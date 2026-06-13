@@ -175,31 +175,36 @@
                 </div>
             </div>
 
-            <div class="form-section">
-                <h4>Thông tin Landing Page <span class="text-muted" style="font-weight:normal; font-size:0.85em;">(Tùy chọn)</span></h4>
-                <div class="form-group">
-                    <label class="form-label" for="specialty">Chuyên môn chính</label>
-                    <input type="text" id="specialty" name="Specialty" class="form-control" placeholder="VD: Giáo viên Montessori, Kỹ năng sống" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="bio">Giới thiệu ngắn (Bio)</label>
-                    <textarea id="bio" name="Bio" class="form-control" rows="3" placeholder="Một vài dòng giới thiệu về giáo viên..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="qualifications">Bằng cấp & Học vấn</label>
-                    <input type="text" id="qualifications" name="Qualifications" class="form-control" placeholder="VD: ĐH Sư Phạm Hà Nội, Thạc sĩ Giáo dục" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="experience">Kinh nghiệm</label>
-                    <input type="text" id="experience" name="Experience" class="form-control" placeholder="VD: 5 năm kinh nghiệm giảng dạy mầm non" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="philosophy">Triết lý giáo dục</label>
-                    <textarea id="philosophy" name="Philosophy" class="form-control" rows="2" placeholder="VD: Yêu thương là chìa khóa của mọi trái tim..."></textarea>
-                </div>
-                <div class="form-group flex items-center gap-2" style="flex-direction: row; align-items: center; margin-top: 10px;">
-                    <input type="checkbox" id="showOnLanding" name="ShowOnLanding" style="width: 20px; height: 20px;" />
-                    <label class="form-label" for="showOnLanding" style="margin-bottom: 0;">Hiển thị trên Landing Page</label>
+            <div class="form-section collapsible-section is-collapsed" id="landingPageSection">
+                <button type="button" class="collapsible-header" id="landingPageToggle" aria-expanded="false" aria-controls="landingPageFields">
+                    <span>Thông tin Landing Page <span class="text-muted" style="font-weight:normal; font-size:0.85em;">(Tùy chọn)</span></span>
+                    <span class="collapsible-action"><span id="landingPageToggleText">Mở rộng</span><i class="fa-solid fa-chevron-down"></i></span>
+                </button>
+                <div class="collapsible-content" id="landingPageFields">
+                    <div class="form-group">
+                        <label class="form-label" for="specialty">Chuyên môn chính</label>
+                        <input type="text" id="specialty" name="Specialty" class="form-control" placeholder="VD: Giáo viên Montessori, Kỹ năng sống" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="bio">Giới thiệu ngắn (Bio)</label>
+                        <textarea id="bio" name="Bio" class="form-control" rows="3" placeholder="Một vài dòng giới thiệu về giáo viên..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="qualifications">Bằng cấp & Học vấn</label>
+                        <input type="text" id="qualifications" name="Qualifications" class="form-control" placeholder="VD: ĐH Sư Phạm Hà Nội, Thạc sĩ Giáo dục" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="experience">Kinh nghiệm</label>
+                        <input type="text" id="experience" name="Experience" class="form-control" placeholder="VD: 5 năm kinh nghiệm giảng dạy mầm non" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="philosophy">Triết lý giáo dục</label>
+                        <textarea id="philosophy" name="Philosophy" class="form-control" rows="2" placeholder="VD: Yêu thương là chìa khóa của mọi trái tim..."></textarea>
+                    </div>
+                    <div class="form-group flex items-center gap-2" style="flex-direction: row; align-items: center; margin-top: 10px;">
+                        <input type="checkbox" id="showOnLanding" name="ShowOnLanding" style="width: 20px; height: 20px;" />
+                        <label class="form-label" for="showOnLanding" style="margin-bottom: 0;">Hiển thị trên Landing Page</label>
+                    </div>
                 </div>
             </div>
 

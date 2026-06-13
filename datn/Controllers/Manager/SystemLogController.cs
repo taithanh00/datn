@@ -12,6 +12,8 @@ namespace datn.Controllers.Manager
     [Route("Manager/[controller]")]
     public class SystemLogController : BaseController
     {
+        private static readonly TimeZoneInfo VietnamTimeZone = GetVietnamTimeZone();
+
         public SystemLogController(AppDbContext context) : base(context)
         {
         }
@@ -34,7 +36,9 @@ namespace datn.Controllers.Manager
             string? userName = null,
             string? logAction = null)
         {
-            var query = _context.AuditLogs.AsQueryable();
+            var query = _context.AuditLogs
+                .AsNoTracking()
+                .Where(l => l.EntityName != nameof(RefreshToken));
 
             // Text search
             if (!string.IsNullOrEmpty(search))
@@ -50,14 +54,14 @@ namespace datn.Controllers.Manager
             // Advanced Filters
             if (startDate.HasValue)
             {
-                var start = startDate.Value.Date;
+                var start = ToUtcFromVietnamDate(startDate.Value.Date);
                 query = query.Where(l => l.CreatedAtUtc >= start);
             }
 
             if (endDate.HasValue)
             {
-                var end = endDate.Value.Date.AddDays(1).AddTicks(-1);
-                query = query.Where(l => l.CreatedAtUtc <= end);
+                var end = ToUtcFromVietnamDate(endDate.Value.Date.AddDays(1));
+                query = query.Where(l => l.CreatedAtUtc < end);
             }
 
             if (!string.IsNullOrEmpty(entityName))
@@ -98,20 +102,24 @@ namespace datn.Controllers.Manager
         public async Task<IActionResult> GetFilterOptions()
         {
             var entities = await _context.AuditLogs
+                .Where(l => l.EntityName != nameof(RefreshToken))
                 .Select(l => l.EntityName)
+                .Where(e => e != null && e != "")
                 .Distinct()
                 .OrderBy(e => e)
                 .ToListAsync();
 
             var users = await _context.AuditLogs
-                .Where(l => l.UserName != null)
+                .Where(l => l.EntityName != nameof(RefreshToken) && l.UserName != null && l.UserName != "")
                 .Select(l => l.UserName)
                 .Distinct()
                 .OrderBy(u => u)
                 .ToListAsync();
 
             var actions = await _context.AuditLogs
+                .Where(l => l.EntityName != nameof(RefreshToken))
                 .Select(l => l.Action)
+                .Where(a => a != null && a != "")
                 .Distinct()
                 .OrderBy(a => a)
                 .ToListAsync();
@@ -122,6 +130,23 @@ namespace datn.Controllers.Manager
                 users,
                 actions
             });
+        }
+
+        private static DateTime ToUtcFromVietnamDate(DateTime date)
+        {
+            return TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(date, DateTimeKind.Unspecified), VietnamTimeZone);
+        }
+
+        private static TimeZoneInfo GetVietnamTimeZone()
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+            }
         }
     }
 }
