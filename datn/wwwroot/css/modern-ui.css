@@ -521,6 +521,28 @@ tr:hover td {
     opacity: 1;
 }
 
+.timetable-grid td.locked-slot {
+    cursor: not-allowed;
+    background: #f8fafc;
+}
+
+.timetable-grid td.locked-slot .slot-cell {
+    cursor: not-allowed;
+    background: #f8fafc;
+}
+
+.timetable-grid td.locked-slot .slot-cell:hover {
+    background: #f8fafc;
+}
+
+.locked-slot-content {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: auto;
+    text-align: center;
+}
+
 .assignment-block {
     background: white;
     border-left: 3px solid var(--primary);

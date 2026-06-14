@@ -30,6 +30,14 @@ namespace datn.Controllers.Parent
             return parent?.Id;
         }
 
+        private async Task<Account?> GetCurrentAccountAsync()
+        {
+            var username = User.Identity?.Name;
+            if (string.IsNullOrEmpty(username)) return null;
+
+            return await _context.Accounts.FirstOrDefaultAsync(a => a.Username == username);
+        }
+
         [HttpGet("Children")]
         public async Task<IActionResult> Children()
         {
@@ -75,6 +83,51 @@ namespace datn.Controllers.Parent
             }
 
             return View("~/Views/Dashboard/Parent/Parent/Children.cshtml", result);
+        }
+
+        [HttpGet("ClassClosure")]
+        public async Task<IActionResult> ClassClosure(int classId, DateOnly date)
+        {
+            ViewData["Title"] = "Chi ti\u1ebft ngh\u1ec9 h\u1ecdc";
+            var parentId = await GetCurrentParentId();
+            var account = await GetCurrentAccountAsync();
+            if (parentId == null || account == null) return RedirectToAction("Login", "Auth");
+
+            var hasChildInClass = await _context.ParentStudents
+                .AnyAsync(ps => ps.ParentId == parentId && ps.Student.ClassId == classId);
+            if (!hasChildInClass) return Forbid();
+
+            var classroom = await _context.Classes.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(c => c.Id == classId);
+            if (classroom == null) return NotFound();
+
+            var dateText = date.ToString("dd/MM/yyyy");
+            var notification = await _context.Notifications
+                .Where(n => n.RecipientId == account.Id
+                    && n.Message.Contains(classroom.Name)
+                    && n.Message.Contains(dateText))
+                .OrderByDescending(n => n.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            ViewBag.ClassName = classroom.Name;
+            ViewBag.Date = date;
+            ViewBag.TitleText = notification?.Title ?? $"L\u1edbp {classroom.Name} ngh\u1ec9 h\u1ecdc ng\u00e0y {dateText}";
+            ViewBag.Reason = ToParentFacingReason(ExtractReason(notification?.Message));
+            ViewBag.Message = $"L\u1edbp {classroom.Name} ngh\u1ec9 h\u1ecdc ng\u00e0y {dateText}. L\u00fd do: {ViewBag.Reason}.";
+
+            return View("~/Views/Dashboard/Parent/Parent/ClassClosure.cshtml");
+        }
+
+        [HttpGet("HolidayDetail/{id:int}")]
+        public async Task<IActionResult> HolidayDetail(int id)
+        {
+            ViewData["Title"] = "Chi ti\u1ebft ng\u00e0y l\u1ec5";
+            var holiday = await _context.Holidays.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(h => h.Id == id);
+            if (holiday == null) return NotFound();
+
+            ViewBag.StatusText = GetHolidayStatusText(holiday.Date);
+            return View("~/Views/Dashboard/Parent/Parent/HolidayDetail.cshtml", holiday);
         }
 
         [HttpGet("StudyReports")]
@@ -219,6 +272,43 @@ namespace datn.Controllers.Parent
                     totalRecorded = totalAttendancesRecorded
                 }
             });
+        }
+
+        private static string ExtractReason(string? message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return "Kh\u00f4ng c\u00f3 l\u00fd do c\u1ee5 th\u1ec3.";
+
+            foreach (var marker in new[] { "L\u00fd do:", "LÃ½ do:" })
+            {
+                var index = message.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+                if (index < 0) continue;
+
+                var reason = message[(index + marker.Length)..].Trim();
+                var dotIndex = reason.IndexOf('.');
+                if (dotIndex >= 0) reason = reason[..dotIndex].Trim();
+                if (!string.IsNullOrWhiteSpace(reason)) return reason;
+            }
+
+            return message.Trim();
+        }
+
+        private static string ToParentFacingReason(string? reason)
+        {
+            if (string.IsNullOrWhiteSpace(reason))
+                return "Gi\u00e1o vi\u00ean ph\u1ee5 tr\u00e1ch c\u00f3 vi\u1ec7c \u0111\u1ed9t xu\u1ea5t";
+
+            var normalized = reason.Trim().ToLowerInvariant();
+            if (normalized.Contains("kh\u00f4ng ph\u00e9p") || normalized.Contains("khong phep") || normalized.Contains("check-in"))
+                return "Gi\u00e1o vi\u00ean ph\u1ee5 tr\u00e1ch c\u00f3 vi\u1ec7c \u0111\u1ed9t xu\u1ea5t";
+
+            return reason.Trim();
+        }
+
+        private static string GetHolidayStatusText(DateOnly date)
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            if (date == today) return "H\u00f4m nay";
+            return date < today ? "\u0110\u00e3 qua" : "S\u1eafp t\u1edbi";
         }
     }
 }

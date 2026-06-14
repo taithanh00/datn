@@ -231,7 +231,9 @@ function editAssignment(empId, clsId, start) {
     document.getElementById('classSelect').value = assignment.classId;
     document.getElementById('startDate').value = assignment.startDate;
     document.getElementById('endDate').value = assignment.endDate || '';
-    document.getElementById('roleInClass').value = assignment.roleInClass || 'Giáo viên phụ trách';
+    if (document.getElementById('roleInClass')) {
+        document.getElementById('roleInClass').value = 'Giáo viên phụ trách';
+    }
 
     document.getElementById('oldEmployeeId').value = assignment.employeeId;
     document.getElementById('oldClassId').value = assignment.classId;
@@ -257,7 +259,7 @@ async function saveAssignment() {
         classId: parseInt(document.getElementById('classSelect')?.value),
         startDate: document.getElementById('startDate')?.value,
         endDate: document.getElementById('endDate')?.value || null,
-        roleInClass: document.getElementById('roleInClass')?.value
+        roleInClass: 'Giáo viên phụ trách'
     };
     
     if (isEdit) {

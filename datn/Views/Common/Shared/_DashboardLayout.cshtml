@@ -47,7 +47,7 @@
                     <a href="/Manager/Schedules" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Thời khóa biểu</a>
                     <a href="/Manager/Students" class="nav-item" data-transition><i class="fa-solid fa-user-graduate"></i> Học sinh</a>
                     <a href="/Manager/Parents" class="nav-item" data-transition><i class="fa-solid fa-users-viewfinder"></i> Phụ huynh</a>
-                    <a href="/Manager/Teachers" class="nav-item" data-transition><i class="fa-solid fa-user-tie"></i> Giáo viên</a>
+                    <a href="/Manager/Teachers" class="nav-item" data-transition><i class="fa-solid fa-user-tie"></i> Giáo viên</a>
                     <!-- <a href="/Manager/TeacherContracts" class="nav-item" data-transition><i class="fa-solid fa-file-contract"></i> Hợp đồng giáo viên</a> -->
                     <a href="/HolidayManagement" class="nav-item" data-transition><i class="fa-solid fa-umbrella-beach"></i> Ngày lễ</a>
                     <a href="/Manager/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động</a>
@@ -73,12 +73,13 @@
                     <a href="/Employee/StudyReport" class="nav-item" data-transition><i class="fa-solid fa-file-signature"></i> Nhận xét & Báo cáo</a>
                     <a href="/Employee/Activities" class="nav-item @(ViewData["Title"]?.ToString() == "Hoạt động" ? "active" : "")" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động</a>
                     <a href="/Employee/ClassReports" class="nav-item @(ViewData["Title"]?.ToString() == "Nhật ký lớp học" ? "active" : "")" data-transition><i class="fa-solid fa-book-open"></i> Nhật ký lớp học</a>
-                    <a href="/Employee/Nutrition" class="nav-item @(ViewData["Title"]?.ToString() == "Quản lý Dinh dưỡng & Thực đơn" ? "active" : "")" data-transition><i class="fa-solid fa-utensils"></i> Dinh dưỡng và Thực đơn</a>
+                    <a href="/Employee/Nutrition" class="nav-item @(ViewData["Title"]?.ToString() == "Quản lý Dinh dưỡng & Thực đơn" ? "active" : "")" data-transition><i class="fa-solid fa-utensils"></i> Dinh dưỡng và Thực đơn</a>
 
                     <div class="nav-label">Cá nhân</div>
                     <a href="/Employee/TimeAttendance" class="nav-item" data-transition><i class="fa-solid fa-clock"></i> Chấm công</a>
                     <a href="/Employee/LeaveRequest" class="nav-item" data-transition><i class="fa-solid fa-calendar-minus"></i> Nghỉ phép</a>
                     <a href="/Employee/WorkSchedule" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Lịch dạy cá nhân</a>
+                    <a href="/Employee/Holidays" class="nav-item" data-transition><i class="fa-solid fa-umbrella-beach"></i> Ngày lễ</a>
                     <a href="/Employee/Salary" class="nav-item" data-transition><i class="fa-solid fa-wallet"></i> Phiếu lương</a>
                 }
 
@@ -89,8 +90,8 @@
                     <a href="/Parent/AttendanceReport" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Chuyên cần</a>
                     <a href="/Parent/StudyReports" class="nav-item" data-transition><i class="fa-solid fa-chart-bar"></i> Học tập</a>
                     <a href="/Parent/Activities" class="nav-item" data-transition><i class="fa-solid fa-puzzle-piece"></i> Hoạt động của bé</a>
-                    <a href="/DailyReport/MyChild" class="nav-item" data-transition><i class="fa-solid fa-notes-medical"></i> Nhật ký và Sức khỏe</a>
-                    <a href="/Tuition/MyTuition" class="nav-item" data-transition><i class="fa-solid fa-wallet"></i> Học phí</a>
+                    <a href="/Parent/DailyReport/MyChild" class="nav-item" data-transition><i class="fa-solid fa-notes-medical"></i> Nhật ký và Sức khỏe</a>
+                    <a href="/Parent/Tuition/MyTuition" class="nav-item" data-transition><i class="fa-solid fa-wallet"></i> Học phí</a>
                 }
 
                 <div style="margin-top:auto; padding-top:20px; border-top:1px solid var(--border);">

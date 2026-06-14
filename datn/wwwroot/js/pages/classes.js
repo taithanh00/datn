@@ -3,14 +3,16 @@ let currentSubjectId = null;
 let currentScheduleId = null;
 let showInactiveClasses = false;
 let showInactiveSubjects = false;
+let allClassTeachers = [];
+let allClassAssignments = [];
 
 const ACTIVITY_SLOTS = [
-    { start: '06:45', end: '08:15' },
-    { start: '08:15', end: '09:45' },
-    { start: '09:45', end: '10:45' },
-    { start: '10:45', end: '13:45' },
-    { start: '13:45', end: '15:15' },
-    { start: '15:15', end: '17:00' }
+    { start: '06:45', end: '08:15', locked: false },
+    { start: '08:15', end: '09:45', locked: false },
+    { start: '09:45', end: '11:00', locked: false },
+    { start: '11:00', end: '14:00', locked: true, label: 'Nghỉ trưa' },
+    { start: '14:00', end: '15:30', locked: false },
+    { start: '15:30', end: '17:00', locked: false }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,6 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeClassManagementPage() {
+    const scheduleWeekFilter = document.getElementById('scheduleWeekFilter');
+    if (scheduleWeekFilter) {
+        scheduleWeekFilter.value = getMondayDateString(new Date());
+    }
+
     const scheduleEffectiveFrom = document.getElementById('scheduleEffectiveFrom');
     if (scheduleEffectiveFrom) {
         scheduleEffectiveFrom.value = new Date().toISOString().split('T')[0];
@@ -76,6 +83,12 @@ function bindClassManagementEvents() {
     const closePanelBtn = document.getElementById('closePanelBtn');
     if (closePanelBtn) closePanelBtn.addEventListener('click', closePanel);
 
+    const saveClassTeacherBtn = document.getElementById('saveClassTeacherBtn');
+    if (saveClassTeacherBtn) saveClassTeacherBtn.addEventListener('click', saveClassTeacherAssignment);
+
+    const resetClassTeacherBtn = document.getElementById('resetClassTeacherBtn');
+    if (resetClassTeacherBtn) resetClassTeacherBtn.addEventListener('click', resetClassTeacherForm);
+
     const modalOverlay = document.getElementById('modalOverlay');
     if (modalOverlay) modalOverlay.addEventListener('click', closePanel);
 
@@ -92,6 +105,14 @@ function bindClassManagementEvents() {
             const scheduleClassIdInput = document.getElementById('scheduleClassId');
             if (scheduleClassIdInput) scheduleClassIdInput.value = classId || '';
             loadSchedules(classId);
+        });
+    }
+
+    const scheduleWeekFilter = document.getElementById('scheduleWeekFilter');
+    if (scheduleWeekFilter) {
+        scheduleWeekFilter.addEventListener('change', () => {
+            const classId = parseInt(document.getElementById('scheduleClassFilter')?.value || '0', 10);
+            if (classId) loadSchedules(classId);
         });
     }
 
@@ -259,7 +280,8 @@ async function loadSchedules(classId) {
     if (window.appLoading) {
         window.appLoading.setTable(tbody, 7);
     }
-    const result = await fetchJson(`/Manager/Api/ClassSchedules?classId=${classId}`);
+    const weekStart = getSelectedScheduleWeekStart();
+    const result = await fetchJson(`/Manager/Api/ClassSchedules?classId=${classId}&weekStart=${encodeURIComponent(weekStart)}`);
     if (!result.success) {
         tbody.innerHTML = window.appLoading
             ? window.appLoading.tableError(7, "Kh\u00f4ng t\u1ea3i \u0111\u01b0\u1ee3c th\u1eddi kh\u00f3a bi\u1ec3u.")
@@ -289,7 +311,8 @@ async function loadSchedules(classId) {
             // Tìm giờ kết thúc muộn nhất để gợi ý cho tiết tiếp theo
             const maxEndTime = matches.reduce((max, s) => s.endTime > max ? s.endTime : max, slot.start);
             
-            html += `<td onclick="openScheduleModal(${day.val}, ${slotIdx}, false, '${maxEndTime}')">`;
+            const lockedAttrs = slot.locked ? ' class="locked-slot"' : ` onclick="openScheduleModal(${day.val}, ${slotIdx}, false, '${maxEndTime}')"`;
+            html += `<td${lockedAttrs}>`;
             html += `<div class="slot-cell">`;
             
             if (matches.length > 0) {
@@ -301,6 +324,8 @@ async function loadSchedules(classId) {
                             <div class="teacher">${escapeHtml(match.teacherName)}</div>
                         </div>`;
                 });
+            } else if (slot.locked) {
+                html += `<div class="locked-slot-content">${escapeHtml(slot.label || 'Nghỉ')}</div>`;
             } else {
                 html += `<div class="add-icon"><i class="fa-solid fa-plus"></i></div>`;
             }
@@ -378,12 +403,20 @@ async function saveSubject(event) {
 async function saveSchedule(event) {
     event.preventDefault();
 
+    const startTime = document.getElementById('scheduleStartTime').value;
+    const endTime = document.getElementById('scheduleEndTime').value;
+    const timeError = validateScheduleTimeRange(startTime, endTime);
+    if (timeError) {
+        showAlert('scheduleFormAlert', false, timeError);
+        return;
+    }
+
     const payload = {
         classId: parseInt(document.getElementById('scheduleClassId').value, 10),
         subjectId: parseInt(document.getElementById('scheduleSubjectId').value, 10),
         dayOfWeek: parseInt(document.getElementById('scheduleDayOfWeek').value, 10),
-        startTime: document.getElementById('scheduleStartTime').value,
-        endTime: document.getElementById('scheduleEndTime').value,
+        startTime,
+        endTime,
         effectiveFrom: document.getElementById('scheduleEffectiveFrom').value,
         effectiveTo: document.getElementById('scheduleEffectiveTo').value || null,
         note: document.getElementById('scheduleNote').value.trim() || null,
@@ -431,6 +464,7 @@ async function editClass(classId) {
     const panelTitle = document.getElementById('panelTitle');
     if (panelTitle) panelTitle.textContent = 'Chỉnh sửa lớp học';
     document.getElementById('saveClassBtn').textContent = 'Cập nhật lớp học';
+    await loadClassTeacherManagement(classId);
     openPanel();
 }
 
@@ -491,6 +525,11 @@ function openScheduleModal(day, slotIdx, isEdit = false, suggestedStartTime = nu
     const classId = parseInt(document.getElementById('scheduleClassFilter').value || '0', 10);
     if (!classId) {
         alert('Vui lòng chọn lớp trước khi xếp lịch.');
+        return;
+    }
+
+    if (!isEdit && slotIdx >= 0 && ACTIVITY_SLOTS[slotIdx]?.locked) {
+        showAlert('scheduleAlert', false, 'Khung 11:00 - 14:00 là thời gian ăn và ngủ trưa, không xếp lịch.');
         return;
     }
 
@@ -601,6 +640,140 @@ function selectScheduleClass(classId) {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
 
+async function loadClassTeacherManagement(classId) {
+    const section = document.getElementById('classTeachersSection');
+    if (!section) return;
+    section.style.display = 'block';
+
+    const [teachersResult, assignmentsResult] = await Promise.all([
+        fetchJson('/Manager/Api/Teachers'),
+        fetchJson('/Manager/Api/Assignments')
+    ]);
+
+    allClassTeachers = teachersResult.success ? teachersResult.data : [];
+    allClassAssignments = assignmentsResult.success ? assignmentsResult.data : [];
+    fillClassTeacherSelect();
+    renderClassTeacherAssignments(classId);
+    resetClassTeacherForm();
+}
+
+function fillClassTeacherSelect() {
+    const select = document.getElementById('classTeacherSelect');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- Chọn giáo viên --</option>';
+    allClassTeachers.forEach(t => {
+        const option = document.createElement('option');
+        option.value = t.id;
+        option.textContent = t.fullName;
+        select.appendChild(option);
+    });
+}
+
+function renderClassTeacherAssignments(classId) {
+    const list = document.getElementById('classTeacherList');
+    if (!list) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const assignments = allClassAssignments.filter(a =>
+        a.classId === classId &&
+        a.startDate <= today &&
+        (!a.endDate || a.endDate >= today)
+    );
+    if (assignments.length === 0) {
+        list.innerHTML = '<div class="text-muted" style="font-size:0.85rem;">Chưa phân công giáo viên cho lớp này.</div>';
+        return;
+    }
+
+    list.innerHTML = assignments.map(a => `
+        <div class="teacher-tag" style="justify-content:space-between; margin-bottom:8px; display:flex;">
+            <div>
+                <span class="teacher-tag-name">${escapeHtml(a.employeeName)}</span>
+                <span class="badge badge-info">${escapeHtml(a.roleInClass || 'Giáo viên phụ trách')}</span>
+                <div class="text-muted" style="font-size:0.75rem;">${formatEffectiveRange(a.startDate, a.endDate)}</div>
+            </div>
+            <div class="d-flex gap-1">
+                <button type="button" class="btn-table" onclick="editClassTeacherAssignment(${a.employeeId}, '${a.startDate}')">Sửa</button>
+                <button type="button" class="btn-table delete" onclick="deleteClassTeacherAssignment(${a.employeeId}, '${a.startDate}')">Xóa</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function resetClassTeacherForm() {
+    const today = new Date().toISOString().split('T')[0];
+    const oldEmployee = document.getElementById('classTeacherEditOldEmployeeId');
+    const oldStart = document.getElementById('classTeacherEditOldStartDate');
+    if (oldEmployee) oldEmployee.value = '';
+    if (oldStart) oldStart.value = '';
+    if (document.getElementById('classTeacherSelect')) document.getElementById('classTeacherSelect').value = '';
+    if (document.getElementById('classTeacherRole')) document.getElementById('classTeacherRole').value = 'Giáo viên phụ trách';
+    if (document.getElementById('classTeacherStartDate')) document.getElementById('classTeacherStartDate').value = today;
+    if (document.getElementById('classTeacherEndDate')) document.getElementById('classTeacherEndDate').value = '';
+}
+
+function editClassTeacherAssignment(employeeId, startDate) {
+    const assignment = allClassAssignments.find(a => a.classId === currentClassId && a.employeeId === employeeId && a.startDate === startDate);
+    if (!assignment) return;
+
+    document.getElementById('classTeacherEditOldEmployeeId').value = assignment.employeeId;
+    document.getElementById('classTeacherEditOldStartDate').value = assignment.startDate;
+    document.getElementById('classTeacherSelect').value = assignment.employeeId;
+    if (document.getElementById('classTeacherRole')) {
+        document.getElementById('classTeacherRole').value = 'Giáo viên phụ trách';
+    }
+    document.getElementById('classTeacherStartDate').value = assignment.startDate;
+    document.getElementById('classTeacherEndDate').value = assignment.endDate || '';
+}
+
+async function saveClassTeacherAssignment() {
+    if (!currentClassId) return;
+
+    const employeeId = parseInt(document.getElementById('classTeacherSelect').value || '0', 10);
+    const startDate = document.getElementById('classTeacherStartDate').value;
+    if (!employeeId || !startDate) {
+        showAlert('classFormAlert', false, 'Vui lòng chọn giáo viên và ngày bắt đầu.');
+        return;
+    }
+
+    const oldEmployeeId = parseInt(document.getElementById('classTeacherEditOldEmployeeId').value || '0', 10);
+    const oldStartDate = document.getElementById('classTeacherEditOldStartDate').value;
+    const isEdit = !!oldEmployeeId && !!oldStartDate;
+    const payload = {
+        employeeId,
+        classId: currentClassId,
+        startDate,
+        endDate: document.getElementById('classTeacherEndDate').value || null,
+        roleInClass: 'Giáo viên phụ trách'
+    };
+
+    if (isEdit) {
+        payload.oldEmployeeId = oldEmployeeId;
+        payload.oldClassId = currentClassId;
+        payload.oldStartDate = oldStartDate;
+    }
+
+    const result = await sendJson('/Manager/Api/Assignment', isEdit ? 'PUT' : 'POST', payload);
+    if (!result.success) {
+        showAlert('classFormAlert', false, result.message || 'Không thể lưu phân công giáo viên.');
+        return;
+    }
+
+    showAlert('classAlert', true, result.message || 'Đã lưu phân công giáo viên.');
+    await Promise.all([loadClassTeacherManagement(currentClassId), loadClassesOverview()]);
+}
+
+async function deleteClassTeacherAssignment(employeeId, startDate) {
+    if (!currentClassId || !confirm('Xóa phân công giáo viên này?')) return;
+    const result = await fetchJson(`/Manager/Api/Assignment?employeeId=${employeeId}&classId=${currentClassId}&startDate=${encodeURIComponent(startDate)}`, { method: 'DELETE' });
+    if (!result.success) {
+        showAlert('classAlert', false, result.message || 'Không thể xóa phân công giáo viên.');
+        return;
+    }
+
+    showAlert('classAlert', true, result.message || 'Đã xóa phân công giáo viên.');
+    await Promise.all([loadClassTeacherManagement(currentClassId), loadClassesOverview()]);
+}
+
 function resetClassForm() {
     currentClassId = null;
     const form = document.getElementById('classForm');
@@ -611,6 +784,9 @@ function resetClassForm() {
         const panelTitle = document.getElementById('panelTitle');
         if (panelTitle) panelTitle.textContent = 'Thêm lớp học mới';
     }
+    const teacherSection = document.getElementById('classTeachersSection');
+    if (teacherSection) teacherSection.style.display = 'none';
+    resetClassTeacherForm();
     const formAlert = document.getElementById('classFormAlert');
     if (formAlert) formAlert.style.display = 'none';
 }
@@ -650,6 +826,48 @@ function resetScheduleForm(classId = null) {
 
     const formAlert = document.getElementById('scheduleFormAlert');
     if (formAlert) formAlert.style.display = 'none';
+}
+
+function getSelectedScheduleWeekStart() {
+    const value = document.getElementById('scheduleWeekFilter')?.value;
+    return value || getMondayDateString(new Date());
+}
+
+function getMondayDateString(date) {
+    const normalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const day = normalized.getDay();
+    const offset = day === 0 ? -6 : 1 - day;
+    normalized.setDate(normalized.getDate() + offset);
+    return normalized.toISOString().split('T')[0];
+}
+
+function timeToMinutes(value) {
+    if (!value || !value.includes(':')) return null;
+    const [hours, minutes] = value.split(':').map(Number);
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+    return hours * 60 + minutes;
+}
+
+function validateScheduleTimeRange(startTime, endTime) {
+    const start = timeToMinutes(startTime);
+    const end = timeToMinutes(endTime);
+    if (start === null || end === null) return 'Khung giờ không hợp lệ.';
+    if (end <= start) return 'Giờ kết thúc phải lớn hơn giờ bắt đầu.';
+
+    const schoolStart = timeToMinutes('06:45');
+    const schoolEnd = timeToMinutes('17:00');
+    if (start < schoolStart || end > schoolEnd) return 'Chỉ được xếp lịch trong khung 06:45 - 17:00.';
+
+    const lunchStart = timeToMinutes('11:00');
+    const lunchEnd = timeToMinutes('14:00');
+    if (start < lunchEnd && end > lunchStart) return 'Thời khóa biểu không được chồng lên khung nghỉ trưa 11:00 - 14:00.';
+
+    const matchingSlot = ACTIVITY_SLOTS.some(slot =>
+        !slot.locked &&
+        start >= timeToMinutes(slot.start) &&
+        end <= timeToMinutes(slot.end)
+    );
+    return matchingSlot ? null : 'Thời khóa biểu phải nằm trọn trong một khung hoạt động hợp lệ.';
 }
 
 function fillSelect(selectElement, data, placeholder, valueKey = 'id', textResolver = item => item.name) {

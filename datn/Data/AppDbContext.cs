@@ -58,6 +58,7 @@ namespace datn.Data
         public DbSet<StudentActivity> StudentActivities { get; set; }
         public DbSet<FeeItem> FeeItems { get; set; }
         public DbSet<StudentFeeConfig> StudentFeeConfigs { get; set; }
+        public DbSet<MonthlyStudentFeeAssignment> MonthlyStudentFeeAssignments { get; set; }
         public DbSet<TuitionDetail> TuitionDetails { get; set; }
         public DbSet<Menu> Menus { get; set; }
         public DbSet<DailyReport> DailyReports { get; set; }
@@ -423,6 +424,32 @@ namespace datn.Data
                 .HasOne(sfc => sfc.FeeItem)
                 .WithMany(fi => fi.StudentFeeConfigs)
                 .HasForeignKey(sfc => sfc.FeeItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MonthlyStudentFeeAssignment>()
+                .HasIndex(a => new { a.Month, a.Year, a.ClassId, a.StudentId, a.FeeItemId })
+                .IsUnique();
+
+            modelBuilder.Entity<MonthlyStudentFeeAssignment>()
+                .Property(a => a.Amount)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<MonthlyStudentFeeAssignment>()
+                .HasOne(a => a.Class)
+                .WithMany()
+                .HasForeignKey(a => a.ClassId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MonthlyStudentFeeAssignment>()
+                .HasOne(a => a.Student)
+                .WithMany()
+                .HasForeignKey(a => a.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MonthlyStudentFeeAssignment>()
+                .HasOne(a => a.FeeItem)
+                .WithMany()
+                .HasForeignKey(a => a.FeeItemId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // ── TuitionDetail ────────────────────────────────────

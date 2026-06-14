@@ -68,7 +68,7 @@ namespace datn.Controllers.Manager
                 isActive = c.IsActive,
                 studentCount = c.Students.Count,
                 teachers = c.Assignments
-                    .Where(a => a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
+                    .Where(a => a.IsActive && a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
                     .Select(a => new
                     {
                         employeeId = a.EmployeeId,
@@ -108,7 +108,7 @@ namespace datn.Controllers.Manager
                     maxCapacity = classroom.MaxCapacity,
                     studentCount = classroom.Students.Count,
                     teachers = classroom.Assignments
-                        .Where(a => a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
+                        .Where(a => a.IsActive && a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
                         .Select(a => new
                         {
                             employeeId = a.EmployeeId,

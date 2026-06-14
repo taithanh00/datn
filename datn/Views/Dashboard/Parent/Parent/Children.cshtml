@@ -1,4 +1,4 @@
-@model IEnumerable<datn.Controllers.ParentChildrenViewModel>
+﻿@model IEnumerable<datn.Controllers.ParentChildrenViewModel>
 @{
     Layout = "_DashboardLayout";
     ViewData["Title"] = "Hồ sơ của bé";
@@ -177,6 +177,9 @@
     @foreach (var item in Model)
     {
         var student = item.Student;
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var age = today.Year - student.DateOfBirth.Year;
+        if (today < student.DateOfBirth.AddYears(age)) age--;
         <div class="child-card">
             <!-- Banner Section -->
             <div class="child-banner">
@@ -184,7 +187,7 @@
                      class="child-avatar"
                      alt="Avatar"
                      onerror="this.src='/images/lion_orange.png'">
-                <h2 class="child-name">@student.FirstName @student.LastName</h2>
+                <h2 class="child-name">@student.FullName</h2>
                 <div class="class-badge">
                     <i class="fa-solid fa-graduation-cap"></i> 
                     Lớp @(student.Class?.Name ?? "Chưa gán lớp")
@@ -237,6 +240,13 @@
                         </div>
                     </div>
                     <div class="info-item">
+                        <div class="info-icon"><i class="fa-solid fa-child-reaching"></i></div>
+                        <div>
+                            <div class="info-label">Tuổi</div>
+                            <div class="info-value">@age tuổi</div>
+                        </div>
+                    </div>
+                    <div class="info-item">
                         <div class="info-icon"><i class="fa-solid fa-id-card"></i></div>
                         <div>
                             <div class="info-label">Mã học sinh</div>
@@ -247,7 +257,7 @@
                         <div class="info-icon"><i class="fa-solid fa-map-location-dot"></i></div>
                         <div>
                             <div class="info-label">Địa chỉ</div>
-                            <div class="info-value" title="@student.Address">@(student.Address.Length > 20 ? student.Address.Substring(0, 17) + "..." : student.Address)</div>
+                            <div class="info-value">@(string.IsNullOrWhiteSpace(student.Address) ? "Chưa cập nhật" : student.Address)</div>
                         </div>
                     </div>
                 </div>

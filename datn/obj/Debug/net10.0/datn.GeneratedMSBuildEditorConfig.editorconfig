@@ -194,6 +194,14 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFBhcmVudFxQYXJlbnRcQ2hpbGRyZW4uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/thanhBinh/datn/Views/Dashboard/Parent/Parent/ClassClosure.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFBhcmVudFxQYXJlbnRcQ2xhc3NDbG9zdXJlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/thanhBinh/datn/Views/Dashboard/Parent/Parent/HolidayDetail.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFBhcmVudFxQYXJlbnRcSG9saWRheURldGFpbC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/thanhBinh/datn/Views/Dashboard/Parent/Parent/StudyReports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFBhcmVudFxQYXJlbnRcU3R1ZHlSZXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -220,6 +228,14 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/thanhBinh/datn/Views/Dashboard/Teacher/Employee/Classes.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFRlYWNoZXJcRW1wbG95ZWVcQ2xhc3Nlcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/thanhBinh/datn/Views/Dashboard/Teacher/Employee/HolidayDetail.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFRlYWNoZXJcRW1wbG95ZWVcSG9saWRheURldGFpbC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/thanhBinh/datn/Views/Dashboard/Teacher/Employee/Holidays.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXFRlYWNoZXJcRW1wbG95ZWVcSG9saWRheXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/thanhBinh/datn/Views/Dashboard/Teacher/Employee/Index.cshtml]

@@ -179,6 +179,25 @@ namespace datn.Controllers.Teacher
             return View("~/Views/Dashboard/Teacher/Employee/WorkSchedule.cshtml");
         }
 
+        [HttpGet("Holidays")]
+        public IActionResult Holidays()
+        {
+            ViewData["Title"] = "Ngày lễ";
+            return View("~/Views/Dashboard/Teacher/Employee/Holidays.cshtml");
+        }
+
+        [HttpGet("HolidayDetail/{id:int}")]
+        public async Task<IActionResult> HolidayDetail(int id)
+        {
+            ViewData["Title"] = "Chi tiết ngày lễ";
+            var holiday = await _context.Holidays.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(h => h.Id == id);
+            if (holiday == null) return NotFound();
+
+            ViewBag.StatusText = GetHolidayStatusText(holiday.Date);
+            return View("~/Views/Dashboard/Teacher/Employee/HolidayDetail.cshtml", holiday);
+        }
+
         [HttpGet("StudentDetail/{id:int}")]
         public async Task<IActionResult> StudentDetail(int id, [FromServices] IStudentService studentService)
         {
@@ -234,9 +253,9 @@ namespace datn.Controllers.Teacher
                     return Json(new { success = false, message = "Bạn không có quyền xem lớp này." });
 
                 var reportDate = new DateOnly(year, month, 1);
+                var currentMonth = new DateOnly(today.Year, today.Month, 1);
+                var isPastPeriod = reportDate < currentMonth;
                 var isLead = await HasActiveAssignmentAsync(employeeId.Value, classId, today);
-                var isSubmitted = await _context.StudyReports
-                    .AnyAsync(sr => sr.Date == reportDate && sr.Student.ClassId == classId);
 
                 var students = await _context.Students
                     .Where(s => s.ClassId == classId)
@@ -251,13 +270,14 @@ namespace datn.Controllers.Teacher
                             .Where(sr => sr.StudentId == s.Id && sr.Date == reportDate)
                             .Select(sr => new {
                                 rankingId = sr.RankingId,
-                                comment = sr.Comment
+                                comment = sr.Comment,
+                                submittedAt = sr.Date.ToString("dd/MM/yyyy")
                             })
                             .FirstOrDefault()
                     })
                     .ToListAsync();
 
-                return Json(new { success = true, data = students, isLead, isSubmitted });
+                return Json(new { success = true, data = students, isLead, isPastPeriod });
             }
             catch (Exception ex)
             {
@@ -278,18 +298,24 @@ namespace datn.Controllers.Teacher
                 // Xác nhận giáo viên đang phụ trách lớp.
                 var reportDate = new DateOnly(model.Year, model.Month, 1);
                 var today = GetTodayVnt();
+                var currentMonth = new DateOnly(today.Year, today.Month, 1);
+                if (reportDate < currentMonth)
+                    return Json(new { success = false, message = "Không thể gửi đánh giá cho tháng đã qua." });
+
                 var isLead = await HasActiveAssignmentAsync(employeeId.Value, model.ClassId, today);
                 if (!isLead)
                     return Json(new { success = false, message = "Chỉ giáo viên phụ trách mới có quyền gửi đánh giá học tập tháng." });
 
-                var submitted = await _context.StudyReports
-                    .AnyAsync(sr => sr.Date == reportDate && sr.Student.ClassId == model.ClassId);
-                if (submitted)
-                    return Json(new { success = false, message = $"Lớp này đã gửi đánh giá tháng {model.Month}/{model.Year}. Mỗi lớp chỉ được gửi 1 lần trong một tháng." });
-
                 var studentIds = model.Records.Select(r => r.StudentId).Distinct().ToList();
                 if (studentIds.Count != model.Records.Count)
                     return Json(new { success = false, message = "Dữ liệu đánh giá có học sinh bị trùng." });
+
+                var alreadySubmittedStudents = await _context.StudyReports
+                    .Where(sr => sr.Date == reportDate && studentIds.Contains(sr.StudentId))
+                    .Select(sr => sr.StudentId)
+                    .ToListAsync();
+                if (alreadySubmittedStudents.Count > 0)
+                    return Json(new { success = false, message = "Một hoặc nhiều học sinh đã được gửi đánh giá trong tháng này." });
 
                 var validStudentCount = await _context.Students
                     .CountAsync(s => studentIds.Contains(s.Id) && s.ClassId == model.ClassId);
@@ -481,6 +507,27 @@ namespace datn.Controllers.Teacher
                 date = today.ToString("dd/MM/yyyy"),
                 data = finalSchedules.OrderBy(s => s.startTime)
             });
+        }
+
+        [HttpGet("Api/Holidays")]
+        public async Task<IActionResult> GetHolidays()
+        {
+            var today = GetTodayVnt();
+            var holidays = await _context.Holidays
+                .OrderBy(h => h.Date)
+                .Select(h => new
+                {
+                    id = h.Id,
+                    name = h.Name,
+                    date = h.Date.ToString("yyyy-MM-dd"),
+                    displayDate = h.Date.ToString("dd/MM/yyyy"),
+                    description = h.Description,
+                    isPast = h.Date < today,
+                    isToday = h.Date == today
+                })
+                .ToListAsync();
+
+            return Json(new { success = true, data = holidays });
         }
 
         [HttpGet("Api/WeeklyTimetable")]
@@ -830,6 +877,13 @@ namespace datn.Controllers.Teacher
                 DayOfWeek.Saturday => 6,
                 _ => null
             };
+        }
+
+        private static string GetHolidayStatusText(DateOnly date)
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            if (date == today) return "Hôm nay";
+            return date < today ? "Đã qua" : "Sắp tới";
         }
     }
 

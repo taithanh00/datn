@@ -10,39 +10,50 @@ namespace datn.Controllers.Manager
     [Route("Manager")]
     public class ClassScheduleController : BaseController
     {
-        private static readonly TimeOnly SchoolStart = new(7, 0);
+        private static readonly TimeOnly SchoolStart = new(6, 45);
         private static readonly TimeOnly LunchStart = new(11, 0);
-        private static readonly TimeOnly LunchEnd = new(13, 0);
-        private static readonly TimeOnly SchoolEnd = new(16, 30);
+        private static readonly TimeOnly LunchEnd = new(14, 0);
+        private static readonly TimeOnly SchoolEnd = new(17, 0);
+        private static readonly ScheduleSlot[] SchedulableSlots =
+        [
+            new("Đón trẻ & Ăn sáng", new TimeOnly(6, 45), new TimeOnly(8, 15)),
+            new("Học chính", new TimeOnly(8, 15), new TimeOnly(9, 45)),
+            new("Vận động", new TimeOnly(9, 45), new TimeOnly(11, 0)),
+            new("Hoạt động chiều", new TimeOnly(14, 0), new TimeOnly(15, 30)),
+            new("Trả trẻ", new TimeOnly(15, 30), new TimeOnly(17, 0))
+        ];
 
         public ClassScheduleController(AppDbContext context) : base(context) { }
 
-        // ============ CLASS SCHEDULE API ============
-
         [HttpGet("Api/ClassSchedules")]
-        public async Task<IActionResult> GetClassSchedules(int classId)
+        public async Task<IActionResult> GetClassSchedules(int classId, string? weekStart = null)
         {
+            var selectedWeekStart = ResolveWeekStart(weekStart);
+            var selectedWeekEnd = selectedWeekStart.AddDays(5);
+
             var schedules = await _context.ClassSchedules
-                .Where(cs => cs.ClassId == classId)
+                .Where(cs => cs.ClassId == classId
+                    && cs.EffectiveFrom <= selectedWeekEnd
+                    && (cs.EffectiveTo == null || cs.EffectiveTo >= selectedWeekStart))
                 .Include(cs => cs.Subject)
                 .Include(cs => cs.Location)
                 .OrderBy(cs => cs.DayOfWeek)
                 .ThenBy(cs => cs.StartTime)
                 .ToListAsync();
 
-            // Lấy danh sách giáo viên phụ trách lớp này để hiển thị
-            var teachers = await _context.Assignments
-                .Where(a => a.ClassId == classId && a.IsActive)
+            var assignments = await _context.Assignments
+                .Where(a => a.ClassId == classId
+                    && a.IsActive
+                    && a.StartDate <= selectedWeekEnd
+                    && (a.EndDate == null || a.EndDate >= selectedWeekStart))
                 .Include(a => a.Employee)
-                .Select(a => a.Employee.FullName)
-                .Distinct()
                 .ToListAsync();
-
-            var teacherNames = string.Join(", ", teachers);
 
             return Json(new
             {
                 success = true,
+                weekStart = selectedWeekStart.ToString("yyyy-MM-dd"),
+                weekEnd = selectedWeekEnd.ToString("yyyy-MM-dd"),
                 data = schedules.Select(cs => new
                 {
                     id = cs.Id,
@@ -50,7 +61,10 @@ namespace datn.Controllers.Manager
                     subjectId = cs.SubjectId,
                     subjectName = cs.Subject.Name,
                     employeeId = cs.EmployeeId,
-                    teacherName = teacherNames, // Hiển thị tất cả giáo viên phụ trách lớp
+                    teacherName = string.Join(", ", assignments
+                        .Where(a => DateRangesOverlap(a.StartDate, a.EndDate, cs.EffectiveFrom, cs.EffectiveTo))
+                        .Select(a => a.Employee.FullName)
+                        .Distinct()),
                     dayOfWeek = cs.DayOfWeek,
                     dayLabel = GetVietnameseDayLabel(cs.DayOfWeek),
                     startTime = cs.StartTime.ToString("HH:mm"),
@@ -105,7 +119,7 @@ namespace datn.Controllers.Manager
             {
                 ClassId = model.ClassId,
                 SubjectId = model.SubjectId,
-                EmployeeId = null, // Không gắn cứng giáo viên vào tiết học
+                EmployeeId = null,
                 DayOfWeek = model.DayOfWeek,
                 StartTime = TimeOnly.Parse(model.StartTime),
                 EndTime = TimeOnly.Parse(model.EndTime),
@@ -135,7 +149,7 @@ namespace datn.Controllers.Manager
 
             schedule.ClassId = model.ClassId;
             schedule.SubjectId = model.SubjectId;
-            schedule.EmployeeId = null; // Luôn để null để áp dụng cho mọi GV phụ trách lớp
+            schedule.EmployeeId = null;
             schedule.DayOfWeek = model.DayOfWeek;
             schedule.StartTime = TimeOnly.Parse(model.StartTime);
             schedule.EndTime = TimeOnly.Parse(model.EndTime);
@@ -153,7 +167,8 @@ namespace datn.Controllers.Manager
         public async Task<IActionResult> DeleteSchedule(int id)
         {
             var schedule = await _context.ClassSchedules.FindAsync(id);
-            if (schedule == null) return Json(new { success = false, message = "Không tìm thấy lịch học" });
+            if (schedule == null)
+                return Json(new { success = false, message = "Không tìm thấy lịch học." });
 
             schedule.IsActive = false;
             await _context.SaveChangesAsync();
@@ -164,7 +179,8 @@ namespace datn.Controllers.Manager
         public async Task<IActionResult> ReactivateSchedule(int id)
         {
             var schedule = await _context.ClassSchedules.IgnoreQueryFilters().FirstOrDefaultAsync(cs => cs.Id == id);
-            if (schedule == null) return Json(new { success = false, message = "Không tìm thấy." });
+            if (schedule == null)
+                return Json(new { success = false, message = "Không tìm thấy." });
 
             schedule.IsActive = true;
             await _context.SaveChangesAsync();
@@ -179,7 +195,6 @@ namespace datn.Controllers.Manager
             if (!await _context.Subjects.AnyAsync(s => s.Id == model.SubjectId && s.IsActive))
                 return "Môn học không tồn tại hoặc đã ngừng sử dụng.";
 
-            // Validate LocationId if provided
             if (model.LocationId.HasValue && model.LocationId > 0)
             {
                 if (!await _context.Locations.AnyAsync(l => l.Id == model.LocationId))
@@ -213,13 +228,33 @@ namespace datn.Controllers.Manager
                 return "Chỉ được xếp lịch trong khung 06:45 - 17:00.";
 
             if (startTime < LunchEnd && endTime > LunchStart)
-                return "Thời khóa biểu không được chồng lên khung nghỉ trưa 11:00 - 13:00.";
+                return "Thời khóa biểu không được chồng lên khung nghỉ trưa 11:00 - 14:00.";
 
-            var sameDaySchedules = await _context.ClassSchedules
-                .Where(cs => cs.DayOfWeek == model.DayOfWeek
-                    && cs.Id != (scheduleId ?? 0)
-                    && cs.IsActive)
-                .ToListAsync();
+            var matchingSlot = SchedulableSlots.FirstOrDefault(slot => startTime >= slot.Start && endTime <= slot.End);
+            if (matchingSlot == null)
+                return "Thời khóa biểu phải nằm trọn trong một khung hoạt động hợp lệ.";
+
+            var hasCoveredTeacher = await _context.Assignments.AnyAsync(a =>
+                a.ClassId == model.ClassId &&
+                a.IsActive &&
+                a.StartDate <= effectiveFrom &&
+                (effectiveTo == null
+                    ? a.EndDate == null
+                    : a.EndDate == null || a.EndDate >= effectiveTo));
+
+            if (!hasCoveredTeacher)
+                return "Lớp chưa có giáo viên phụ trách bao phủ toàn bộ thời gian hiệu lực của lịch.";
+
+            var sameDayQuery = _context.ClassSchedules
+                .Where(cs => cs.DayOfWeek == model.DayOfWeek && cs.IsActive);
+
+            if (scheduleId.HasValue)
+            {
+                var currentScheduleId = scheduleId.Value;
+                sameDayQuery = sameDayQuery.Where(cs => cs.Id != currentScheduleId);
+            }
+
+            var sameDaySchedules = await sameDayQuery.ToListAsync();
 
             var classOverlapSchedule = sameDaySchedules.FirstOrDefault(cs =>
                 cs.ClassId == model.ClassId
@@ -258,6 +293,27 @@ namespace datn.Controllers.Manager
             return leftStart < rightEnd && rightStart < leftEnd;
         }
 
+        private static DateOnly ResolveWeekStart(string? weekStart)
+        {
+            var date = DateOnly.TryParse(weekStart, out var parsed)
+                ? parsed
+                : DateOnly.FromDateTime(DateTime.Today);
+
+            var offset = date.DayOfWeek switch
+            {
+                DayOfWeek.Monday => 0,
+                DayOfWeek.Tuesday => 1,
+                DayOfWeek.Wednesday => 2,
+                DayOfWeek.Thursday => 3,
+                DayOfWeek.Friday => 4,
+                DayOfWeek.Saturday => 5,
+                DayOfWeek.Sunday => 6,
+                _ => 0
+            };
+
+            return date.AddDays(-offset);
+        }
+
         private static string GetVietnameseDayLabel(int dayOfWeek)
         {
             return dayOfWeek switch
@@ -271,5 +327,7 @@ namespace datn.Controllers.Manager
                 _ => "Không xác định"
             };
         }
+
+        private sealed record ScheduleSlot(string Name, TimeOnly Start, TimeOnly End);
     }
 }

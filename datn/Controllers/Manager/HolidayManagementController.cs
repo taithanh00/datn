@@ -48,6 +48,10 @@ namespace datn.Controllers.Manager
                 return Json(new { success = false, message = "Vui lòng nhập tên ngày lễ." });
 
             // Sử dụng IgnoreQueryFilters để kiểm tra trùng ngày kể cả với ngày đã ẩn
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            if (model.Date < today)
+                return Json(new { success = false, message = "Ch\u1ec9 \u0111\u01b0\u1ee3c t\u1ea1o ng\u00e0y l\u1ec5 t\u1eeb h\u00f4m nay tr\u1edf \u0111i." });
+
             var existing = await _context.Holidays.IgnoreQueryFilters().FirstOrDefaultAsync(h => h.Date == model.Date);
             if (existing != null)
             {
@@ -94,10 +98,27 @@ namespace datn.Controllers.Manager
             await _context.SaveChangesAsync();
 
             // GỬI THÔNG BÁO CHO TOÀN BỘ GIÁO VIÊN VÀ PHỤ HUYNH
-            await _notificationService.SendToAllAsync(
-                "Thông báo nghỉ lễ",
-                $"Trường sẽ nghỉ lễ '{model.Name}' vào ngày {model.Date:dd/MM/yyyy}. Chúc các bạn có một kỳ nghỉ vui vẻ!",
-                "info", "/Employee/WorkSchedule"
+            var holidayMessage = $"Tr\u01b0\u1eddng s\u1ebd ngh\u1ec9 l\u1ec5 '{model.Name}' v\u00e0o ng\u00e0y {model.Date:dd/MM/yyyy}. Ch\u00fac c\u00e1c b\u1ea1n c\u00f3 m\u1ed9t k\u1ef3 ngh\u1ec9 vui v\u1ebb!";
+            await _notificationService.SendToRoleAsync(
+                "Employee",
+                "Th\u00f4ng b\u00e1o ngh\u1ec9 l\u1ec5",
+                holidayMessage,
+                "info",
+                $"/Employee/HolidayDetail/{model.Id}"
+            );
+            await _notificationService.SendToRoleAsync(
+                "Parent",
+                "Th\u00f4ng b\u00e1o ngh\u1ec9 l\u1ec5",
+                holidayMessage,
+                "info",
+                $"/Parent/HolidayDetail/{model.Id}"
+            );
+            await _notificationService.SendToRoleAsync(
+                "Manager",
+                "Th\u00f4ng b\u00e1o ngh\u1ec9 l\u1ec5",
+                holidayMessage,
+                "info",
+                "/HolidayManagement"
             );
 
             return Json(new { success = true, message = "Đã thiết lập ngày lễ, tự động tính công và gửi thông báo thành công." });

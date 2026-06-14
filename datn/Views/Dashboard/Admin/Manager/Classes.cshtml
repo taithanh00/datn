@@ -85,6 +85,39 @@
                 </div>
             </div>
 
+            <div class="form-section" id="classTeachersSection" style="display:none;">
+                <h4>Giáo viên phụ trách</h4>
+                <div id="classTeacherList" class="mb-3"></div>
+                <input type="hidden" id="classTeacherEditOldEmployeeId" />
+                <input type="hidden" id="classTeacherEditOldStartDate" />
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div class="form-group">
+                        <label class="form-label" for="classTeacherSelect">Giáo viên</label>
+                        <select id="classTeacherSelect" class="form-control"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="classTeacherRole">Vai trò</label>
+                        <select id="classTeacherRole" class="form-control">
+                            <option value="Giáo viên phụ trách">Giáo viên phụ trách</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="classTeacherStartDate">Từ ngày</label>
+                        <input id="classTeacherStartDate" type="date" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="classTeacherEndDate">Đến ngày</label>
+                        <input id="classTeacherEndDate" type="date" class="form-control" />
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline" id="saveClassTeacherBtn">
+                        <i class="fa-solid fa-user-plus"></i> Lưu giáo viên
+                    </button>
+                    <button type="button" class="btn btn-outline" id="resetClassTeacherBtn">Hủy sửa</button>
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="btn-save" id="saveClassBtn">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Lưu lớp học

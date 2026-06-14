@@ -32,11 +32,12 @@ namespace datn.Controllers
         public async Task<IActionResult> Index()
         {
             ViewData["Title"] = "Quản lý học phí";
-            var mandatoryFees = await _context.FeeItems
-                .Where(f => f.IsActive && f.IsRequired)
+            var configuredFees = await _context.FeeItems
+                .Where(f => f.IsActive)
                 .OrderBy(f => f.AgeFrom)
+                .ThenBy(f => f.Name)
                 .ToListAsync();
-            return View(mandatoryFees);
+            return View(configuredFees);
         }
 
         [Authorize(Roles = "Manager")]
@@ -59,6 +60,7 @@ namespace datn.Controllers
 
         [Authorize(Roles = "Parent")]
         [HttpGet("MyTuition")]
+        [HttpGet("/Parent/Tuition/MyTuition")]
         public async Task<IActionResult> MyTuition()
         {
             ViewData["Title"] = "Học phí của con";
@@ -81,6 +83,7 @@ namespace datn.Controllers
 
         [Authorize(Roles = "Parent")]
         [HttpPost("CreateMoMoPayment/{id}")]
+        [HttpPost("/Parent/Tuition/CreateMoMoPayment/{id}")]
         public async Task<IActionResult> CreateMoMoPayment(int id)
         {
             var username = User.Identity?.Name;
@@ -203,7 +206,7 @@ namespace datn.Controllers
                                     await _notificationService.SendToUserAsync(parentStudent.Parent.AccountId, 
                                         "Xác nhận đã đóng học phí", 
                                         $"Hệ thống đã nhận được học phí tháng {tuition.Month}/{tuition.Year} qua MoMo cho bé {tuition.Student?.FirstName} {tuition.Student?.LastName}. Cảm ơn quý phụ huynh.",
-                                        "success", "/Tuition/MyTuition");
+                                        "success", "/Parent/Tuition/MyTuition");
                                 }
                             }
                         }
@@ -276,6 +279,109 @@ namespace datn.Controllers
         }
 
         [Authorize(Roles = "Manager")]
+        [HttpGet("Api/MonthlyStudentFees")]
+        public async Task<IActionResult> GetMonthlyStudentFees(int month, int year, int classId, int feeItemId)
+        {
+            if (month < 1 || month > 12 || year < 2000 || classId <= 0 || feeItemId <= 0)
+                return Json(new { success = false, message = "Thông tin cấu hình khoản thu không hợp lệ." });
+
+            var feeItem = await _context.FeeItems.FirstOrDefaultAsync(f => f.Id == feeItemId);
+            if (feeItem == null)
+                return Json(new { success = false, message = "Không tìm thấy khoản thu." });
+
+            var assignments = await _context.MonthlyStudentFeeAssignments
+                .Where(a => a.Month == month && a.Year == year && a.ClassId == classId && a.FeeItemId == feeItemId && a.IsActive)
+                .ToDictionaryAsync(a => a.StudentId);
+
+            var students = await _context.Students
+                .Where(s => s.ClassId == classId && s.Status == StudentStatus.Active)
+                .OrderBy(s => s.LastName)
+                .ThenBy(s => s.FirstName)
+                .Select(s => new
+                {
+                    id = s.Id,
+                    fullName = ((s.LastName ?? "") + " " + (s.FirstName ?? "")).Trim(),
+                    avatarPath = s.AvatarPath ?? "/images/lion_orange.png"
+                })
+                .ToListAsync();
+
+            var data = students.Select(s =>
+            {
+                assignments.TryGetValue(s.id, out var assignment);
+                return new
+                {
+                    s.id,
+                    s.fullName,
+                    s.avatarPath,
+                    isApplied = assignment != null,
+                    amount = assignment?.Amount ?? feeItem.DefaultAmount,
+                    note = assignment?.Note ?? ""
+                };
+            });
+
+            return Json(new { success = true, feeName = feeItem.Name, defaultAmount = feeItem.DefaultAmount, data });
+        }
+
+        [Authorize(Roles = "Manager")]
+        [HttpPost("Api/MonthlyStudentFees")]
+        public async Task<IActionResult> SaveMonthlyStudentFees([FromBody] SaveMonthlyStudentFeesViewModel model)
+        {
+            if (model.Month < 1 || model.Month > 12 || model.Year < 2000 || model.ClassId <= 0 || model.FeeItemId <= 0)
+                return Json(new { success = false, message = "Thông tin cấu hình khoản thu không hợp lệ." });
+
+            var feeItem = await _context.FeeItems.FirstOrDefaultAsync(f => f.Id == model.FeeItemId);
+            if (feeItem == null)
+                return Json(new { success = false, message = "Không tìm thấy khoản thu." });
+
+            var studentIds = model.Students.Select(s => s.StudentId).Distinct().ToList();
+            var validStudentIds = await _context.Students
+                .Where(s => studentIds.Contains(s.Id) && s.ClassId == model.ClassId && s.Status == StudentStatus.Active)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            if (validStudentIds.Count != studentIds.Count)
+                return Json(new { success = false, message = "Danh sách học sinh không hợp lệ hoặc không thuộc lớp đang chọn." });
+
+            var existing = await _context.MonthlyStudentFeeAssignments
+                .Where(a => a.Month == model.Month && a.Year == model.Year && a.ClassId == model.ClassId && a.FeeItemId == model.FeeItemId)
+                .ToListAsync();
+
+            foreach (var assignment in existing)
+            {
+                assignment.IsActive = false;
+                assignment.UpdatedAtUtc = DateTime.UtcNow;
+            }
+
+            foreach (var item in model.Students.Where(s => s.IsApplied))
+            {
+                if (item.Amount < 0)
+                    return Json(new { success = false, message = "Số tiền không được âm." });
+
+                var assignment = existing.FirstOrDefault(a => a.StudentId == item.StudentId);
+                if (assignment == null)
+                {
+                    assignment = new MonthlyStudentFeeAssignment
+                    {
+                        Month = model.Month,
+                        Year = model.Year,
+                        ClassId = model.ClassId,
+                        StudentId = item.StudentId,
+                        FeeItemId = model.FeeItemId
+                    };
+                    _context.MonthlyStudentFeeAssignments.Add(assignment);
+                }
+
+                assignment.Amount = item.Amount;
+                assignment.Note = item.Note?.Trim();
+                assignment.IsActive = true;
+                assignment.UpdatedAtUtc = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Đã lưu cấu hình khoản thu theo học sinh." });
+        }
+
+        [Authorize(Roles = "Manager")]
         [HttpPost("Api/GenerateMonthlyTuition")]
         public async Task<IActionResult> GenerateMonthlyTuition(int month, int year)
         {
@@ -286,31 +392,26 @@ namespace datn.Controllers
                 return Json(new { success = false, message = $"Học phí tháng {month}/{year} đã được khởi tạo trước đó. Không thể khởi tạo lại." });
             }
 
-            // 1. Lấy danh sách học sinh đang hoạt động
-            var students = await _context.Students
-                .Include(s => s.Class)
-                .Include(s => s.StudentFeeConfigs).ThenInclude(c => c.FeeItem)
-                .Where(s => s.Status == StudentStatus.Active)
+            var feeAssignments = await _context.MonthlyStudentFeeAssignments
+                .Include(a => a.Student)
+                .Include(a => a.FeeItem)
+                .Where(a => a.Month == month
+                    && a.Year == year
+                    && a.IsActive
+                    && a.Student.Status == StudentStatus.Active
+                    && a.FeeItem.IsActive)
                 .ToListAsync();
 
-            if (!students.Any())
+            if (!feeAssignments.Any())
             {
-                return Json(new { success = false, message = "Chưa có học sinh nào đang hoạt động để khởi tạo học phí." });
+                return Json(new { success = false, message = $"Chưa có cấu hình khoản thu cho học sinh trong tháng {month}/{year}." });
             }
 
-            // 2. Lấy danh sách các khoản thu bắt buộc (toàn trường)
-            var requiredFeeItems = await _context.FeeItems
-                .Where(f => f.IsActive && f.IsRequired)
-                .ToListAsync();
-
-            if (!requiredFeeItems.Any())
-            {
-                return Json(new { success = false, message = "Chưa có cấu hình khoản thu bắt buộc nào cho trường. Vui lòng vào Danh mục khoản thu để thiết lập trước khi khởi tạo học phí." });
-            }
             int count = 0;
 
-            foreach (var student in students)
+            foreach (var studentGroup in feeAssignments.GroupBy(a => a.Student))
             {
+                var student = studentGroup.Key;
                 // Kiểm tra xem đã có hóa đơn cho tháng này chưa
                 var tuition = await _context.Tuitions
                     .Include(t => t.TuitionDetails)
@@ -342,55 +443,16 @@ namespace datn.Controllers
                     tuition.TuitionDetails.Clear();
                 }
 
-                // -- A. Thêm các khoản thu bắt buộc --
-                foreach (var item in requiredFeeItems)
+                foreach (var item in studentGroup)
                 {
-                    var today = DateOnly.FromDateTime(DateTime.Today);
-                    if (item.AgeFrom == 2 && item.AgeTo == 3)
-                    {
-                        var studentAgeInMonths = CalculateAgeInMonths(student.DateOfBirth, today);
-                        if (studentAgeInMonths < 24 || studentAgeInMonths > 36) continue;
-                    }
-                    else
-                    {
-                        var studentAge = CalculateAgeInYears(student.DateOfBirth, today);
-                        if (item.AgeFrom.HasValue && studentAge < item.AgeFrom.Value) continue;
-                        if (item.AgeTo.HasValue && studentAge > item.AgeTo.Value) continue;
-                    }
-
                     tuition.TuitionDetails.Add(new TuitionDetail
                     {
-                        FeeItemId = item.Id,
-                        Name = item.Name,
-                        Amount = item.DefaultAmount,
+                        FeeItemId = item.FeeItemId,
+                        Name = item.FeeItem.Name,
+                        Amount = item.Amount,
                         DiscountAmount = 0,
-                        TotalAmount = item.DefaultAmount
+                        TotalAmount = item.Amount
                     });
-                }
-                foreach (var config in student.StudentFeeConfigs.Where(c => c.FeeItem.IsActive))
-                {
-                    var baseAmount = config.CustomAmount ?? config.FeeItem.DefaultAmount;
-                    var discount = (baseAmount * config.DiscountPercentage / 100) + config.DiscountAmount;
-                    var final = baseAmount - discount;
-
-                    var existingDetail = tuition.TuitionDetails.FirstOrDefault(d => d.FeeItemId == config.FeeItemId);
-                    if (existingDetail != null)
-                    {
-                        existingDetail.Amount = baseAmount;
-                        existingDetail.DiscountAmount = discount;
-                        existingDetail.TotalAmount = final;
-                    }
-                    else
-                    {
-                        tuition.TuitionDetails.Add(new TuitionDetail
-                        {
-                            FeeItemId = config.FeeItemId,
-                            Name = config.FeeItem.Name,
-                            Amount = baseAmount,
-                            DiscountAmount = discount,
-                            TotalAmount = final
-                        });
-                    }
                 }
 
                 if (isNew)
@@ -406,7 +468,7 @@ namespace datn.Controllers
                         await _notificationService.SendToUserAsync(parentStudent.Parent.AccountId, 
                             "Thông báo học phí mới", 
                             $"Học phí tháng {month}/{year} của bé {student.FirstName} {student.LastName} đã được khởi tạo. Vui lòng kiểm tra và hoàn thành nộp phí.",
-                            "info", "/Tuition/MyTuition");
+                            "info", "/Parent/Tuition/MyTuition");
                     }
                 }
             }
@@ -433,7 +495,7 @@ namespace datn.Controllers
                 await _notificationService.SendToUserAsync(parentStudent.Parent.AccountId, 
                     "Xác nhận đã đóng học phí", 
                     $"Hệ thống đã nhận được học phí tháng {tuition.Month}/{tuition.Year} cho bé {tuition.Student.FirstName} {tuition.Student.LastName}. Cảm ơn quý phụ huynh.",
-                    "success", "/Tuition/MyTuition");
+                    "success", "/Parent/Tuition/MyTuition");
             }
 
             return Json(new { success = true, message = "Đã xác nhận thanh toán." });
@@ -541,6 +603,23 @@ namespace datn.Controllers
             public int? AgeTo { get; set; }
             public bool IsRequired { get; set; }
             public bool IsActive { get; set; }
+        }
+
+        public class SaveMonthlyStudentFeesViewModel
+        {
+            public int Month { get; set; }
+            public int Year { get; set; }
+            public int ClassId { get; set; }
+            public int FeeItemId { get; set; }
+            public List<SaveMonthlyStudentFeeRowViewModel> Students { get; set; } = new();
+        }
+
+        public class SaveMonthlyStudentFeeRowViewModel
+        {
+            public int StudentId { get; set; }
+            public bool IsApplied { get; set; }
+            public decimal Amount { get; set; }
+            public string? Note { get; set; }
         }
 
         // ============ STUDENT FINANCE CONFIG API ============

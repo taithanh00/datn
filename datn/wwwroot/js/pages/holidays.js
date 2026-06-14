@@ -1,6 +1,11 @@
 let showInactiveHolidays = false;
 
 document.addEventListener('DOMContentLoaded', () => {
+    const holidayDateInput = document.getElementById("holidayDate");
+    if (holidayDateInput) {
+        holidayDateInput.min = getTodayString();
+    }
+
     loadHolidays();
 
     document.getElementById("btnCreateHoliday").addEventListener("click", createHoliday);
@@ -81,6 +86,11 @@ async function createHoliday() {
         return;
     }
 
+    if (date < getTodayString()) {
+        setAlert("Ch\u1ec9 \u0111\u01b0\u1ee3c t\u1ea1o ng\u00e0y l\u1ec5 t\u1eeb h\u00f4m nay tr\u1edf \u0111i.", true);
+        return;
+    }
+
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...';
 
@@ -97,7 +107,6 @@ async function createHoliday() {
             document.getElementById("holidayName").value = '';
             document.getElementById("holidayDate").value = '';
             document.getElementById("holidayDesc").value = '';
-            if (window.showToast) window.showToast('Thành công', payload.message, 'success');
             await loadHolidays();
         } else {
             setAlert(payload.message, true);
@@ -132,12 +141,17 @@ async function reactivateHoliday(id) {
         const res = await fetch(`/HolidayManagement/Api/Reactivate/${id}`, { method: "POST" });
         const payload = await res.json();
         if (payload.success) {
-            if (window.showToast) window.showToast('Đã khôi phục', payload.message, 'success');
             await loadHolidays();
         } else {
             alert(payload.message);
         }
     } catch (e) { alert("Lỗi kết nối."); }
+}
+
+function getTodayString() {
+    const today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    return today.toISOString().split('T')[0];
 }
 
 function setAlert(msg, isError) {

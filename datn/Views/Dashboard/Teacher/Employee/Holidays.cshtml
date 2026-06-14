@@ -1,0 +1,90 @@
+@{
+    ViewData["Title"] = "Ngày lễ";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Ngày lễ</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Danh sách ngày nghỉ chung của trường.</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="d-flex align-center justify-between mb-3">
+        <h3 style="margin:0;">Lịch nghỉ lễ</h3>
+        <button class="btn btn-outline btn-sm" type="button" onclick="loadEmployeeHolidays()">
+            <i class="fa-solid fa-rotate-right"></i> Làm mới
+        </button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Ngày</th>
+                    <th>Tên ngày lễ</th>
+                    <th>Ghi chú</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody id="employeeHolidayTableBody">
+                <tr>
+                    <td colspan="4" class="text-center py-5">
+                        <div class="spinner"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', loadEmployeeHolidays);
+
+        async function loadEmployeeHolidays() {
+            const body = document.getElementById('employeeHolidayTableBody');
+            if (window.appLoading) {
+                window.appLoading.setTable(body, 4);
+            }
+
+            try {
+                const res = await fetch('/Employee/Api/Holidays');
+                const payload = await res.json();
+                if (!payload.success) {
+                    body.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Không tải được danh sách ngày lễ.</td></tr>';
+                    return;
+                }
+
+                if (!payload.data.length) {
+                    body.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-5">Chưa có ngày lễ nào được thiết lập.</td></tr>';
+                    return;
+                }
+
+                body.innerHTML = payload.data.map(item => {
+                    const statusClass = item.isToday ? 'badge-danger' : item.isPast ? 'badge-secondary' : 'badge-success';
+                    const statusText = item.isToday ? 'Hôm nay' : item.isPast ? 'Đã qua' : 'Sắp tới';
+                    return `
+                        <tr>
+                            <td style="font-weight:600;">${escapeHtml(item.displayDate)}</td>
+                            <td style="font-weight:600;">${escapeHtml(item.name)}</td>
+                            <td class="text-muted">${escapeHtml(item.description || '--')}</td>
+                            <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        </tr>`;
+                }).join('');
+            } catch (e) {
+                body.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Lỗi kết nối.</td></tr>';
+            }
+        }
+
+        function escapeHtml(value) {
+            return (value ?? '').toString()
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+    </script>
+}

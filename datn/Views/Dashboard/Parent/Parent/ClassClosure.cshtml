@@ -1,0 +1,41 @@
+@{
+    ViewData["Title"] = "Chi tiết nghỉ học";
+    Layout = "~/Views/Common/Shared/_DashboardLayout.cshtml";
+    var date = ViewBag.Date is DateOnly d ? d : DateOnly.FromDateTime(DateTime.Today);
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Chi tiết nghỉ học</h1>
+        <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Thông tin lớp nghỉ học trong ngày.</p>
+    </div>
+</div>
+
+<div class="card" style="max-width:760px;">
+    <div class="d-flex align-center gap-2 mb-3">
+        <span class="badge badge-warning"><i class="fa-solid fa-calendar-xmark"></i> Nghỉ học</span>
+        <span class="text-muted">@date.ToString("dd/MM/yyyy")</span>
+    </div>
+
+    <h3 style="margin:0 0 20px;">@ViewBag.TitleText</h3>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+        <div>
+            <div class="text-muted" style="font-size:0.8rem; margin-bottom:6px;">Lớp</div>
+            <div style="font-weight:700;">@ViewBag.ClassName</div>
+        </div>
+        <div>
+            <div class="text-muted" style="font-size:0.8rem; margin-bottom:6px;">Ngày nghỉ</div>
+            <div style="font-weight:700;">@date.ToString("dd/MM/yyyy")</div>
+        </div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+        <div class="text-muted" style="font-size:0.8rem; margin-bottom:6px;">Lý do</div>
+        <div style="font-weight:600;">@(string.IsNullOrWhiteSpace(ViewBag.Reason as string) ? "Chưa có lý do cụ thể." : ViewBag.Reason)</div>
+    </div>
+
+    <div class="page-alert warning" style="display:block;">
+        @ViewBag.Message
+    </div>
+</div>

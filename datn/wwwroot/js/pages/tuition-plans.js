@@ -1,4 +1,9 @@
-document.addEventListener('DOMContentLoaded', loadPlans);
+document.addEventListener('DOMContentLoaded', () => {
+    loadPlans();
+    initializeMonthlyStudentFees();
+});
+
+let monthlyStudentFeeRows = [];
 
 async function loadPlans() {
     try {
@@ -112,9 +117,144 @@ async function generateTuitions() {
     }
 }
 
+async function initializeMonthlyStudentFees() {
+    const classSelect = document.getElementById('feeConfigClass');
+    const feeSelect = document.getElementById('feeConfigItem');
+    if (!classSelect || !feeSelect) return;
+
+    try {
+        const [classRes, feeRes] = await Promise.all([
+            fetch('/Manager/Api/Classes'),
+            fetch('/Tuition/Api/FeeItems')
+        ]);
+        const classPayload = await classRes.json();
+        const feePayload = await feeRes.json();
+
+        classSelect.innerHTML = '<option value="">-- Chọn lớp --</option>';
+        if (classPayload.success) {
+            classPayload.data.forEach(c => {
+                classSelect.innerHTML += `<option value="${c.id}">${escapeHtml(c.name)}</option>`;
+            });
+        }
+
+        feeSelect.innerHTML = '<option value="">-- Chọn khoản thu --</option>';
+        if (feePayload.success) {
+            feePayload.data.filter(f => f.isActive).forEach(f => {
+                feeSelect.innerHTML += `<option value="${f.id}">${escapeHtml(f.name)} (${formatCurrency(f.defaultAmount)})</option>`;
+            });
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function loadMonthlyStudentFees() {
+    const month = document.getElementById('feeConfigMonth')?.value;
+    const year = document.getElementById('feeConfigYear')?.value;
+    const classId = document.getElementById('feeConfigClass')?.value;
+    const feeItemId = document.getElementById('feeConfigItem')?.value;
+    const body = document.getElementById('monthlyStudentFeeBody');
+    if (!body || !month || !year || !classId || !feeItemId) return;
+
+    if (window.appLoading) {
+        window.appLoading.setTable(body, 4);
+    }
+
+    try {
+        const res = await fetch(`/Tuition/Api/MonthlyStudentFees?month=${month}&year=${year}&classId=${classId}&feeItemId=${feeItemId}`);
+        const payload = await res.json();
+        if (!payload.success) {
+            body.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">${escapeHtml(payload.message)}</td></tr>`;
+            return;
+        }
+
+        monthlyStudentFeeRows = payload.data;
+        if (!monthlyStudentFeeRows.length) {
+            body.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-5">Lớp này chưa có học sinh.</td></tr>';
+            return;
+        }
+
+        body.innerHTML = monthlyStudentFeeRows.map(row => `
+            <tr data-student-id="${row.id}">
+                <td>
+                    <input type="checkbox" class="fee-row-applied" ${row.isApplied ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--primary);">
+                </td>
+                <td>
+                    <div class="d-flex align-center gap-2">
+                        <img src="${row.avatarPath || '/images/lion_orange.png'}" alt="Avatar" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid var(--border);" onerror="this.src='/images/lion_orange.png'">
+                        <strong>${escapeHtml(row.fullName)}</strong>
+                    </div>
+                </td>
+                <td>
+                    <input type="number" class="form-input fee-row-amount" min="0" value="${row.amount}" />
+                </td>
+                <td>
+                    <input type="text" class="form-input fee-row-note" value="${escapeHtml(row.note || '')}" placeholder="Ghi chú riêng..." />
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        console.error(e);
+        body.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Lỗi kết nối.</td></tr>';
+    }
+}
+
+async function saveMonthlyStudentFees() {
+    const month = parseInt(document.getElementById('feeConfigMonth')?.value || '0', 10);
+    const year = parseInt(document.getElementById('feeConfigYear')?.value || '0', 10);
+    const classId = parseInt(document.getElementById('feeConfigClass')?.value || '0', 10);
+    const feeItemId = parseInt(document.getElementById('feeConfigItem')?.value || '0', 10);
+
+    if (!month || !year || !classId || !feeItemId) {
+        alert('Vui lòng chọn tháng, năm, lớp và khoản thu.');
+        return;
+    }
+
+    const students = Array.from(document.querySelectorAll('#monthlyStudentFeeBody tr[data-student-id]')).map(row => ({
+        studentId: parseInt(row.dataset.studentId, 10),
+        isApplied: row.querySelector('.fee-row-applied').checked,
+        amount: parseFloat(row.querySelector('.fee-row-amount').value) || 0,
+        note: row.querySelector('.fee-row-note').value.trim()
+    }));
+
+    try {
+        const res = await fetch('/Tuition/Api/MonthlyStudentFees', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ month, year, classId, feeItemId, students })
+        });
+        const result = await res.json();
+        if (result.success) {
+            if (window.showToast) window.showToast('Thành công', result.message, 'success');
+            await loadMonthlyStudentFees();
+        } else {
+            alert(result.message);
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Lỗi hệ thống khi lưu cấu hình khoản thu.');
+    }
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
+}
+
+function escapeHtml(value) {
+    return (value ?? '')
+        .toString()
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
 // Expose to global scope
 window.showCreatePlanModal = showCreatePlanModal;
 window.closePlanModal = closePlanModal;
 window.savePlan = savePlan;
 window.generateTuitions = generateTuitions;
 window.loadPlans = loadPlans;
+window.loadMonthlyStudentFees = loadMonthlyStudentFees;
+window.saveMonthlyStudentFees = saveMonthlyStudentFees;

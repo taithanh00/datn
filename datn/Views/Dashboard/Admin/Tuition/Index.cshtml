@@ -46,6 +46,9 @@
             color: var(--primary);
             font-size: 1rem;
         }
+        .card-title{
+            margin-bottom: 10px;
+        }
     </style>
 }
 
@@ -65,11 +68,11 @@
 </div>
 
 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-    <!-- Bảng giá học phí bắt buộc -->
+    <!-- Bảng khoản thu theo cấu hình -->
     <div class="card" style="display: flex; flex-direction: column;">
         <div class="card-header" style="justify-content: space-between; padding-bottom: 16px;">
-            <h3 class="card-title" style="padding-bottom: 20px;">Học phí & Khoản thu bắt buộc</h3>
-            <span class="badge badge-info" style="background: var(--primary-soft); color: var(--primary);">Áp dụng tự động</span>
+            <h3 class="card-title" style="padding-bottom: 20px;">Những khoản thu đang được cấu hình</h3>
+            <span class="badge badge-info" style="background: var(--primary-soft); color: var(--primary);">Dùng để thiết lập học phí cho toàn trường hoặc theo học sinh</span>
         </div>
         
         <div class="table-container" style="flex: 1;">
@@ -85,7 +88,7 @@
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="3" class="text-center text-muted py-5">Chưa có khoản thu bắt buộc nào được thiết lập.</td>
+                            <td colspan="3" class="text-center text-muted py-5">Chưa có khoản thu nào được thiết lập.</td>
                         </tr>
                     }
                     else
@@ -116,8 +119,8 @@
 
         <div class="tuition-info-box">
             <i class="fa-solid fa-circle-info text-primary" style="margin-right: 8px; opacity: 0.8;"></i> 
-            Các khoản thu này sẽ được <strong>tự động đưa vào hóa đơn</strong> dựa trên độ tuổi của từng học sinh khi khởi tạo. 
-            Để thay đổi mức phí hoặc thêm mới, vui lòng vào <a href="/Tuition/FeeItems">Cấu hình Danh mục Phí</a>.
+            Danh mục này là bộ khoản thu để admin chọn khi thiết lập học phí theo từng lớp, từng học sinh và từng kỳ thu phí.
+            Để thay đổi mức phí mặc định hoặc thêm khoản thu mới, vui lòng vào <a href="/Tuition/FeeItems">Cấu hình Danh mục Phí</a>.
         </div>
     </div>
 
@@ -129,7 +132,7 @@
         <div style="padding: 0;">
             <div id="genAlert" style="display:none; margin-bottom: 20px;"></div>
             
-            <p class="card-desc">Hệ thống sẽ quét toàn bộ danh sách học sinh và tự động tính toán hóa đơn dựa trên cấu hình giá phí hiện tại.</p>
+            <p class="card-desc">Hệ thống sẽ sinh hóa đơn dựa trên cấu hình khoản thu theo từng học sinh trong kỳ đã chọn.</p>
             
             <div class="form-group mb-4">
                 <label class="form-label">Chọn kỳ thu phí</label>
@@ -157,6 +160,64 @@
                 <i class="fa-solid fa-shield-halved me-1"></i> Quá trình này có thể mất vài giây
             </div>
         </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:24px;">
+    <div class="card-header" style="justify-content: space-between; padding-bottom: 16px;">
+        <h3 class="card-title">Thiết lập khoản thu theo học sinh</h3>
+        <button class="btn btn-primary" type="button" onclick="saveMonthlyStudentFees()">
+            <i class="fa-solid fa-floppy-disk" ></i> Lưu cấu hình
+        </button>
+    </div>
+
+    <div id="studentFeeConfigAlert" style="display:none; margin-bottom: 16px;"></div>
+
+    <div style="display:grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 12px; margin-bottom: 18px;">
+        <div class="form-group">
+            <label class="form-label" for="feeConfigMonth">Tháng</label>
+            <select id="feeConfigMonth" class="form-select" onchange="loadMonthlyStudentFees()">
+                @for (int i = 1; i <= 12; i++)
+                {
+                    <option value="@i" selected="@(i == DateTime.Now.Month)">Tháng @i</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="feeConfigYear">Năm</label>
+            <select id="feeConfigYear" class="form-select" onchange="loadMonthlyStudentFees()">
+                @for (int i = 2025; i <= 2027; i++)
+                {
+                    <option value="@i" selected="@(i == DateTime.Now.Year)">Năm @i</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="feeConfigClass">Lớp</label>
+            <select id="feeConfigClass" class="form-select" onchange="loadMonthlyStudentFees()"></select>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="feeConfigItem">Khoản thu</label>
+            <select id="feeConfigItem" class="form-select" onchange="loadMonthlyStudentFees()"></select>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table id="monthlyStudentFeeTable">
+            <thead>
+                <tr>
+                    <th style="width:80px;">Áp dụng</th>
+                    <th>Học sinh</th>
+                    <th style="width:220px;">Số tiền</th>
+                    <th>Ghi chú</th>
+                </tr>
+            </thead>
+            <tbody id="monthlyStudentFeeBody">
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-5">Chọn lớp và khoản thu để cấu hình.</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>
 

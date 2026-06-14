@@ -330,7 +330,7 @@ namespace datn.Services
             if (classInfo == null)
                 return false;
 
-            var className = classInfo.Name ?? $"Lớp #{classInfo.Id}";
+            var className = classInfo.Name ?? $"L\u1edbp #{classInfo.Id}";
 
             var parentRecipients = await _context.ParentStudents
                 .Where(ps => ps.Student.ClassId == classId
@@ -349,11 +349,11 @@ namespace datn.Services
             if (parentRecipients.Count == 0)
                 return false;
 
-            var title = $"Lớp {className} nghỉ học ngày {date:dd/MM/yyyy}";
+            var title = $"L\u1edbp {className} ngh\u1ec9 h\u1ecdc ng\u00e0y {date:dd/MM/yyyy}";
             var message = BuildNotificationMessage(className, date, reason);
             var emailSubject = title;
             var emailBody = BuildEmailBody(className, date, reason);
-            var url = "/Parent/Children";
+            var url = $"/Parent/ClassClosure?classId={classId}&date={date:yyyy-MM-dd}";
 
             foreach (var recipient in parentRecipients)
             {
@@ -398,24 +398,36 @@ namespace datn.Services
 
         private static string BuildNotificationMessage(string className, DateOnly date, string? reason)
         {
-            var safeReason = string.IsNullOrWhiteSpace(reason) ? "không có giáo viên phụ trách nào có mặt" : reason.Trim();
-            return $"Lớp {className} nghỉ học ngày {date:dd/MM/yyyy}. Lý do: {safeReason}.";
+            var safeReason = ToParentFacingReason(reason);
+            return $"L\u1edbp {className} ngh\u1ec9 h\u1ecdc ng\u00e0y {date:dd/MM/yyyy}. L\u00fd do: {safeReason}.";
         }
 
         private static string BuildEmailBody(string className, DateOnly date, string? reason)
         {
             var safeClassName = WebUtility.HtmlEncode(className);
-            var safeReason = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(reason) ? "không có giáo viên phụ trách nào có mặt" : reason.Trim());
+            var safeReason = WebUtility.HtmlEncode(ToParentFacingReason(reason));
             var safeDate = WebUtility.HtmlEncode(date.ToString("dd/MM/yyyy"));
 
             return $@"
 <div style=""font-family:Arial,sans-serif;line-height:1.6;color:#1f2937"">
-  <h2 style=""margin:0 0 12px;color:#b45309"">Thông báo lớp nghỉ học</h2>
-  <p>Xin chào phụ huynh,</p>
-  <p>Lớp <strong>{safeClassName}</strong> sẽ nghỉ học vào ngày <strong>{safeDate}</strong>.</p>
-  <p><strong>Lý do:</strong> {safeReason}</p>
-  <p>Vui lòng theo dõi thông báo tiếp theo từ nhà trường.</p>
+  <h2 style=""margin:0 0 12px;color:#b45309"">Th&#244;ng b&#225;o l&#7899;p ngh&#7881; h&#7885;c</h2>
+  <p>Xin ch&#224;o ph&#7909; huynh,</p>
+  <p>L&#7899;p <strong>{safeClassName}</strong> s&#7869; ngh&#7881; h&#7885;c v&#224;o ng&#224;y <strong>{safeDate}</strong>.</p>
+  <p><strong>L&#253; do:</strong> {safeReason}</p>
+  <p>Vui l&#242;ng theo d&#245;i th&#244;ng b&#225;o ti&#7871;p theo t&#7915; nh&#224; tr&#432;&#7901;ng.</p>
 </div>";
+        }
+
+        private static string ToParentFacingReason(string? reason)
+        {
+            if (string.IsNullOrWhiteSpace(reason))
+                return "Gi\u00e1o vi\u00ean ph\u1ee5 tr\u00e1ch c\u00f3 vi\u1ec7c \u0111\u1ed9t xu\u1ea5t";
+
+            var normalized = reason.Trim().ToLowerInvariant();
+            if (normalized.Contains("kh\u00f4ng ph\u00e9p") || normalized.Contains("khong phep") || normalized.Contains("check-in"))
+                return "Gi\u00e1o vi\u00ean ph\u1ee5 tr\u00e1ch c\u00f3 vi\u1ec7c \u0111\u1ed9t xu\u1ea5t";
+
+            return reason.Trim();
         }
 
         private static int? GetSchoolDayOfWeek(DateOnly date)

@@ -178,6 +178,7 @@ namespace datn.Controllers.Teacher
         // ────── PARENT VIEWS ────────────────────────────────────────
 
         [Authorize(Policy = "ParentOnly")]
+        [HttpGet("/Parent/DailyReport/MyChild")]
         public async Task<IActionResult> MyChild()
         {
             var accountIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

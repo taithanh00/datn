@@ -680,6 +680,55 @@ namespace datn.Migrations
                     b.ToTable("Menus");
                 });
 
+            modelBuilder.Entity("datn.Models.MonthlyStudentFeeAssignment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ClassId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FeeItemId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("FeeItemId");
+
+                    b.HasIndex("StudentId");
+
+                    b.HasIndex("Month", "Year", "ClassId", "StudentId", "FeeItemId")
+                        .IsUnique();
+
+                    b.ToTable("MonthlyStudentFeeAssignments");
+                });
+
             modelBuilder.Entity("datn.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -960,8 +1009,6 @@ namespace datn.Migrations
                     b.HasKey("EmployeeId", "PayrollPeriodId");
 
                     b.HasIndex("PayrollPeriodId");
-
-                    b.HasIndex("Status");
 
                     b.ToTable("Salaries");
                 });
@@ -1581,6 +1628,33 @@ namespace datn.Migrations
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("datn.Models.MonthlyStudentFeeAssignment", b =>
+                {
+                    b.HasOne("datn.Models.Class", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("datn.Models.FeeItem", "FeeItem")
+                        .WithMany()
+                        .HasForeignKey("FeeItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("datn.Models.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Class");
+
+                    b.Navigation("FeeItem");
 
                     b.Navigation("Student");
                 });

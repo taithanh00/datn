@@ -74,8 +74,7 @@ namespace datn.Controllers.Manager
                         return Json(new { success = false, message = "Ngày kết thúc phải sau hoặc trùng ngày bắt đầu." });
                 }
 
-                if (string.IsNullOrWhiteSpace(model.RoleInClass))
-                    return Json(new { success = false, message = "Vai trò trong lớp không được để trống." });
+                var roleInClass = TeacherRoleDisplay.NormalizeForStorage(model.RoleInClass);
 
                 if (!await _context.Employees.AnyAsync(e => e.Id == model.EmployeeId))
                     return Json(new { success = false, message = "Giáo viên không tồn tại." });
@@ -102,7 +101,7 @@ namespace datn.Controllers.Manager
                 if (existingAssignment != null)
                 {
                     existingAssignment.EndDate = endDate;
-                    existingAssignment.RoleInClass = model.RoleInClass.Trim();
+                    existingAssignment.RoleInClass = roleInClass;
                     existingAssignment.IsActive = true;
                     await _context.SaveChangesAsync();
                     return Json(new { success = true, message = "Đã khôi phục phân công thành công" });
@@ -114,7 +113,7 @@ namespace datn.Controllers.Manager
                     ClassId = model.ClassId,
                     StartDate = startDate,
                     EndDate = endDate,
-                    RoleInClass = model.RoleInClass.Trim()
+                    RoleInClass = roleInClass
                 };
                 _context.Assignments.Add(assignment);
                 await _context.SaveChangesAsync();
@@ -165,8 +164,7 @@ namespace datn.Controllers.Manager
                         return Json(new { success = false, message = "Ngày kết thúc phải sau hoặc trùng ngày bắt đầu." });
                 }
 
-                if (string.IsNullOrWhiteSpace(model.RoleInClass))
-                    return Json(new { success = false, message = "Vai trò trong lớp không được để trống." });
+                var roleInClass = TeacherRoleDisplay.NormalizeForStorage(model.RoleInClass);
 
                 if (!await _context.Employees.AnyAsync(e => e.Id == model.EmployeeId))
                     return Json(new { success = false, message = "Giáo viên không tồn tại." });
@@ -217,7 +215,7 @@ namespace datn.Controllers.Manager
                     if (inactiveTargetAssignment != null)
                     {
                         inactiveTargetAssignment.EndDate = newEndDate;
-                        inactiveTargetAssignment.RoleInClass = model.RoleInClass.Trim();
+                        inactiveTargetAssignment.RoleInClass = roleInClass;
                         inactiveTargetAssignment.IsActive = true;
                         await _context.SaveChangesAsync();
                     }
@@ -229,7 +227,7 @@ namespace datn.Controllers.Manager
                             ClassId = model.ClassId,
                             StartDate = newStartDate,
                             EndDate = newEndDate,
-                            RoleInClass = model.RoleInClass.Trim()
+                            RoleInClass = roleInClass
                         };
                         _context.Assignments.Add(newAssignment);
                         await _context.SaveChangesAsync();
@@ -238,7 +236,7 @@ namespace datn.Controllers.Manager
                 else
                 {
                     assignment.EndDate = newEndDate;
-                    assignment.RoleInClass = model.RoleInClass.Trim();
+                    assignment.RoleInClass = roleInClass;
                     _context.Assignments.Update(assignment);
                     await _context.SaveChangesAsync();
                 }
@@ -278,6 +276,16 @@ namespace datn.Controllers.Manager
 
             if (assignment == null) return Json(new { success = false, message = "Không tìm thấy." });
 
+            var teacherBusy = await CountOverlappingTeacherAssignmentsAsync(
+                assignment.EmployeeId,
+                assignment.StartDate,
+                assignment.EndDate,
+                assignment.EmployeeId,
+                assignment.ClassId,
+                assignment.StartDate);
+            if (teacherBusy > 0)
+                return Json(new { success = false, message = "Giáo viên này đã được phân công cho lớp khác trong cùng thời gian." });
+
             var overlappingCount = await CountOverlappingAssignmentsAsync(
                 assignment.ClassId,
                 assignment.StartDate,
@@ -289,6 +297,7 @@ namespace datn.Controllers.Manager
             if (overlappingCount >= 2)
                 return Json(new { success = false, message = "Một lớp chỉ được phân công tối đa 2 giáo viên phụ trách trong cùng thời gian." });
 
+            assignment.RoleInClass = TeacherRoleDisplay.NormalizeForStorage(assignment.RoleInClass);
             assignment.IsActive = true;
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Đã khôi phục phân công giảng dạy thành công." });
