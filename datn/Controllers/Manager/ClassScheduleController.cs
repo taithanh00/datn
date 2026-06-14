@@ -14,13 +14,17 @@ namespace datn.Controllers.Manager
         private static readonly TimeOnly LunchStart = new(11, 0);
         private static readonly TimeOnly LunchEnd = new(14, 0);
         private static readonly TimeOnly SchoolEnd = new(17, 0);
-        private static readonly ScheduleSlot[] SchedulableSlots =
+        private static readonly ScheduleSlot[] AllowedScheduleSlots =
         [
-            new("Đón trẻ & Ăn sáng", new TimeOnly(6, 45), new TimeOnly(8, 15)),
-            new("Học chính", new TimeOnly(8, 15), new TimeOnly(9, 45)),
-            new("Vận động", new TimeOnly(9, 45), new TimeOnly(11, 0)),
-            new("Hoạt động chiều", new TimeOnly(14, 0), new TimeOnly(15, 30)),
-            new("Trả trẻ", new TimeOnly(15, 30), new TimeOnly(17, 0))
+            new("Học chính buổi sáng", new TimeOnly(7, 30), new TimeOnly(10, 0)),
+            new("Vui chơi", new TimeOnly(10, 0), new TimeOnly(11, 0)),
+            new("Học chính buổi chiều", new TimeOnly(14, 0), new TimeOnly(16, 30))
+        ];
+        private static readonly ScheduleSlot[] LockedScheduleSlots =
+        [
+            new("Đón trẻ & Ăn sáng", new TimeOnly(6, 45), new TimeOnly(7, 30)),
+            new("Ăn & Ngủ trưa", LunchStart, LunchEnd),
+            new("Trả trẻ", new TimeOnly(16, 30), SchoolEnd)
         ];
 
         public ClassScheduleController(AppDbContext context) : base(context) { }
@@ -227,12 +231,16 @@ namespace datn.Controllers.Manager
             if (startTime < SchoolStart || endTime > SchoolEnd)
                 return "Chỉ được xếp lịch trong khung 06:45 - 17:00.";
 
+            var lockedSlot = LockedScheduleSlots.FirstOrDefault(slot => TimeRangesOverlap(slot.Start, slot.End, startTime, endTime));
+            if (lockedSlot != null)
+                return $"Không được xếp lịch trong khung {lockedSlot.Name} ({lockedSlot.Start:HH:mm} - {lockedSlot.End:HH:mm}).";
+
             if (startTime < LunchEnd && endTime > LunchStart)
                 return "Thời khóa biểu không được chồng lên khung nghỉ trưa 11:00 - 14:00.";
 
-            var matchingSlot = SchedulableSlots.FirstOrDefault(slot => startTime >= slot.Start && endTime <= slot.End);
+            var matchingSlot = AllowedScheduleSlots.FirstOrDefault(slot => startTime >= slot.Start && endTime <= slot.End);
             if (matchingSlot == null)
-                return "Thời khóa biểu phải nằm trọn trong một khung hoạt động hợp lệ.";
+                return "Chỉ được xếp lịch trong các khung 07:30-10:00, 10:00-11:00 hoặc 14:00-16:30.";
 
             var hasCoveredTeacher = await _context.Assignments.AnyAsync(a =>
                 a.ClassId == model.ClassId &&

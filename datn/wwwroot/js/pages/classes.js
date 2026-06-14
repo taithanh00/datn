@@ -7,18 +7,37 @@ let allClassTeachers = [];
 let allClassAssignments = [];
 
 const ACTIVITY_SLOTS = [
-    { start: '06:45', end: '08:15', locked: false },
-    { start: '08:15', end: '09:45', locked: false },
-    { start: '09:45', end: '11:00', locked: false },
-    { start: '11:00', end: '14:00', locked: true, label: 'Nghỉ trưa' },
-    { start: '14:00', end: '15:30', locked: false },
-    { start: '15:30', end: '17:00', locked: false }
+    { start: '06:45', end: '07:30', locked: true, label: 'Đón trẻ & Ăn sáng' },
+    { start: '07:30', end: '10:00', locked: false },
+    { start: '10:00', end: '11:00', locked: false },
+    { start: '11:00', end: '14:00', locked: true, label: 'Ăn & Ngủ trưa' },
+    { start: '14:00', end: '16:30', locked: false },
+    { start: '16:30', end: '17:00', locked: true, label: 'Trả trẻ' }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
     bindClassManagementEvents();
+    updateScheduleHeaderSlots();
     initializeClassManagementPage();
 });
+
+function updateScheduleHeaderSlots() {
+    const headerCells = document.querySelectorAll('.timetable-grid thead th');
+    if (headerCells.length < ACTIVITY_SLOTS.length + 1) return;
+
+    const labels = [
+        'Đón trẻ & Ăn sáng',
+        'Học chính buổi sáng',
+        'Vui chơi',
+        'Ăn & Ngủ trưa',
+        'Học chính buổi chiều',
+        'Trả trẻ'
+    ];
+
+    ACTIVITY_SLOTS.forEach((slot, index) => {
+        headerCells[index + 1].innerHTML = `${labels[index]}<br/><small>${slot.start} - ${slot.end}</small>`;
+    });
+}
 
 async function initializeClassManagementPage() {
     const scheduleWeekFilter = document.getElementById('scheduleWeekFilter');
@@ -529,7 +548,8 @@ function openScheduleModal(day, slotIdx, isEdit = false, suggestedStartTime = nu
     }
 
     if (!isEdit && slotIdx >= 0 && ACTIVITY_SLOTS[slotIdx]?.locked) {
-        showAlert('scheduleAlert', false, 'Khung 11:00 - 14:00 là thời gian ăn và ngủ trưa, không xếp lịch.');
+        const slot = ACTIVITY_SLOTS[slotIdx];
+        showAlert('scheduleAlert', false, `Khung ${slot.start} - ${slot.end} là thời gian ${slot.label.toLowerCase()}, không xếp lịch.`);
         return;
     }
 
@@ -538,7 +558,7 @@ function openScheduleModal(day, slotIdx, isEdit = false, suggestedStartTime = nu
         document.getElementById('scheduleClassId').value = classId;
         document.getElementById('scheduleDayOfWeek').value = day;
         
-        const start = suggestedStartTime || (slotIdx >= 0 ? ACTIVITY_SLOTS[slotIdx].start : '06:45');
+        const start = suggestedStartTime || (slotIdx >= 0 ? ACTIVITY_SLOTS[slotIdx].start : '07:30');
         document.getElementById('scheduleStartTime').value = start;
         
         // Tự động tính giờ kết thúc (mặc định 45 phút sau)
@@ -814,8 +834,8 @@ function resetScheduleForm(classId = null) {
     
     document.getElementById('scheduleId').value = '';
     document.getElementById('scheduleEffectiveFrom').value = new Date().toISOString().split('T')[0];
-    document.getElementById('scheduleStartTime').value = '06:45';
-    document.getElementById('scheduleEndTime').value = '08:00';
+    document.getElementById('scheduleStartTime').value = '07:30';
+    document.getElementById('scheduleEndTime').value = '08:15';
     document.getElementById('scheduleIsActive').value = 'true';
     document.getElementById('saveScheduleBtn').textContent = 'Lưu thời khóa biểu';
 
@@ -858,16 +878,19 @@ function validateScheduleTimeRange(startTime, endTime) {
     const schoolEnd = timeToMinutes('17:00');
     if (start < schoolStart || end > schoolEnd) return 'Chỉ được xếp lịch trong khung 06:45 - 17:00.';
 
-    const lunchStart = timeToMinutes('11:00');
-    const lunchEnd = timeToMinutes('14:00');
-    if (start < lunchEnd && end > lunchStart) return 'Thời khóa biểu không được chồng lên khung nghỉ trưa 11:00 - 14:00.';
+    const lockedSlot = ACTIVITY_SLOTS.find(slot =>
+        slot.locked &&
+        start < timeToMinutes(slot.end) &&
+        end > timeToMinutes(slot.start)
+    );
+    if (lockedSlot) return `Không được xếp lịch trong khung ${lockedSlot.label} (${lockedSlot.start} - ${lockedSlot.end}).`;
 
     const matchingSlot = ACTIVITY_SLOTS.some(slot =>
         !slot.locked &&
         start >= timeToMinutes(slot.start) &&
         end <= timeToMinutes(slot.end)
     );
-    return matchingSlot ? null : 'Thời khóa biểu phải nằm trọn trong một khung hoạt động hợp lệ.';
+    return matchingSlot ? null : 'Chỉ được xếp lịch trong các khung 07:30-10:00, 10:00-11:00 hoặc 14:00-16:30.';
 }
 
 function fillSelect(selectElement, data, placeholder, valueKey = 'id', textResolver = item => item.name) {

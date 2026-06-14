@@ -581,4 +581,12 @@ D:\thanhBinh\datn\artifacts\build-check\runtimes\win-arm64\native\Microsoft.Data
 D:\thanhBinh\datn\artifacts\build-check\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
 D:\thanhBinh\datn\artifacts\build-check\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\ip7xgacu2z-{0}-txgbxux5cm-txgbxux5cm.gz
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\jmwzi72gfx-{0}-uv2jjk2ahy-uv2jjk2ahy.gz
+D:\thanhBinh\datn\obj\Debug\net10.0\compressed\jmwzi72gfx-{0}-mlj4by3whc-mlj4by3whc.gz
+D:\thanhBinh\.verify-out\appsettings.json
+D:\thanhBinh\.verify-out\datn.staticwebassets.runtime.json
+D:\thanhBinh\.verify-out\datn.staticwebassets.endpoints.json
+D:\thanhBinh\.verify-out\datn.deps.json
+D:\thanhBinh\.verify-out\datn.runtimeconfig.json
+D:\thanhBinh\.verify-out\datn.dll
+D:\thanhBinh\.verify-out\datn.pdb
+D:\thanhBinh\datn\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

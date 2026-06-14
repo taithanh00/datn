@@ -58,7 +58,7 @@ namespace datn.Controllers
     <table align='center' border='0' cellpadding='0' cellspacing='0' width='600' style='background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);'>
         <tr>
             <td align='center' style='padding: 30px 0; background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);'>
-                <h1 style='color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;'>HỆ THỐNG MẦM NON SENHỒNG</h1>
+                <h1 style='color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;'>HỆ THỐNG MẦM NON SEN HỒNG</h1>
             </td>
         </tr>
         <tr>
@@ -89,7 +89,7 @@ namespace datn.Controllers
             <td style='padding: 20px 30px; background-color: #f8fafc; text-align: center;'>
                 <p style='color: #94a3b8; font-size: 12px; margin: 0;'>
                     © {DateTime.Now.Year} Trường Mầm Non Sen Hồng. All rights reserved.<br>
-                    Địa chỉ: Khu đô thị Sen Hồng, TP. Hồ Chí Minh
+                    Địa chỉ: 140 Liên Xã, thôn Tây 2, xã Diên Điền, tỉnh Khánh Hòa
                 </p>
             </td>
         </tr>
@@ -126,7 +126,7 @@ namespace datn.Controllers
         {
             if (password != confirmPassword)
             {
-                ViewBag.Error = "Mật khẩu xác nhận không khớp.";
+                ViewBag.Error = "Mật khẩu xác nhậ   n không khớp.";
                 ViewBag.Token = token;
                 return View();
             }
