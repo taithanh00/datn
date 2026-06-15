@@ -126,7 +126,7 @@ namespace datn.Controllers
         {
             if (password != confirmPassword)
             {
-                ViewBag.Error = "Mật khẩu xác nhậ   n không khớp.";
+                ViewBag.Error = "Mật khẩu xác nhận không khớp.";
                 ViewBag.Token = token;
                 return View();
             }

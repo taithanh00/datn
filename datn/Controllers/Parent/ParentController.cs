@@ -88,7 +88,7 @@ namespace datn.Controllers.Parent
         [HttpGet("ClassClosure")]
         public async Task<IActionResult> ClassClosure(int classId, DateOnly date)
         {
-            ViewData["Title"] = "Chi ti\u1ebft ngh\u1ec9 h\u1ecdc";
+            ViewData["Title"] = "Chi tiết nghỉ học";
             var parentId = await GetCurrentParentId();
             var account = await GetCurrentAccountAsync();
             if (parentId == null || account == null) return RedirectToAction("Login", "Auth");
@@ -111,9 +111,9 @@ namespace datn.Controllers.Parent
 
             ViewBag.ClassName = classroom.Name;
             ViewBag.Date = date;
-            ViewBag.TitleText = notification?.Title ?? $"L\u1edbp {classroom.Name} ngh\u1ec9 h\u1ecdc ng\u00e0y {dateText}";
+            ViewBag.TitleText = notification?.Title ?? $"Lớp {classroom.Name} nghỉ học ngày {dateText}";
             ViewBag.Reason = ToParentFacingReason(ExtractReason(notification?.Message));
-            ViewBag.Message = $"L\u1edbp {classroom.Name} ngh\u1ec9 h\u1ecdc ng\u00e0y {dateText}. L\u00fd do: {ViewBag.Reason}.";
+            ViewBag.Message = $"Lớp {classroom.Name} nghỉ học ngày {dateText}. Lý do: {ViewBag.Reason}.";
 
             return View("~/Views/Dashboard/Parent/Parent/ClassClosure.cshtml");
         }
@@ -121,7 +121,7 @@ namespace datn.Controllers.Parent
         [HttpGet("HolidayDetail/{id:int}")]
         public async Task<IActionResult> HolidayDetail(int id)
         {
-            ViewData["Title"] = "Chi ti\u1ebft ng\u00e0y l\u1ec5";
+            ViewData["Title"] = "Chi tiết ngày lễ";
             var holiday = await _context.Holidays.IgnoreQueryFilters()
                 .FirstOrDefaultAsync(h => h.Id == id);
             if (holiday == null) return NotFound();
@@ -137,7 +137,6 @@ namespace datn.Controllers.Parent
             var parentId = await GetCurrentParentId();
             if (parentId == null) return RedirectToAction("Login", "Auth");
 
-            // Lấy danh sách con của phụ huynh này
             var children = await _context.ParentStudents
                 .Include(ps => ps.Student)
                     .ThenInclude(s => s.Class)
@@ -149,11 +148,9 @@ namespace datn.Controllers.Parent
 
             if (children.Count == 0) return View("~/Views/Dashboard/Parent/Parent/StudyReports.cshtml", new List<StudyReport>());
 
-            // Mặc định chọn đứa con đầu tiên nếu không chỉ định
             var targetStudentId = studentId ?? children.First().Id;
             var targetYear = year ?? DateTime.Now.Year;
 
-            // Kiểm tra xem phụ huynh có quyền xem học sinh này không
             if (!children.Any(c => c.Id == targetStudentId)) return Forbid();
 
             var reports = await _context.StudyReports
@@ -276,9 +273,9 @@ namespace datn.Controllers.Parent
 
         private static string ExtractReason(string? message)
         {
-            if (string.IsNullOrWhiteSpace(message)) return "Kh\u00f4ng c\u00f3 l\u00fd do c\u1ee5 th\u1ec3.";
+            if (string.IsNullOrWhiteSpace(message)) return "Không có lý do cụ thể.";
 
-            foreach (var marker in new[] { "L\u00fd do:", "LÃ½ do:" })
+            foreach (var marker in new[] { "Lý do:", "Lý do:" })
             {
                 var index = message.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
                 if (index < 0) continue;
@@ -295,11 +292,11 @@ namespace datn.Controllers.Parent
         private static string ToParentFacingReason(string? reason)
         {
             if (string.IsNullOrWhiteSpace(reason))
-                return "Gi\u00e1o vi\u00ean ph\u1ee5 tr\u00e1ch c\u00f3 vi\u1ec7c \u0111\u1ed9t xu\u1ea5t";
+                return "Giáo viên phụ trách có việc đột xuất";
 
             var normalized = reason.Trim().ToLowerInvariant();
-            if (normalized.Contains("kh\u00f4ng ph\u00e9p") || normalized.Contains("khong phep") || normalized.Contains("check-in"))
-                return "Gi\u00e1o vi\u00ean ph\u1ee5 tr\u00e1ch c\u00f3 vi\u1ec7c \u0111\u1ed9t xu\u1ea5t";
+            if (normalized.Contains("không phép") || normalized.Contains("khong phep") || normalized.Contains("check-in"))
+                return "Giáo viên phụ trách có việc đột xuất";
 
             return reason.Trim();
         }
@@ -307,8 +304,8 @@ namespace datn.Controllers.Parent
         private static string GetHolidayStatusText(DateOnly date)
         {
             var today = DateOnly.FromDateTime(DateTime.Today);
-            if (date == today) return "H\u00f4m nay";
-            return date < today ? "\u0110\u00e3 qua" : "S\u1eafp t\u1edbi";
+            if (date == today) return "Hôm nay";
+            return date < today ? "Đã qua" : "Sắp tới";
         }
     }
 }

@@ -54,8 +54,57 @@ namespace datn.Controllers
         [HttpPost("Api/MarkRead/{id}")]
         public async Task<IActionResult> MarkRead(int id)
         {
-            await _notificationService.MarkAsReadAsync(id);
+            var account = await GetCurrentAccountAsync();
+            if (account == null) return Unauthorized();
+
+            var notification = await GetVisibleNotificationsQuery(account)
+                .FirstOrDefaultAsync(n => n.Id == id);
+
+            if (notification == null)
+                return NotFound(new { success = false, message = "Không tìm thấy thông báo." });
+
+            notification.IsRead = true;
+            await _context.SaveChangesAsync();
             return Json(new { success = true });
+        }
+
+        [HttpPost("Api/MarkAllRead")]
+        public async Task<IActionResult> MarkAllRead()
+        {
+            var account = await GetCurrentAccountAsync();
+            if (account == null) return Unauthorized();
+
+            var notifications = await GetVisibleNotificationsQuery(account)
+                .Where(n => !n.IsRead)
+                .OrderByDescending(n => n.CreatedAt)
+                .Take(10)
+                .ToListAsync();
+
+            foreach (var notification in notifications)
+            {
+                notification.IsRead = true;
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        private async Task<Account?> GetCurrentAccountAsync()
+        {
+            var username = User.Identity?.Name;
+            if (string.IsNullOrEmpty(username)) return null;
+
+            return await _context.Accounts
+                .Include(a => a.Role)
+                .FirstOrDefaultAsync(a => a.Username == username);
+        }
+
+        private IQueryable<Notification> GetVisibleNotificationsQuery(Account account)
+        {
+            return _context.Notifications
+                .Where(n => n.RecipientId == account.Id
+                    || n.RecipientRole == account.Role.Name
+                    || (n.RecipientId == null && n.RecipientRole == null));
         }
 
         private async Task<string?> ResolveNotificationUrlAsync(Notification notification, string roleName)
@@ -98,8 +147,7 @@ namespace datn.Controllers
         private static bool IsClassClosureNotification(Notification notification)
         {
             var text = $"{notification.Title} {notification.Message}";
-            return (text.Contains("ngh\u1ec9 h\u1ecdc", StringComparison.OrdinalIgnoreCase)
-                    || text.Contains("ngh\u00e1\u00bb\u2030 h\u00c3\u00a1\u00bb\u008dc", StringComparison.OrdinalIgnoreCase))
+            return (text.Contains("nghỉ học", StringComparison.OrdinalIgnoreCase))
                 && (notification.Url == null
                     || notification.Url.StartsWith("/Parent/Children", StringComparison.OrdinalIgnoreCase)
                     || notification.Url.StartsWith("/Parent/ClassClosure", StringComparison.OrdinalIgnoreCase));
@@ -108,10 +156,8 @@ namespace datn.Controllers
         private static bool IsHolidayNotification(Notification notification)
         {
             var text = $"{notification.Title} {notification.Message}";
-            return text.Contains("ngh\u1ec9 l\u1ec5", StringComparison.OrdinalIgnoreCase)
-                || text.Contains("ng\u00e0y l\u1ec5", StringComparison.OrdinalIgnoreCase)
-                || text.Contains("ngh\u00e1\u00bb\u2030 l\u00c3\u00a1\u00bb\u00a6", StringComparison.OrdinalIgnoreCase)
-                || text.Contains("ng\u00c3\u00a0y l\u00c3\u00a1\u00bb\u00a6", StringComparison.OrdinalIgnoreCase);
+            return text.Contains("nghỉ lễ", StringComparison.OrdinalIgnoreCase)
+                || text.Contains("ngày lễ", StringComparison.OrdinalIgnoreCase);
         }
 
         private async Task<int?> FindClassIdFromTextAsync(string text)
@@ -170,15 +216,13 @@ namespace datn.Controllers
         {
             if (string.IsNullOrWhiteSpace(text)) return text;
 
-            var sanitizedReason = "Gi\u00e1o vi\u00ean ph\u1ee5 tr\u00e1ch c\u00f3 vi\u1ec7c \u0111\u1ed9t xu\u1ea5t";
+            var sanitizedReason = "Giáo viên phụ trách có việc đột xuất";
             var normalized = text.ToLowerInvariant();
-            if (!normalized.Contains("kh\u00f4ng ph\u00e9p") && !normalized.Contains("khong phep") && !normalized.Contains("check-in"))
+            if (!normalized.Contains("không phép") && !normalized.Contains("khong phep") && !normalized.Contains("check-in"))
                 return text;
 
-            var marker = "L\u00fd do:";
+            var marker = "Lý do:";
             var markerIndex = text.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-            if (markerIndex < 0)
-                markerIndex = text.IndexOf("LÃ½ do:", StringComparison.OrdinalIgnoreCase);
 
             if (markerIndex < 0)
                 return sanitizedReason;

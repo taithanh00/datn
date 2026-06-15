@@ -14,6 +14,10 @@ namespace datn.Controllers.Manager
         private static readonly TimeOnly LunchStart = new(11, 0);
         private static readonly TimeOnly LunchEnd = new(14, 0);
         private static readonly TimeOnly SchoolEnd = new(17, 0);
+        private const string PlaySubjectName = "Hoạt động vui chơi";
+        private const string PlaySubjectCreateMessage = "Vui lòng tạo môn học \"Hoạt động vui chơi\" trong tab Danh mục môn học trước khi xếp lịch khung 10:00 - 11:00.";
+        private static readonly TimeOnly PlayStart = new(10, 0);
+        private static readonly TimeOnly PlayEnd = new(11, 0);
         private static readonly ScheduleSlot[] AllowedScheduleSlots =
         [
             new("Học chính buổi sáng", new TimeOnly(7, 30), new TimeOnly(10, 0)),
@@ -199,6 +203,8 @@ namespace datn.Controllers.Manager
             if (!await _context.Subjects.AnyAsync(s => s.Id == model.SubjectId && s.IsActive))
                 return "Môn học không tồn tại hoặc đã ngừng sử dụng.";
 
+            var selectedSubject = await _context.Subjects.FindAsync(model.SubjectId);
+
             if (model.LocationId.HasValue && model.LocationId > 0)
             {
                 if (!await _context.Locations.AnyAsync(l => l.Id == model.LocationId))
@@ -241,6 +247,9 @@ namespace datn.Controllers.Manager
             var matchingSlot = AllowedScheduleSlots.FirstOrDefault(slot => startTime >= slot.Start && endTime <= slot.End);
             if (matchingSlot == null)
                 return "Chỉ được xếp lịch trong các khung 07:30-10:00, 10:00-11:00 hoặc 14:00-16:30.";
+
+            if (IsPlayTimeRange(startTime, endTime) && !IsPlaySubject(selectedSubject?.Name))
+                return $"Khung 10:00 - 11:00 chỉ được chọn môn học \"{PlaySubjectName}\". {PlaySubjectCreateMessage}";
 
             var hasCoveredTeacher = await _context.Assignments.AnyAsync(a =>
                 a.ClassId == model.ClassId &&
@@ -299,6 +308,24 @@ namespace datn.Controllers.Manager
         private static bool TimeRangesOverlap(TimeOnly leftStart, TimeOnly leftEnd, TimeOnly rightStart, TimeOnly rightEnd)
         {
             return leftStart < rightEnd && rightStart < leftEnd;
+        }
+
+        private static bool IsPlayTimeRange(TimeOnly startTime, TimeOnly endTime)
+        {
+            return startTime >= PlayStart && endTime <= PlayEnd;
+        }
+
+        private static bool IsPlaySubject(string? subjectName)
+        {
+            return string.Equals(
+                NormalizeSubjectName(subjectName),
+                NormalizeSubjectName(PlaySubjectName),
+                StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        private static string NormalizeSubjectName(string? value)
+        {
+            return string.Join(' ', (value ?? string.Empty).Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries));
         }
 
         private static DateOnly ResolveWeekStart(string? weekStart)

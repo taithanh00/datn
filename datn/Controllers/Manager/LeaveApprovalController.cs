@@ -284,215 +284,21 @@ namespace datn.Controllers.Manager
         }
 
         [HttpGet("Api/Leave/{requestId:int}/AffectedSchedules")]
-        public async Task<IActionResult> GetAffectedSchedules(int requestId)
+        public IActionResult GetAffectedSchedules(int requestId)
         {
-            var leave = await _context.EmployeeLeaveRequests.FindAsync(requestId);
-            if (leave == null) return Json(new { success = false, message = "Không tìm thấy đơn nghỉ." });
-
-            var startDate = leave.StartDate;
-            var endDate = leave.EndDate;
-
-            var dates = new List<DateOnly>();
-            for (var d = startDate; d <= endDate; d = d.AddDays(1)) dates.Add(d);
-
-            var affected = new List<object>();
-
-            foreach (var date in dates)
-            {
-                var dayOfWeek = date.DayOfWeek switch
-                {
-                    DayOfWeek.Monday => 1,
-                    DayOfWeek.Tuesday => 2,
-                    DayOfWeek.Wednesday => 3,
-                    DayOfWeek.Thursday => 4,
-                    DayOfWeek.Friday => 5,
-                    DayOfWeek.Saturday => 6,
-                    _ => 0
-                };
-
-                if (dayOfWeek == 0) continue;
-
-                var schedules = await _context.ClassSchedules
-                    .Where(cs => cs.EmployeeId == leave.EmployeeId 
-                                 && cs.DayOfWeek == dayOfWeek 
-                                 && cs.IsActive
-                                 && cs.EffectiveFrom <= date
-                                 && (cs.EffectiveTo == null || cs.EffectiveTo >= date))
-                    .Include(cs => cs.Class)
-                    .Include(cs => cs.Subject)
-                    .ToListAsync();
-
-                foreach (var s in schedules)
-                {
-                    var substitution = await _context.Substitutions
-                        .Include(sub => sub.SubstituteEmployee)
-                        .FirstOrDefaultAsync(sub => sub.ClassScheduleId == s.Id && sub.Date == date && sub.Status == "Confirmed");
-
-                    affected.Add(new
-                    {
-                        date = date.ToString("dd/MM/yyyy"),
-                        rawDate = date.ToString("yyyy-MM-dd"),
-                        scheduleId = s.Id,
-                        className = s.Class.Name,
-                        subjectName = s.Subject.Name,
-                        time = $"{s.StartTime:HH:mm} - {s.EndTime:HH:mm}",
-                        substituteName = substitution?.SubstituteEmployee.FullName,
-                        substituteId = substitution?.SubstituteEmployeeId
-                    });
-                }
-            }
-
-            return Json(new { success = true, data = affected });
+            return StatusCode(StatusCodes.Status410Gone, new { success = false, message = "Tính năng dạy thay đã được loại bỏ." });
         }
 
         [HttpGet("Api/AvailableTeachers")]
-        public async Task<IActionResult> GetAvailableTeachers()
+        public IActionResult GetAvailableTeachers()
         {
-            var teachers = await _context.Employees
-                .Include(e => e.Account)
-                .Where(e => e.Account.IsActive && e.Account.Role.Name == "Employee")
-                .Select(e => new { id = e.Id, fullName = e.LastName + " " + e.FirstName })
-                .ToListAsync();
-
-            return Json(new { success = true, data = teachers });
+            return StatusCode(StatusCodes.Status410Gone, new { success = false, message = "Tính năng dạy thay đã được loại bỏ." });
         }
 
         [HttpPost("Api/AssignSubstitute")]
-        public async Task<IActionResult> AssignSubstitute([FromBody] SubstituteAssignmentDto model)
+        public IActionResult AssignSubstitute()
         {
-            var managerEmployeeId = await GetCurrentEmployeeIdAsync();
-            var date = DateOnly.Parse(model.Date);
-
-            var schedule = await _context.ClassSchedules
-                .Include(cs => cs.Class)
-                .Include(cs => cs.Subject)
-                .FirstOrDefaultAsync(cs => cs.Id == model.ClassScheduleId);
-            if (schedule == null) return Json(new { success = false, message = "Không tìm thấy tiết học." });
-
-            // ── CONFLICT CHECK: Kiểm tra giáo viên có đang bận không ──
-            var isFree = await IsTeacherFreeAsync(model.SubstituteEmployeeId, date, schedule.StartTime, schedule.EndTime, excludeScheduleId: model.ClassScheduleId);
-            if (!isFree)
-            {
-                return Json(new { success = false, message = $"Giáo viên này đã có lịch dạy hoặc đang dạy thay tại lớp khác vào khung giờ {schedule.StartTime:HH:mm} - {schedule.EndTime:HH:mm} ngày {date:dd/MM/yyyy}. Vui lòng chọn giáo viên khác." });
-            }
-
-            var existing = await _context.Substitutions
-                .FirstOrDefaultAsync(s => s.ClassScheduleId == model.ClassScheduleId && s.Date == date);
-
-            if (existing != null)
-            {
-                _context.Substitutions.Remove(existing);
-            }
-
-            var sub = new Substitution
-            {
-                ClassScheduleId = model.ClassScheduleId,
-                Date = date,
-                OriginalEmployeeId = model.OriginalEmployeeId,
-                SubstituteEmployeeId = model.SubstituteEmployeeId,
-                Note = model.Note,
-                Status = "Confirmed"
-            };
-
-            _context.Substitutions.Add(sub);
-
-            // CỘNG CÔNG CHO NGƯỜI DẠY THAY
-            var attendance = await _context.WorkAttendances
-                .FirstOrDefaultAsync(w => w.EmployeeId == model.SubstituteEmployeeId && w.Date == date);
-
-            if (attendance == null)
-            {
-                _context.WorkAttendances.Add(new WorkAttendance
-                {
-                    EmployeeId = model.SubstituteEmployeeId,
-                    Date = date,
-                    Status = "Approved",
-                    WorkUnit = 0.2m,
-                    Note = "Dạy thay tiết học",
-                    ReviewNote = "Hệ thống tự động cộng công dạy thay",
-                    ReviewedByEmployeeId = managerEmployeeId,
-                    ReviewedAtUtc = DateTime.UtcNow
-                });
-            }
-            else
-            {
-                attendance.WorkUnit = (attendance.WorkUnit ?? 1.0m) + 0.2m;
-                attendance.Note = (attendance.Note ?? "") + " | Dạy thay tiết học";
-            }
-
-            await _context.SaveChangesAsync();
-
-            try
-            {
-                await _classCoverageService.ProcessClassDateAsync(schedule.ClassId, date);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Class coverage re-evaluation failed after substitute assignment");
-            }
-
-            // ── SIGNALR NOTIFICATION: Gửi thông báo cho GV được phân công ──
-            var substituteEmployee = await _context.Employees
-                .Include(e => e.Account)
-                .FirstOrDefaultAsync(e => e.Id == model.SubstituteEmployeeId);
-
-            if (substituteEmployee?.Account != null)
-            {
-                await _notificationService.SendToUserAsync(
-                    substituteEmployee.Account.Id,
-                    "Lịch dạy thay mới",
-                    $"Bạn được phân công dạy thay môn {schedule.Subject.Name} tại lớp {schedule.Class.Name} vào lúc {schedule.StartTime:HH:mm} - {schedule.EndTime:HH:mm} ngày {date:dd/MM/yyyy}. Cảm ơn bạn!",
-                    "info",
-                    "/Employee/WorkSchedule"
-                );
-            }
-
-            return Json(new { success = true, message = "Đã phân công dạy thay, cộng công và gửi thông báo thành công." });
-        }
-
-        /// <summary>
-        /// Kiểm tra giáo viên có rảnh trong khung giờ cho trước không.
-        /// Trả về true nếu rảnh, false nếu đang bận.
-        /// </summary>
-        private async Task<bool> IsTeacherFreeAsync(int employeeId, DateOnly date, TimeOnly startTime, TimeOnly endTime, int? excludeScheduleId = null)
-        {
-            var dayOfWeek = date.DayOfWeek switch
-            {
-                DayOfWeek.Monday => 1,
-                DayOfWeek.Tuesday => 2,
-                DayOfWeek.Wednesday => 3,
-                DayOfWeek.Thursday => 4,
-                DayOfWeek.Friday => 5,
-                DayOfWeek.Saturday => 6,
-                _ => 0
-            };
-
-            if (dayOfWeek == 0) return true; // Chủ nhật luôn rảnh
-
-            // Kiểm tra trong ClassSchedule (lịch dạy cố định)
-            var hasRegularConflict = await _context.ClassSchedules
-                .AnyAsync(cs =>
-                    cs.EmployeeId == employeeId &&
-                    cs.DayOfWeek == dayOfWeek &&
-                    cs.IsActive &&
-                    cs.EffectiveFrom <= date &&
-                    (cs.EffectiveTo == null || cs.EffectiveTo >= date) &&
-                    (excludeScheduleId == null || cs.Id != excludeScheduleId) &&
-                    cs.StartTime < endTime && cs.EndTime > startTime); // Kiểm tra giao nhau về thời gian
-
-            if (hasRegularConflict) return false;
-
-            // Kiểm tra trong Substitution (đã nhận dạy thay ở lớp khác)
-            var hasSubConflict = await _context.Substitutions
-                .Include(s => s.ClassSchedule)
-                .AnyAsync(s =>
-                    s.SubstituteEmployeeId == employeeId &&
-                    s.Date == date &&
-                    s.Status == "Confirmed" &&
-                    (excludeScheduleId == null || s.ClassScheduleId != excludeScheduleId) &&
-                    s.ClassSchedule.StartTime < endTime && s.ClassSchedule.EndTime > startTime);
-
-            return !hasSubConflict;
+            return StatusCode(StatusCodes.Status410Gone, new { success = false, message = "Tính năng dạy thay đã được loại bỏ." });
         }
 
 
@@ -527,15 +333,6 @@ namespace datn.Controllers.Manager
         {
             public int RequestId { get; set; }
             public string? ReviewNote { get; set; }
-        }
-
-        public class SubstituteAssignmentDto
-        {
-            public int ClassScheduleId { get; set; }
-            public string Date { get; set; } = string.Empty;
-            public int OriginalEmployeeId { get; set; }
-            public int SubstituteEmployeeId { get; set; }
-            public string? Note { get; set; }
         }
 
         private static DateTimeOffset GetVntNow()

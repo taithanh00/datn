@@ -12,8 +12,7 @@
     <div class="d-flex align-center justify-between mb-3">
         <h3 style="margin-bottom:0;">Thời khóa biểu</h3>
         <div class="d-flex align-center gap-1">
-            <label class="form-label" for="scheduleWeekFilter" style="margin-bottom:0; white-space:nowrap;">Tuần đang xem:</label>
-            <input id="scheduleWeekFilter" type="date" class="form-input" style="width:auto; min-width:160px;" />
+            <span id="scheduleTodayLabel" class="form-label" style="margin-bottom:0; white-space:nowrap;"></span>
             <label class="form-label" for="scheduleClassFilter" style="margin-bottom:0; white-space:nowrap;">Lớp đang xem:</label>
             <select id="scheduleClassFilter" class="form-select" style="width:auto; min-width:200px;"></select>
         </div>
@@ -26,17 +25,15 @@
             <thead>
                 <tr>
                     <th style="width: 100px;">Thứ</th>
-                    <th>Đón trẻ & Ăn sáng<br/><small>06:45 - 08:15</small></th>
-                    <th>Học chính<br/><small>08:15 - 09:45</small></th>
-                    <th>Vận động<br/><small>09:45 - 11:00</small></th>
+                    <th>Đón trẻ & Ăn sáng<br/><small>06:45 - 07:30</small></th>
+                    <th>Học chính buổi sáng<br/><small>07:30 - 10:00</small></th>
+                    <th>Vui chơi<br/><small>10:00 - 11:00</small></th>
                     <th>Ăn & Ngủ trưa<br/><small>11:00 - 14:00</small></th>
-                    <th>Hoạt động chiều<br/><small>14:00 - 15:30</small></th>
-                    <th>Trả trẻ<br/><small>15:30 - 17:00</small></th>
+                    <th>Học chính buổi chiều<br/><small>14:00 - 16:30</small></th>
+                    <th>Trả trẻ<br/><small>16:30 - 17:00</small></th>
                 </tr>
             </thead>
-            <tbody id="scheduleGridBody">
-                <!-- Will be populated by JS -->
-            </tbody>
+            <tbody id="scheduleGridBody"></tbody>
         </table>
     </div>
 </div>

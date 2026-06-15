@@ -181,7 +181,7 @@ async function loadActivities() {
 
   if (!result.success) {
     if (window.appLoading) {
-      tbody.innerHTML = window.appLoading.tableError(6, "L\u1ed7i t\u1ea3i d\u1eef li\u1ec7u.");
+      tbody.innerHTML = window.appLoading.tableError(6, "Lỗi tải dữ liệu.");
       return;
     }
     tbody.innerHTML =
@@ -194,8 +194,8 @@ async function loadActivities() {
   if (result.data.length === 0) {
     if (window.appLoading) {
       tbody.innerHTML = window.appLoading.tableEmpty(6, showInactiveActivities
-        ? "Kh\u00f4ng c\u00f3 ho\u1ea1t \u0111\u1ed9ng n\u00e0o trong kho l\u01b0u tr\u1eef."
-        : "Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u.");
+        ? "Không có hoạt động nào trong kho lưu trữ."
+        : "Không có dữ liệu.");
       return;
     }
     const emptyMsg = showInactiveActivities
@@ -241,8 +241,8 @@ async function loadLocations() {
     if (result.data.length === 0) {
       if (window.appLoading) {
         tbody.innerHTML = window.appLoading.tableEmpty(3, showInactiveLocations
-          ? "Kh\u00f4ng c\u00f3 \u0111\u1ecba \u0111i\u1ec3m n\u00e0o trong kho l\u01b0u tr\u1eef."
-          : "Kh\u00f4ng c\u00f3 \u0111\u1ecba \u0111i\u1ec3m n\u00e0o \u0111ang s\u1eed d\u1ee5ng.");
+          ? "Không có địa điểm nào trong kho lưu trữ."
+          : "Không có địa điểm nào đang sử dụng.");
         return;
       }
       const emptyMsg = showInactiveLocations

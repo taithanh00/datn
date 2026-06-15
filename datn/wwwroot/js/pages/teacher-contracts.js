@@ -5,6 +5,14 @@ const contractState = {
     teachers: []
 };
 
+const contractStatusLabels = {
+    Draft: 'Bản nháp',
+    Active: 'Đang hiệu lực',
+    Expired: 'Hết hạn',
+    Terminated: 'Đã chấm dứt',
+    Cancelled: 'Đã hủy'
+};
+
 document.addEventListener('DOMContentLoaded', initTeacherContracts);
 
 function initTeacherContracts() {
@@ -53,20 +61,23 @@ async function loadContractTeachers() {
 }
 
 function populateTeacherSelects(teachers) {
-    const options = '<option value="">Tất cả giáo viên</option>' + teachers.map(t => `<option value="${t.id}">${escapeHtml(t.fullName)}</option>`).join('');
+    const filterOptions = '<option value="">Tất cả giáo viên</option>' +
+        teachers.map(t => `<option value="${t.id}">${escapeHtml(t.fullName)}</option>`).join('');
+    const formOptions = '<option value="">-- Chọn giáo viên --</option>' +
+        teachers.map(t => `<option value="${t.id}">${escapeHtml(t.fullName)}</option>`).join('');
+
     const filter = document.getElementById('contractTeacherFilter');
-    if (filter) filter.innerHTML = options;
+    if (filter) filter.innerHTML = filterOptions;
 
     const formSelect = document.getElementById('contractEmployeeId');
-    if (formSelect) {
-        formSelect.innerHTML = '<option value="">Chọn giáo viên</option>' + teachers.map(t => `<option value="${t.id}">${escapeHtml(t.fullName)}</option>`).join('');
-    }
+    if (formSelect) formSelect.innerHTML = formOptions;
 }
 
 function lockContractTeacher(teacherId, teacherName) {
     const group = document.getElementById('contractEmployeeGroup');
     const select = document.getElementById('contractEmployeeId');
     if (!group || !select) return;
+
     group.style.display = 'none';
     select.innerHTML = `<option value="${teacherId}">${escapeHtml(teacherName)}</option>`;
     select.value = teacherId;
@@ -77,6 +88,7 @@ async function loadContractAlerts() {
         const res = await fetch('/Manager/Api/TeacherContractAlerts');
         const json = await res.json();
         if (!json.success) return;
+
         document.getElementById('contractActiveCount').textContent = json.data.activeContracts;
         document.getElementById('contractExpiringCount').textContent = json.data.expiringSoon;
         document.getElementById('teacherWithoutContractCount').textContent = json.data.teachersWithoutContracts;
@@ -88,12 +100,13 @@ async function loadContractAlerts() {
 async function loadAllContracts() {
     const tbody = document.getElementById('contractsTableBody');
     if (!tbody) return;
+
     if (window.appLoading) {
         tbody.innerHTML = window.appLoading.tableRow(8);
     } else {
-
-    tbody.innerHTML = '<tr><td colspan="8" class="text-muted" style="text-align:center; padding:32px;">Đang tải...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-muted" style="text-align:center; padding:32px;">Đang tải...</td></tr>';
     }
+
     const params = new URLSearchParams();
     const status = document.getElementById('contractStatusFilter')?.value;
     const employeeId = document.getElementById('contractTeacherFilter')?.value;
@@ -119,12 +132,13 @@ async function loadAllContracts() {
 async function loadTeacherContracts() {
     const tbody = document.getElementById('teacherContractsBody');
     if (!tbody || !contractState.teacherId) return;
+
     if (window.appLoading) {
         tbody.innerHTML = window.appLoading.tableRow(7);
     } else {
-
-    tbody.innerHTML = '<tr><td colspan="7" class="text-muted" style="text-align:center; padding:32px;">Đang tải...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-muted" style="text-align:center; padding:32px;">Đang tải...</td></tr>';
     }
+
     try {
         const res = await fetch(`/Manager/Api/Teacher/${contractState.teacherId}/Contracts`);
         const json = await res.json();
@@ -178,7 +192,7 @@ function renderContractsTable(contracts, tbody, showTeacher) {
     const colspan = showTeacher ? 8 : 7;
     if (!contracts || contracts.length === 0) {
         if (window.appLoading) {
-            tbody.innerHTML = window.appLoading.tableEmpty(colspan, "Kh\u00f4ng c\u00f3 h\u1ee3p \u0111\u1ed3ng.");
+            tbody.innerHTML = window.appLoading.tableEmpty(colspan, 'Không có hợp đồng.');
             return;
         }
         tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-muted" style="text-align:center; padding:32px;">Không có hợp đồng.</td></tr>`;
@@ -220,11 +234,13 @@ function openContractForm(contract = null) {
 
     document.getElementById('contractModalOverlay')?.classList.add('active');
     document.getElementById('contractSlidePanel')?.classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeContractForm() {
     document.getElementById('contractModalOverlay')?.classList.remove('active');
     document.getElementById('contractSlidePanel')?.classList.remove('active');
+    document.body.style.overflow = 'auto';
 }
 
 function clearContractForm() {
@@ -298,7 +314,7 @@ async function editTeacherContract(id) {
 }
 
 async function activateTeacherContract(id) {
-    if (!confirm('Kích hoạt hợp đồng này? Hợp đồng active cũ của giáo viên sẽ được chấm dứt tự động.')) return;
+    if (!confirm('Kích hoạt hợp đồng này? Hợp đồng đang hiệu lực cũ của giáo viên sẽ được chấm dứt tự động.')) return;
     await postContractAction(`/Manager/Api/TeacherContract/${id}/Activate`);
 }
 
@@ -389,7 +405,8 @@ function showContractAlert(message, type) {
 
 function statusBadge(status) {
     const cls = (status || '').toLowerCase();
-    return `<span class="contract-badge ${cls}">${escapeHtml(status || '')}</span>`;
+    const label = contractStatusLabels[status] || status || '';
+    return `<span class="contract-badge ${cls}">${escapeHtml(label)}</span>`;
 }
 
 function formatDate(value) {

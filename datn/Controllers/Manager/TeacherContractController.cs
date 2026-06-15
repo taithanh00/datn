@@ -97,7 +97,7 @@ namespace datn.Controllers.Manager
         {
             await MarkExpiredContractsAsync();
             if (!await IsTeacherAsync(employeeId))
-                return Json(new { success = false, message = "Khong tim thay giao vien." });
+                return Json(new { success = false, message = "Không tìm thấy giáo viên" });
 
             var contracts = await _context.TeacherContracts
                 .Where(c => c.EmployeeId == employeeId)
@@ -117,7 +117,7 @@ namespace datn.Controllers.Manager
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (contract == null)
-                return Json(new { success = false, message = "Khong tim thay hop dong." });
+                return Json(new { success = false, message = "Không tìm thấy hợp đồng." });
 
             return Json(new { success = true, data = ToDto(contract) });
         }
@@ -126,7 +126,7 @@ namespace datn.Controllers.Manager
         public async Task<IActionResult> CreateContract(int employeeId, [FromForm] SaveTeacherContractViewModel model)
         {
             if (!await IsTeacherAsync(employeeId))
-                return Json(new { success = false, message = "Khong tim thay giao vien." });
+                return Json(new { success = false, message = "Không tìm thấy giáo viên." });
 
             var validation = await ValidateContractAsync(model, null);
             if (validation != null)
@@ -154,10 +154,10 @@ namespace datn.Controllers.Manager
         {
             var contract = await _context.TeacherContracts.Include(c => c.Employee).FirstOrDefaultAsync(c => c.Id == id);
             if (contract == null)
-                return Json(new { success = false, message = "Khong tim thay hop dong." });
+                return Json(new { success = false, message = "Không tìm thấy hợp đồng." });
 
             if (contract.Status != TeacherContractStatus.Draft)
-                return Json(new { success = false, message = "Chi duoc sua hop dong o trang thai Draft." });
+                return Json(new { success = false, message = "Chỉ được sửa hợp đồng ở trạng thái Draft." });
 
             var validation = await ValidateContractAsync(model, id);
             if (validation != null)
@@ -171,7 +171,7 @@ namespace datn.Controllers.Manager
             await _context.SaveChangesAsync();
             await tx.CommitAsync();
 
-            return Json(new { success = true, message = "Da cap nhat hop dong thanh cong.", data = ToDto(contract) });
+            return Json(new { success = true, message = "Đã cập nhật hợp đồng thành công.", data = ToDto(contract) });
         }
 
         [HttpPost("Api/TeacherContract/{id:int}/Activate")]
@@ -179,17 +179,17 @@ namespace datn.Controllers.Manager
         {
             var contract = await _context.TeacherContracts.Include(c => c.Employee).FirstOrDefaultAsync(c => c.Id == id);
             if (contract == null)
-                return Json(new { success = false, message = "Khong tim thay hop dong." });
+                return Json(new { success = false, message = "Không tìm thấy hợp đồng." });
 
             if (contract.Status != TeacherContractStatus.Draft)
-                return Json(new { success = false, message = "Chi duoc kich hoat hop dong o trang thai Draft." });
+                return Json(new { success = false, message = "Chỉ được kích hoạt hợp đồng ở trạng thái Draft." });
 
             using var tx = await _context.Database.BeginTransactionAsync();
             await ActivateContractInternalAsync(contract);
             await _context.SaveChangesAsync();
             await tx.CommitAsync();
 
-            return Json(new { success = true, message = "Da kich hoat hop dong.", data = ToDto(contract) });
+            return Json(new { success = true, message = "Đã kích hoạt hợp đồng.", data = ToDto(contract) });
         }
 
         [HttpPost("Api/TeacherContract/{id:int}/Terminate")]
@@ -197,13 +197,13 @@ namespace datn.Controllers.Manager
         {
             var contract = await _context.TeacherContracts.FindAsync(id);
             if (contract == null)
-                return Json(new { success = false, message = "Khong tim thay hop dong." });
+                return Json(new { success = false, message = "Không tìm thấy hợp đồng." });
 
             if (!DateOnly.TryParse(model.TerminationDate, out var terminationDate))
-                return Json(new { success = false, message = "Ngay cham dut khong hop le." });
+                return Json(new { success = false, message = "Ngày chấm dứt không hợp lệ." });
 
             if (string.IsNullOrWhiteSpace(model.TerminationReason))
-                return Json(new { success = false, message = "Ly do cham dut la bat buoc." });
+                return Json(new { success = false, message = "Lý do chấm dứt là bắt buộc." });
 
             contract.Status = TeacherContractStatus.Terminated;
             contract.TerminationDate = terminationDate;
@@ -211,7 +211,7 @@ namespace datn.Controllers.Manager
             contract.UpdatedAtUtc = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            return Json(new { success = true, message = "Da cham dut hop dong.", data = ToDto(contract) });
+            return Json(new { success = true, message = "Đã chấm dứt hợp đồng.", data = ToDto(contract) });
         }
 
         [HttpPost("Api/TeacherContract/{id:int}/Cancel")]
@@ -219,16 +219,16 @@ namespace datn.Controllers.Manager
         {
             var contract = await _context.TeacherContracts.FindAsync(id);
             if (contract == null)
-                return Json(new { success = false, message = "Khong tim thay hop dong." });
+                return Json(new { success = false, message = "Không tìm thấy hợp đồng." });
 
             if (contract.Status != TeacherContractStatus.Draft)
-                return Json(new { success = false, message = "Chi duoc huy hop dong o trang thai Draft." });
+                return Json(new { success = false, message = "Chỉ được hủy hợp đồng ở trạng thái Draft." });
 
             contract.Status = TeacherContractStatus.Cancelled;
             contract.UpdatedAtUtc = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            return Json(new { success = true, message = "Da huy hop dong.", data = ToDto(contract) });
+            return Json(new { success = true, message = "Đã hủy hợp đồng.", data = ToDto(contract) });
         }
 
         [HttpDelete("Api/TeacherContract/{id:int}")]
@@ -236,16 +236,16 @@ namespace datn.Controllers.Manager
         {
             var contract = await _context.TeacherContracts.FindAsync(id);
             if (contract == null)
-                return Json(new { success = false, message = "Khong tim thay hop dong." });
+                return Json(new { success = false, message = "Không tìm thấy hợp đồng." });
 
             if (contract.Status == TeacherContractStatus.Active)
-                return Json(new { success = false, message = "Khong the xoa hop dong dang hieu luc." });
+                return Json(new { success = false, message = "Không thể xóa hợp đồng đang hiệu lực." });
 
             DeleteStoredFile(contract.StoredFileName);
             _context.TeacherContracts.Remove(contract);
             await _context.SaveChangesAsync();
 
-            return Json(new { success = true, message = "Da xoa hop dong." });
+            return Json(new { success = true, message = "Đã xóa hợp đồng." });
         }
 
         [HttpGet("Api/TeacherContract/{id:int}/File")]

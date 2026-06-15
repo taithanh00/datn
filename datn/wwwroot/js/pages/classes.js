@@ -5,11 +5,15 @@ let showInactiveClasses = false;
 let showInactiveSubjects = false;
 let allClassTeachers = [];
 let allClassAssignments = [];
+let allScheduleSubjects = [];
+
+const PLAY_SUBJECT_NAME = 'Hoạt động vui chơi';
+const PLAY_SUBJECT_CREATE_MESSAGE = 'Vui lòng tạo môn học "Hoạt động vui chơi" trong tab Danh mục môn học trước khi xếp lịch khung 10:00 - 11:00.';
 
 const ACTIVITY_SLOTS = [
     { start: '06:45', end: '07:30', locked: true, label: 'Đón trẻ & Ăn sáng' },
     { start: '07:30', end: '10:00', locked: false },
-    { start: '10:00', end: '11:00', locked: false },
+    { start: '10:00', end: '11:00', locked: false, play: true },
     { start: '11:00', end: '14:00', locked: true, label: 'Ăn & Ngủ trưa' },
     { start: '14:00', end: '16:30', locked: false },
     { start: '16:30', end: '17:00', locked: true, label: 'Trả trẻ' }
@@ -39,11 +43,19 @@ function updateScheduleHeaderSlots() {
     });
 }
 
+function updateScheduleTodayLabel() {
+    const label = document.getElementById('scheduleTodayLabel');
+    if (!label) return;
+
+    const today = new Date();
+    const day = today.getDate().toString().padStart(2, '0');
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const year = today.getFullYear();
+    label.textContent = `Ngày hôm nay: ${day}/${month}/${year}`;
+}
+
 async function initializeClassManagementPage() {
-    const scheduleWeekFilter = document.getElementById('scheduleWeekFilter');
-    if (scheduleWeekFilter) {
-        scheduleWeekFilter.value = getMondayDateString(new Date());
-    }
+    updateScheduleTodayLabel();
 
     const scheduleEffectiveFrom = document.getElementById('scheduleEffectiveFrom');
     if (scheduleEffectiveFrom) {
@@ -127,14 +139,6 @@ function bindClassManagementEvents() {
         });
     }
 
-    const scheduleWeekFilter = document.getElementById('scheduleWeekFilter');
-    if (scheduleWeekFilter) {
-        scheduleWeekFilter.addEventListener('change', () => {
-            const classId = parseInt(document.getElementById('scheduleClassFilter')?.value || '0', 10);
-            if (classId) loadSchedules(classId);
-        });
-    }
-
     const scheduleClassIdInput = document.getElementById('scheduleClassId');
     if (scheduleClassIdInput) {
         scheduleClassIdInput.addEventListener('change', (event) => {
@@ -143,6 +147,18 @@ function bindClassManagementEvents() {
             if (filter) filter.value = classId || '';
         });
     }
+
+    ['scheduleStartTime', 'scheduleEndTime'].forEach((id) => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('change', () => {
+                applyPlaySubjectLock(
+                    document.getElementById('scheduleStartTime')?.value,
+                    document.getElementById('scheduleEndTime')?.value
+                );
+            });
+        }
+    });
 
     const scheduleModal = document.getElementById('scheduleModal');
     if (scheduleModal) {
@@ -267,11 +283,12 @@ async function refreshDropdowns() {
         fetchJson('/Manager/Api/Classes'),
         fetchJson('/Manager/Api/Subjects')
     ]);
+    allScheduleSubjects = (subjectsResult.data || []).filter(item => item.isActive);
 
     fillSelect(document.getElementById('scheduleClassFilter'), classesResult.data || [], 'Chọn lớp');
     fillSelect(
         document.getElementById('scheduleSubjectId'),
-        (subjectsResult.data || []).filter(item => item.isActive),
+        allScheduleSubjects,
         'Chọn môn học',
         'id',
         item => item.name
@@ -299,8 +316,7 @@ async function loadSchedules(classId) {
     if (window.appLoading) {
         window.appLoading.setTable(tbody, 7);
     }
-    const weekStart = getSelectedScheduleWeekStart();
-    const result = await fetchJson(`/Manager/Api/ClassSchedules?classId=${classId}&weekStart=${encodeURIComponent(weekStart)}`);
+    const result = await fetchJson(`/Manager/Api/ClassSchedules?classId=${classId}`);
     if (!result.success) {
         tbody.innerHTML = window.appLoading
             ? window.appLoading.tableError(7, "Kh\u00f4ng t\u1ea3i \u0111\u01b0\u1ee3c th\u1eddi kh\u00f3a bi\u1ec3u.")
@@ -429,6 +445,11 @@ async function saveSchedule(event) {
         showAlert('scheduleFormAlert', false, timeError);
         return;
     }
+    const subjectError = validateScheduleSubjectForTime(startTime, endTime);
+    if (subjectError) {
+        showAlert('scheduleFormAlert', false, subjectError);
+        return;
+    }
 
     const payload = {
         classId: parseInt(document.getElementById('scheduleClassId').value, 10),
@@ -535,6 +556,7 @@ async function editSchedule(scheduleId) {
     document.getElementById('scheduleEffectiveTo').value = data.effectiveTo || '';
     document.getElementById('scheduleNote').value = data.note || '';
     document.getElementById('scheduleIsActive').value = data.isActive ? 'true' : 'false';
+    applyPlaySubjectLock(data.startTime, data.endTime);
     document.getElementById('saveScheduleBtn').textContent = 'Cập nhật phân công';
     document.getElementById('deleteScheduleBtn').style.display = 'block';
     document.getElementById('modalTitle').textContent = 'Chỉnh sửa phân công';
@@ -571,6 +593,7 @@ function openScheduleModal(day, slotIdx, isEdit = false, suggestedStartTime = nu
         // Nếu giờ kết thúc vượt quá giới hạn slot, thì dùng giờ kết thúc của slot
         const slotEnd = slotIdx >= 0 ? ACTIVITY_SLOTS[slotIdx].end : '17:00';
         document.getElementById('scheduleEndTime').value = endStr > slotEnd ? slotEnd : endStr;
+        applyPlaySubjectLock(start, document.getElementById('scheduleEndTime').value);
 
         document.getElementById('saveScheduleBtn').textContent = 'Lưu phân công';
         document.getElementById('deleteScheduleBtn').style.display = 'none';
@@ -836,8 +859,11 @@ function resetScheduleForm(classId = null) {
     document.getElementById('scheduleEffectiveFrom').value = new Date().toISOString().split('T')[0];
     document.getElementById('scheduleStartTime').value = '07:30';
     document.getElementById('scheduleEndTime').value = '08:15';
+    const subjectSelect = document.getElementById('scheduleSubjectId');
+    if (subjectSelect) subjectSelect.disabled = false;
     document.getElementById('scheduleIsActive').value = 'true';
     document.getElementById('saveScheduleBtn').textContent = 'Lưu thời khóa biểu';
+    document.getElementById('saveScheduleBtn').disabled = false;
 
     const selectedClassId = classId || parseInt(document.getElementById('scheduleClassFilter').value || '0', 10);
     if (selectedClassId) {
@@ -848,24 +874,64 @@ function resetScheduleForm(classId = null) {
     if (formAlert) formAlert.style.display = 'none';
 }
 
-function getSelectedScheduleWeekStart() {
-    const value = document.getElementById('scheduleWeekFilter')?.value;
-    return value || getMondayDateString(new Date());
-}
-
-function getMondayDateString(date) {
-    const normalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const day = normalized.getDay();
-    const offset = day === 0 ? -6 : 1 - day;
-    normalized.setDate(normalized.getDate() + offset);
-    return normalized.toISOString().split('T')[0];
-}
-
 function timeToMinutes(value) {
     if (!value || !value.includes(':')) return null;
     const [hours, minutes] = value.split(':').map(Number);
     if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
     return hours * 60 + minutes;
+}
+
+function normalizeSubjectName(value) {
+    return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('vi-VN');
+}
+
+function findPlaySubject() {
+    const normalizedPlayName = normalizeSubjectName(PLAY_SUBJECT_NAME);
+    return allScheduleSubjects.find(subject => normalizeSubjectName(subject.name) === normalizedPlayName) || null;
+}
+
+function isPlayTimeRange(startTime, endTime) {
+    const start = timeToMinutes(startTime);
+    const end = timeToMinutes(endTime);
+    return start !== null && end !== null && start >= timeToMinutes('10:00') && end <= timeToMinutes('11:00');
+}
+
+function applyPlaySubjectLock(startTime, endTime) {
+    const subjectSelect = document.getElementById('scheduleSubjectId');
+    const saveButton = document.getElementById('saveScheduleBtn');
+    if (!subjectSelect) return;
+
+    if (!isPlayTimeRange(startTime, endTime)) {
+        subjectSelect.disabled = false;
+        if (saveButton) saveButton.disabled = false;
+        return;
+    }
+
+    const playSubject = findPlaySubject();
+    if (!playSubject) {
+        subjectSelect.disabled = true;
+        if (saveButton) saveButton.disabled = true;
+        showAlert('scheduleFormAlert', false, PLAY_SUBJECT_CREATE_MESSAGE);
+        return;
+    }
+
+    subjectSelect.value = String(playSubject.id);
+    subjectSelect.disabled = true;
+    if (saveButton) saveButton.disabled = false;
+}
+
+function validateScheduleSubjectForTime(startTime, endTime) {
+    if (!isPlayTimeRange(startTime, endTime)) return null;
+
+    const playSubject = findPlaySubject();
+    if (!playSubject) return PLAY_SUBJECT_CREATE_MESSAGE;
+
+    const selectedSubjectId = parseInt(document.getElementById('scheduleSubjectId')?.value || '0', 10);
+    if (selectedSubjectId !== playSubject.id) {
+        return 'Khung 10:00 - 11:00 chỉ được chọn môn học "Hoạt động vui chơi". Vui lòng tạo/chọn đúng môn trong tab Danh mục môn học.';
+    }
+
+    return null;
 }
 
 function validateScheduleTimeRange(startTime, endTime) {

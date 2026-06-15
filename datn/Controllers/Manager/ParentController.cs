@@ -223,17 +223,17 @@ namespace datn.Controllers.Manager
         {
             if (parentId <= 0 || studentId <= 0)
             {
-                return Json(new { success = false, message = $"Du lieu khong hop le (parentId={parentId}, studentId={studentId})." });
+                return Json(new { success = false, message = $"Dữ liệu không hợp lệ (parentId={parentId}, studentId={studentId})." });
             }
 
             if (!await _context.Parents.AnyAsync(p => p.Id == parentId))
             {
-                return Json(new { success = false, message = "Khong tim thay phu huynh." });
+                return Json(new { success = false, message = "Không tìm thấy phụ huynh." });
             }
 
             if (!await _context.Students.AnyAsync(s => s.Id == studentId))
             {
-                return Json(new { success = false, message = "Khong tim thay hoc sinh." });
+                return Json(new { success = false, message = "Không tìm thấy học sinh." });
             }
 
             try
@@ -243,11 +243,11 @@ namespace datn.Controllers.Manager
             }
             catch (DbUpdateException ex)
             {
-                return Json(new { success = false, message = $"Loi CSDL khi lien ket: {ex.GetBaseException().Message}" });
+                return Json(new { success = false, message = $" Lỗi CSDL khi liên kết: {ex.GetBaseException().Message}" });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = $"Loi khi lien ket: {ex.Message}" });
+                return Json(new { success = false, message = $" Lỗi khi liên kết: {ex.Message}" });
             }
         }
 

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+﻿document.addEventListener('DOMContentLoaded', function() {
     // === Theme Management ===
     const THEME_KEY = 'kindercare-theme';
     const themeToggle = document.getElementById('themeToggle');
@@ -83,10 +83,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function defaultToastTitle(type) {
         switch (String(type || '').toLowerCase()) {
-            case 'success': return 'Thành công';
-            case 'error': return 'Có lỗi';
-            case 'warning': return 'Cảnh báo';
-            default: return 'Thông tin';
+            case 'success': return 'ThÃ nh cÃ´ng';
+            case 'error': return 'CÃ³ lá»—i';
+            case 'warning': return 'Cáº£nh bÃ¡o';
+            default: return 'ThÃ´ng tin';
         }
     }
 
@@ -132,11 +132,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     };
 
-    window.notifySuccess = (message, title = 'Thành công') => window.showToast(title, message, 'success');
-    window.notifyError = (message, title = 'Có lỗi') => window.showToast(title, message, 'error');
-    window.notifyWarning = (message, title = 'Cảnh báo') => window.showToast(title, message, 'warning');
-    window.notifyInfo = (message, title = 'Thông tin') => window.showToast(title, message, 'info');
-    window.alert = (message) => window.showToast('Thông báo', message, 'warning');
+    window.notifySuccess = (message, title = 'ThÃ nh cÃ´ng') => window.showToast(title, message, 'success');
+    window.notifyError = (message, title = 'CÃ³ lá»—i') => window.showToast(title, message, 'error');
+    window.notifyWarning = (message, title = 'Cáº£nh bÃ¡o') => window.showToast(title, message, 'warning');
+    window.notifyInfo = (message, title = 'ThÃ´ng tin') => window.showToast(title, message, 'info');
+    window.alert = (message) => window.showToast('ThÃ´ng bÃ¡o', message, 'warning');
 
     if (window.Swal && typeof window.Swal.fire === 'function') {
         const originalSwalFire = window.Swal.fire.bind(window.Swal);
@@ -167,15 +167,109 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateNotificationUI(data) {
         const list = document.getElementById('notificationList');
         const badge = document.getElementById('notificationCount');
+        const markAllButton = document.getElementById('markAllNotificationsReadBtn');
         if (!list || !badge) return;
+
         const unread = data.filter(n => !n.isRead).length;
         badge.style.display = unread > 0 ? 'flex' : 'none';
         if (unread > 0) badge.textContent = unread > 9 ? '9+' : unread;
-        if (data.length === 0) { list.innerHTML = '<div class="empty-state" style="padding:32px 16px;"><i class="fa-solid fa-bell-slash"></i><p>Không có thông báo</p></div>'; return; }
-        list.innerHTML = data.map(n => `<a href="${n.url||'#'}" class="notification-item ${n.isRead?'':'unread'}" onclick="markAsRead(${n.id})" style="display:flex; gap:12px; padding:12px; border-radius:8px; text-decoration:none; color:var(--text-main); ${n.isRead?'':'background:var(--primary-soft);'}"><div style="flex:1;"><div style="font-size:0.85rem; font-weight:600;">${n.title}</div><div style="font-size:0.8rem; color:var(--text-muted);">${n.message}</div><div style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">${new Date(n.createdAt).toLocaleString()}</div></div></a>`).join('');
+        if (markAllButton) markAllButton.style.display = unread > 0 ? 'inline-flex' : 'none';
+
+        list.innerHTML = '';
+        if (data.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty-state';
+            empty.style.cssText = 'padding:32px 16px;';
+            empty.innerHTML = '<i class="fa-solid fa-bell-slash"></i><p>Không có thông báo</p>';
+            list.appendChild(empty);
+            return;
+        }
+
+        data.forEach(n => {
+            const item = document.createElement('a');
+            item.href = normalizeNotificationUrl(n.url);
+            item.className = `notification-item ${n.isRead ? '' : 'unread'}`.trim();
+            item.style.cssText = `display:flex; gap:12px; padding:12px; border-radius:8px; text-decoration:none; color:var(--text-main); ${n.isRead ? '' : 'background:var(--primary-soft);'}`;
+            item.addEventListener('click', (event) => handleNotificationClick(event, n.id, item.getAttribute('href')));
+
+            const content = document.createElement('div');
+            content.style.cssText = 'flex:1; min-width:0;';
+
+            const title = document.createElement('div');
+            title.style.cssText = 'font-size:0.85rem; font-weight:600;';
+            setText(title, n.title);
+
+            const message = document.createElement('div');
+            message.style.cssText = 'font-size:0.8rem; color:var(--text-muted);';
+            setText(message, n.message);
+
+            const createdAt = document.createElement('div');
+            createdAt.style.cssText = 'font-size:0.72rem; color:var(--text-muted); margin-top:4px;';
+            setText(createdAt, new Date(n.createdAt).toLocaleString());
+
+            content.appendChild(title);
+            content.appendChild(message);
+            content.appendChild(createdAt);
+            item.appendChild(content);
+
+            if (!n.isRead) {
+                const markButton = document.createElement('button');
+                markButton.type = 'button';
+                markButton.className = 'btn-table';
+                markButton.title = 'Đánh dấu đã đọc';
+                markButton.style.cssText = 'align-self:flex-start; color:var(--primary); padding:4px 6px;';
+                markButton.innerHTML = '<i class="fa-solid fa-check"></i>';
+                markButton.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    await window.markAsRead(n.id);
+                });
+                item.appendChild(markButton);
+            }
+
+            list.appendChild(item);
+        });
     }
 
-    window.markAsRead = async function(id) { try { await fetch('/Notification/Api/MarkRead/'+id, {method:'POST'}); } catch(e){} }
+    function normalizeNotificationUrl(url) {
+        const value = String(url || '#');
+        if (value === '#') return '#';
+        if (value.startsWith('/')) return value;
+        return '#';
+    }
+
+    async function handleNotificationClick(event, id, url) {
+        event.preventDefault();
+        await window.markAsRead(id, false);
+        if (url && url !== '#') {
+            window.location.href = url;
+        }
+    }
+
+    window.markAsRead = async function(id, refresh = true) {
+        try {
+            const res = await fetch('/Notification/Api/MarkRead/' + encodeURIComponent(id), { method: 'POST' });
+            const result = await res.json().catch(() => ({ success: false }));
+            if (result.success && refresh) await loadLatestNotifications();
+            return result.success;
+        } catch(e) {
+            return false;
+        }
+    }
+
+    window.markAllNotificationsAsRead = async function() {
+        try {
+            const res = await fetch('/Notification/Api/MarkAllRead', { method: 'POST' });
+            const result = await res.json().catch(() => ({ success: false }));
+            if (result.success) await loadLatestNotifications();
+        } catch(e) {}
+    }
+
+    document.getElementById('markAllNotificationsReadBtn')?.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        await window.markAllNotificationsAsRead();
+    });
 
     // Notification dropdown toggle
     document.getElementById('notificationToggle')?.addEventListener('click', function(e) {

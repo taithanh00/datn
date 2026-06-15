@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById("btnCreateHoliday").addEventListener("click", createHoliday);
 
-    // Status Tabs
     document.querySelectorAll(".status-tab").forEach((tab) => {
         tab.addEventListener("click", function () {
             document
@@ -28,36 +27,42 @@ async function loadHolidays() {
     if (window.appLoading && body) {
         window.appLoading.setTable(body, 4);
     }
+
     try {
         const res = await fetch(`/HolidayManagement/Api/List?showInactive=${showInactiveHolidays}`);
         const payload = await res.json();
-        
+
         if (!payload.data.length) {
             if (window.appLoading) {
-                body.innerHTML = window.appLoading.tableEmpty(4, "Ch\u01b0a c\u00f3 ng\u00e0y l\u1ec5 n\u00e0o \u0111\u01b0\u1ee3c thi\u1ebft l\u1eadp.");
+                body.innerHTML = window.appLoading.tableEmpty(4, "Chưa có ngày lễ nào được thiết lập.");
                 return;
             }
             body.innerHTML = "<tr><td colspan='4' class='text-center py-5 text-muted'>Chưa có ngày lễ nào được thiết lập.</td></tr>";
             return;
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = getTodayString();
 
         body.innerHTML = payload.data.map(x => {
             const isPast = x.date < today;
-            const statusClass = x.isActive ? (isPast ? "badge-secondary" : "badge-success") : "badge-danger";
-            const statusText = x.isActive ? (isPast ? "Đã qua" : "Sắp tới") : "Đã ẩn/Xóa";
+            const isToday = x.date === today;
+            const statusClass = x.isActive
+                ? (isPast ? "badge-secondary" : isToday ? "badge-info" : "badge-success")
+                : "badge-danger";
+            const statusText = x.isActive
+                ? (isPast ? "Đã qua" : isToday ? "Hôm nay" : "Sắp tới")
+                : "Đã ẩn/Xóa";
 
-            const actionBtn = x.isActive 
+            const actionBtn = x.isActive
                 ? `<button class="btn-table delete" onclick="deleteHoliday(${x.id})">Xóa</button>`
                 : `<button class="btn-table" onclick="reactivateHoliday(${x.id})" style="color: var(--primary);">Khôi phục</button>`;
 
             return `
                 <tr>
-                    <td style="font-weight: 600;">${new Date(x.date).toLocaleDateString('vi-VN')}</td>
+                    <td style="font-weight: 600;">${formatHolidayDate(x.date)}</td>
                     <td>
-                        <div style="font-weight: 600;">${x.name}</div>
-                        <div class="text-muted" style="font-size: 0.85rem;">${x.description || "--"}</div>
+                        <div style="font-weight: 600;">${escapeHtml(x.name)}</div>
+                        <div class="text-muted" style="font-size: 0.85rem;">${escapeHtml(x.description || "--")}</div>
                     </td>
                     <td><span class="badge ${statusClass}">${statusText}</span></td>
                     <td style="text-align: right;">
@@ -66,9 +71,9 @@ async function loadHolidays() {
                 </tr>
             `;
         }).join("");
-    } catch(e) {
+    } catch (e) {
         if (window.appLoading) {
-            body.innerHTML = window.appLoading.tableError(4, "L\u1ed7i k\u1ebft n\u1ed1i.");
+            body.innerHTML = window.appLoading.tableError(4, "Lỗi kết nối.");
             return;
         }
         body.innerHTML = "<tr><td colspan='4' class='text-center text-danger py-4'>Lỗi kết nối.</td></tr>";
@@ -87,7 +92,7 @@ async function createHoliday() {
     }
 
     if (date < getTodayString()) {
-        setAlert("Ch\u1ec9 \u0111\u01b0\u1ee3c t\u1ea1o ng\u00e0y l\u1ec5 t\u1eeb h\u00f4m nay tr\u1edf \u0111i.", true);
+        setAlert("Chỉ được tạo ngày lễ từ hôm nay trở đi.", true);
         return;
     }
 
@@ -101,7 +106,7 @@ async function createHoliday() {
             body: JSON.stringify({ name, date, description })
         });
         const payload = await res.json();
-        
+
         if (payload.success) {
             setAlert(payload.message, false);
             document.getElementById("holidayName").value = '';
@@ -131,7 +136,9 @@ async function deleteHoliday(id) {
         } else {
             alert(payload.message);
         }
-    } catch (e) { alert("Lỗi kết nối."); }
+    } catch (e) {
+        alert("Lỗi kết nối.");
+    }
 }
 
 async function reactivateHoliday(id) {
@@ -145,13 +152,30 @@ async function reactivateHoliday(id) {
         } else {
             alert(payload.message);
         }
-    } catch (e) { alert("Lỗi kết nối."); }
+    } catch (e) {
+        alert("Lỗi kết nối.");
+    }
 }
 
 function getTodayString() {
     const today = new Date();
     today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
     return today.toISOString().split('T')[0];
+}
+
+function formatHolidayDate(value) {
+    if (!value || !value.includes("-")) return value || "";
+    const [year, month, day] = value.split("-");
+    return `${Number(day)}/${Number(month)}/${year}`;
+}
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
 function setAlert(msg, isError) {
