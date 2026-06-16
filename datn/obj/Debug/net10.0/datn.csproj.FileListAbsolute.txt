@@ -587,5 +587,5 @@ D:\thanhBinh\datn\obj\Debug\net10.0\compressed\ekebxwwdr5-{0}-d00593q8og-d00593q
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\jmwzi72gfx-{0}-pq0ttr65kr-pq0ttr65kr.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\ll5fnrkkv6-{0}-ny5vahrxij-ny5vahrxij.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\zbexzdh1l8-{0}-5n77s8ahf5-5n77s8ahf5.gz
-D:\thanhBinh\datn\obj\Debug\net10.0\compressed\3mwdkhtd7m-{0}-lmrymd3lke-lmrymd3lke.gz
 D:\thanhBinh\datn\obj\Debug\net10.0\compressed\ymczhinuu0-{0}-anzqowxkxk-anzqowxkxk.gz
+D:\thanhBinh\datn\obj\Debug\net10.0\compressed\3mwdkhtd7m-{0}-u8csscf01f-u8csscf01f.gz

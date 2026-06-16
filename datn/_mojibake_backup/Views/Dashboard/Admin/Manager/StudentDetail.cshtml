@@ -96,9 +96,9 @@
 
                     @{
                         var father = Model.ParentStudents?
-                            .FirstOrDefault(ps => ps.Relationship == "Bố")?.Parent;
+                            .FirstOrDefault(ps => ps.Relationship == "Bố" || ps.Relationship == "Bá»‘")?.Parent;
                         var mother = Model.ParentStudents?
-                            .FirstOrDefault(ps => ps.Relationship == "Mẹ")?.Parent;
+                            .FirstOrDefault(ps => ps.Relationship == "Mẹ" || ps.Relationship == "Máº¹")?.Parent;
                     }
 
                     @if (father != null)

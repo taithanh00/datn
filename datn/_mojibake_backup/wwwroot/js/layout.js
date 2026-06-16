@@ -84,7 +84,7 @@
     function defaultToastTitle(type) {
         switch (String(type || '').toLowerCase()) {
             case 'success': return 'Thành công';
-            case 'error': return 'Có lỗi';
+            case 'error': return 'CÃ³ lá»—i';
             case 'warning': return 'Cảnh báo';
             default: return 'Thông tin';
         }
@@ -133,7 +133,7 @@
     };
 
     window.notifySuccess = (message, title = 'Thành công') => window.showToast(title, message, 'success');
-    window.notifyError = (message, title = 'Có lỗi') => window.showToast(title, message, 'error');
+    window.notifyError = (message, title = 'CÃ³ lá»—i') => window.showToast(title, message, 'error');
     window.notifyWarning = (message, title = 'Cảnh báo') => window.showToast(title, message, 'warning');
     window.notifyInfo = (message, title = 'Thông tin') => window.showToast(title, message, 'info');
     window.alert = (message) => window.showToast('Thông báo', message, 'warning');

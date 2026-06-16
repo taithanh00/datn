@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Sen Hồng</title>
+    <title>@ViewData["Title"] - Sen Há»“ng</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -31,28 +31,28 @@
         <aside class="sidebar" id="sidebar">
             <a href="/" class="sidebar-header" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px;">
                 <i class="fa-solid fa-spa" style="font-size:1.4rem; color: #e91e63;"></i>
-                <span>Sen Hồng</span>
+                <span>Sen Há»“ng</span>
             </a>
 
             <nav class="sidebar-nav">
                 <a href="/" class="nav-item" data-transition>
-                    <i class="fa-solid fa-chart-line"></i> Tổng quan
+                    <i class="fa-solid fa-chart-line"></i> Tá»•ng quan
                 </a>
 
                 @if (ViewBag.Role == "Manager")
                 {
-                    <div class="nav-label">Quản trị hệ thống</div>
-                    <a href="/Manager/Classes" class="nav-item" data-transition><i class="fa-solid fa-school"></i> Quản lý lớp học</a>
+                    <div class="nav-label">Quáº£n trá»‹ há»‡ thá»‘ng</div>
+                    <a href="/Manager/Classes" class="nav-item" data-transition><i class="fa-solid fa-school"></i> Quáº£n lÃ½ lá»›p há»c</a>
                     <a href="/Manager/Subjects" class="nav-item" data-transition><i class="fa-solid fa-book"></i> Danh mục môn học</a>
-                    <a href="/Manager/Schedules" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Thời khóa biểu</a>
+                    <a href="/Manager/Schedules" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Thá»i khÃ³a biá»ƒu</a>
                     <a href="/Manager/Students" class="nav-item" data-transition><i class="fa-solid fa-user-graduate"></i> Học sinh</a>
                     <a href="/Manager/Parents" class="nav-item" data-transition><i class="fa-solid fa-users-viewfinder"></i> Phụ huynh</a>
                     <a href="/Manager/Teachers" class="nav-item" data-transition><i class="fa-solid fa-user-tie"></i> Giáo viên</a>
-                    <!-- <a href="/Manager/TeacherContracts" class="nav-item" data-transition><i class="fa-solid fa-file-contract"></i> Hợp đồng giáo viên</a> -->
-                    <a href="/HolidayManagement" class="nav-item" data-transition><i class="fa-solid fa-umbrella-beach"></i> Ngày lễ</a>
-                    <a href="/Manager/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động</a>
+                    <!-- <a href="/Manager/TeacherContracts" class="nav-item" data-transition><i class="fa-solid fa-file-contract"></i> Há»£p Ä‘á»“ng giÃ¡o viÃªn</a> -->
+                    <a href="/HolidayManagement" class="nav-item" data-transition><i class="fa-solid fa-umbrella-beach"></i> NgÃ y lá»…</a>
+                    <a href="/Manager/Activities" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Hoáº¡t Ä‘á»™ng</a>
                     <a href="/Manager/Nutrition" class="nav-item" data-transition><i class="fa-solid fa-utensils"></i> Quản lý Dinh dưỡng</a>
-                    <a href="/Manager/SystemLog" class="nav-item" data-transition><i class="fa-solid fa-clock-rotate-left"></i> Nhật ký hệ thống</a>
+                    <a href="/Manager/SystemLog" class="nav-item" data-transition><i class="fa-solid fa-clock-rotate-left"></i> Nháº­t kÃ½ há»‡ thá»‘ng</a>
 
                     <div class="nav-label">Đào tạo</div>
                     <a href="/Manager/Assignments" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Phân công giảng dạy</a>
@@ -61,25 +61,25 @@
                     <a href="/Tuition" class="nav-item" data-transition><i class="fa-solid fa-file-invoice-dollar"></i> Học phí</a>
                     <a href="/TeacherSalary" class="nav-item" data-transition><i class="fa-solid fa-money-check-dollar"></i> Tiền lương</a>
 
-                    <div class="nav-label">Phê duyệt</div>
-                    <a href="/LeaveApproval" class="nav-item" data-transition><i class="fa-solid fa-clipboard-check"></i> Duyệt nghỉ phép</a>
+                    <div class="nav-label">PhÃª duyá»‡t</div>
+                    <a href="/LeaveApproval" class="nav-item" data-transition><i class="fa-solid fa-clipboard-check"></i> Duyá»‡t nghá»‰ phÃ©p</a>
                 }
 
                 @if (ViewBag.Role == "Employee")
                 {
                     <div class="nav-label">Giảng dạy</div>
-                    <a href="/Employee/Classes" class="nav-item" data-transition><i class="fa-solid fa-chalkboard-user"></i> Lớp của tôi</a>
-                    <a href="/Employee/Attendance" class="nav-item" data-transition><i class="fa-solid fa-clipboard-user"></i> Điểm danh</a>
+                    <a href="/Employee/Classes" class="nav-item" data-transition><i class="fa-solid fa-chalkboard-user"></i> Lá»›p cá»§a tÃ´i</a>
+                    <a href="/Employee/Attendance" class="nav-item" data-transition><i class="fa-solid fa-clipboard-user"></i> Äiá»ƒm danh</a>
                     <a href="/Employee/StudyReport" class="nav-item" data-transition><i class="fa-solid fa-file-signature"></i> Nhận xét & Báo cáo</a>
-                    <a href="/Employee/Activities" class="nav-item @(ViewData["Title"]?.ToString() == "Hoạt động" ? "active" : "")" data-transition><i class="fa-solid fa-calendar-check"></i> Hoạt động</a>
-                    <a href="/Employee/ClassReports" class="nav-item @(ViewData["Title"]?.ToString() == "Nhật ký lớp học" ? "active" : "")" data-transition><i class="fa-solid fa-book-open"></i> Nhật ký lớp học</a>
-                    <a href="/Employee/Nutrition" class="nav-item @(ViewData["Title"]?.ToString() == "Quản lý Dinh dưỡng & Thực đơn" ? "active" : "")" data-transition><i class="fa-solid fa-utensils"></i> Dinh dưỡng và Thực đơn</a>
+                    <a href="/Employee/Activities" class="nav-item @(ViewData["Title"]?.ToString() == "Hoáº¡t Ä‘á»™ng" ? "active" : "")" data-transition><i class="fa-solid fa-calendar-check"></i> Hoáº¡t Ä‘á»™ng</a>
+                    <a href="/Employee/ClassReports" class="nav-item @(ViewData["Title"]?.ToString() == "Nháº­t kÃ½ lá»›p há»c" ? "active" : "")" data-transition><i class="fa-solid fa-book-open"></i> Nháº­t kÃ½ lá»›p há»c</a>
+                    <a href="/Employee/Nutrition" class="nav-item @(ViewData["Title"]?.ToString() == "Quáº£n lÃ½ Dinh dÆ°á»¡ng & Thá»±c Ä‘Æ¡n" ? "active" : "")" data-transition><i class="fa-solid fa-utensils"></i> Dinh dÆ°á»¡ng vÃ  Thá»±c Ä‘Æ¡n</a>
 
                     <div class="nav-label">Cá nhân</div>
                     <a href="/Employee/TimeAttendance" class="nav-item" data-transition><i class="fa-solid fa-clock"></i> Chấm công</a>
-                    <a href="/Employee/LeaveRequest" class="nav-item" data-transition><i class="fa-solid fa-calendar-minus"></i> Nghỉ phép</a>
-                    <a href="/Employee/WorkSchedule" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Lịch dạy cá nhân</a>
-                    <a href="/Employee/Holidays" class="nav-item" data-transition><i class="fa-solid fa-umbrella-beach"></i> Ngày lễ</a>
+                    <a href="/Employee/LeaveRequest" class="nav-item" data-transition><i class="fa-solid fa-calendar-minus"></i> Nghá»‰ phÃ©p</a>
+                    <a href="/Employee/WorkSchedule" class="nav-item" data-transition><i class="fa-solid fa-calendar-days"></i> Lá»‹ch dáº¡y cÃ¡ nhÃ¢n</a>
+                    <a href="/Employee/Holidays" class="nav-item" data-transition><i class="fa-solid fa-umbrella-beach"></i> NgÃ y lá»…</a>
                     <a href="/Employee/Salary" class="nav-item" data-transition><i class="fa-solid fa-wallet"></i> Phiếu lương</a>
                 }
 
@@ -89,7 +89,7 @@
                     <a href="/Parent/Children" class="nav-item" data-transition><i class="fa-solid fa-child"></i> Thông tin bé</a>
                     <a href="/Parent/AttendanceReport" class="nav-item" data-transition><i class="fa-solid fa-calendar-check"></i> Chuyên cần</a>
                     <a href="/Parent/StudyReports" class="nav-item" data-transition><i class="fa-solid fa-chart-bar"></i> Học tập</a>
-                    <a href="/Parent/Activities" class="nav-item" data-transition><i class="fa-solid fa-puzzle-piece"></i> Hoạt động của bé</a>
+                    <a href="/Parent/Activities" class="nav-item" data-transition><i class="fa-solid fa-puzzle-piece"></i> Hoáº¡t Ä‘á»™ng cá»§a bÃ©</a>
                     <a href="/Parent/DailyReport/MyChild" class="nav-item" data-transition><i class="fa-solid fa-notes-medical"></i> Nhật ký và Sức khỏe</a>
                     <a href="/Parent/Tuition/MyTuition" class="nav-item" data-transition><i class="fa-solid fa-wallet"></i> Học phí</a>
                 }
@@ -99,7 +99,7 @@
                     <form asp-controller="Auth" asp-action="Logout" method="post">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="nav-item" style="width:100%; background:none; border:none; cursor:pointer; text-align:left; font-family:inherit; font-size:inherit; color:inherit;">
-                            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                            <i class="fa-solid fa-right-from-bracket"></i> ÄÄƒng xuáº¥t
                         </button>
                     </form>
                 </div>
@@ -127,9 +127,9 @@
                                     "Nutrition" => "Dinh dưỡng",
                                     "Tuition" => "Học phí",
                                     "TeacherSalary" => "Lương giáo viên",
-                                    "LeaveApproval" => "Duyệt nghỉ phép",
+                                    "LeaveApproval" => "Duyệt nghỉ phép",
                                     "TimeAttendance" => "Chấm công",
-                                    "LeaveRequest" => "Nghỉ phép",
+                                    "LeaveRequest" => "Nghỉ phép",
                                     "DailyReport" => "Nhật ký",
                                     "WorkAttendance" => "Chấm công nhân sự",
                                     "PayrollPeriod" => "Kỳ lương",
@@ -187,7 +187,7 @@
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="notification-item" style="width:100%; display:flex; align-items:center; gap:10px; padding:12px 16px; background:none; border:none; cursor:pointer; color:var(--danger); font-size:inherit; font-family:inherit; text-align:left;">
                                     <i class="fa-solid fa-right-from-bracket"></i>
-                                    <span>Đăng xuất</span>
+                                    <span>ÄÄƒng xuáº¥t</span>
                                 </button>
                             </form>
                         </div>
