@@ -63,7 +63,7 @@ async function savePlan() {
     };
 
     if (!model.amount || isNaN(model.ageFrom)) {
-        alert("Vui lòng nhập đầy đủ thông tin.");
+        window.notifyWarning("Vui lòng nhập đầy đủ thông tin.");
         return;
     }
 
@@ -91,7 +91,7 @@ async function generateTuitions() {
     const month = monthElem.value;
     const year = yearElem.value;
     
-    if (!confirm(`Xác nhận khởi tạo học phí Tháng ${month}/${year} cho toàn bộ học sinh?`)) return;
+    if (!(await window.appConfirm(`Xác nhận khởi tạo học phí Tháng ${month}/${year} cho toàn bộ học sinh?`))) return;
 
     // Frontend Protection: Disable button
     const originalText = btn.innerHTML;
@@ -106,10 +106,10 @@ async function generateTuitions() {
         if (result.success) {
             if(window.showToast) window.showToast('Khởi tạo xong', result.message, 'success');
         } else {
-            alert(result.message);
+            window.notifyError(result.message);
         }
     } catch (e) { 
-        alert("Lỗi hệ thống khi khởi tạo."); 
+        window.notifyError("Lỗi hệ thống khi khởi tạo."); 
     } finally {
         // Re-enable button
         btn.disabled = false;
@@ -206,7 +206,7 @@ async function saveMonthlyStudentFees() {
     const feeItemId = parseInt(document.getElementById('feeConfigItem')?.value || '0', 10);
 
     if (!month || !year || !classId || !feeItemId) {
-        alert('Vui lòng chọn tháng, năm, lớp và khoản thu.');
+        window.notifyWarning('Vui lòng chọn tháng, năm, lớp và khoản thu.');
         return;
     }
 
@@ -228,11 +228,11 @@ async function saveMonthlyStudentFees() {
             if (window.showToast) window.showToast('Thành công', result.message, 'success');
             await loadMonthlyStudentFees();
         } else {
-            alert(result.message);
+            window.notifyError(result.message);
         }
     } catch (e) {
         console.error(e);
-        alert('Lỗi hệ thống khi lưu cấu hình khoản thu.');
+        window.notifyError('Lỗi hệ thống khi lưu cấu hình khoản thu.');
     }
 }
 

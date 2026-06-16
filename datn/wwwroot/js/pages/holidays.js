@@ -125,7 +125,7 @@ async function createHoliday() {
 }
 
 async function deleteHoliday(id) {
-    if (!confirm("Bạn có chắc muốn ẩn ngày lễ này? Các bản ghi chấm công tự động được tạo cho ngày này cũng sẽ bị thu hồi.")) return;
+    if (!(await window.appConfirm("Bạn có chắc muốn ẩn ngày lễ này? Các bản ghi chấm công tự động được tạo cho ngày này cũng sẽ bị thu hồi."))) return;
 
     try {
         const res = await fetch(`/HolidayManagement/Api/Delete/${id}`, { method: "DELETE" });
@@ -134,15 +134,15 @@ async function deleteHoliday(id) {
             if (window.showToast) window.showToast('Đã ẩn', payload.message, 'info');
             await loadHolidays();
         } else {
-            alert(payload.message);
+            window.notifyError(payload.message);
         }
     } catch (e) {
-        alert("Lỗi kết nối.");
+        window.notifyError("Lỗi kết nối.");
     }
 }
 
 async function reactivateHoliday(id) {
-    if (!confirm("Bạn có chắc muốn khôi phục ngày lễ này?")) return;
+    if (!(await window.appConfirm("Bạn có chắc muốn khôi phục ngày lễ này?"))) return;
 
     try {
         const res = await fetch(`/HolidayManagement/Api/Reactivate/${id}`, { method: "POST" });
@@ -150,10 +150,10 @@ async function reactivateHoliday(id) {
         if (payload.success) {
             await loadHolidays();
         } else {
-            alert(payload.message);
+            window.notifyError(payload.message);
         }
     } catch (e) {
-        alert("Lỗi kết nối.");
+        window.notifyError("Lỗi kết nối.");
     }
 }
 

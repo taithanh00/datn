@@ -189,7 +189,7 @@ async function recalculateEmployee(employeeId) {
 }
 
 async function lockEmployee(employeeId) {
-  if (!confirm("Chốt lương giáo viên này? Sau khi chốt sẽ không thể tính lại dòng lương này.")) return;
+  if (!(await window.appConfirm("Chốt lương giáo viên này? Sau khi chốt sẽ không thể tính lại dòng lương này."))) return;
   const month = Number.parseInt(monthEl.value, 10);
   const year = Number.parseInt(yearEl.value, 10);
   await postPayroll("/TeacherSalary/Api/LockSalary", { employeeId, month, year });
@@ -199,7 +199,7 @@ async function lockSalary() {
   if (!monthEl || !yearEl) return;
   const month = Number.parseInt(monthEl.value, 10);
   const year = Number.parseInt(yearEl.value, 10);
-  if (!confirm(`Chốt toàn bộ bảng lương tháng ${month}/${year}?`)) return;
+  if (!(await window.appConfirm(`Chốt toàn bộ bảng lương tháng ${month}/${year}?`))) return;
   await postPayroll("/TeacherSalary/Api/Lock", { month, year });
 }
 

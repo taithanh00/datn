@@ -46,6 +46,28 @@ namespace datn.Data
                 
                 Console.WriteLine("--> Seeded default Manager account: admin / Thanhbinh24!");
             }
+
+            var managerAccountsWithoutEmployee = await context.Accounts
+                .IgnoreQueryFilters()
+                .Where(a => a.RoleId == 1 && !context.Employees.IgnoreQueryFilters().Any(e => e.AccountId == a.Id))
+                .ToListAsync();
+
+            if (managerAccountsWithoutEmployee.Count > 0)
+            {
+                foreach (var managerAccount in managerAccountsWithoutEmployee)
+                {
+                    context.Employees.Add(new Employee
+                    {
+                        AccountId = managerAccount.Id,
+                        FirstName = managerAccount.Username == "admin" ? "Admin" : managerAccount.Username,
+                        LastName = "Quan ly",
+                        IsActive = managerAccount.IsActive
+                    });
+                }
+
+                await context.SaveChangesAsync();
+                Console.WriteLine($"--> Backfilled Employee profiles for {managerAccountsWithoutEmployee.Count} Manager account(s).");
+            }
         }
 
         public static async Task SeedEducationAsync(IServiceProvider serviceProvider)

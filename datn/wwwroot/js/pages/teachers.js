@@ -365,7 +365,7 @@ async function openEditPanel(teacherId) {
 }
 
 async function handleDeactivate() {
-  if (!confirm("Bạn có chắc chắn muốn vô hiệu hóa giáo viên này?")) return;
+  if (!(await window.appConfirm("Bạn có chắc chắn muốn vô hiệu hóa giáo viên này?"))) return;
 
   try {
     const response = await fetch(`/Manager/Api/Teacher/${currentTeacherId}`, {
@@ -387,7 +387,7 @@ async function handleDeactivate() {
 }
 
 async function handleReactivate() {
-  if (!confirm("Bạn có chắc chắn muốn kích hoạt lại giáo viên này? \nGiáo viên sẽ có thể đăng nhập lại vào hệ thống.")) return;
+  if (!(await window.appConfirm("Bạn có chắc chắn muốn kích hoạt lại giáo viên này? \nGiáo viên sẽ có thể đăng nhập lại vào hệ thống."))) return;
 
   try {
     const response = await fetch(

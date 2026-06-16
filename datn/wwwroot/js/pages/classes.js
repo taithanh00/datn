@@ -537,7 +537,7 @@ async function editSchedule(scheduleId) {
 
     const result = await fetchJson(`/Manager/Api/ClassSchedule/${scheduleId}`);
     if (!result.success) {
-        alert(result.message || 'Không tải được thời khóa biểu.');
+        window.notifyError(result.message || 'Không tải được thời khóa biểu.');
         return;
     }
 
@@ -565,7 +565,7 @@ async function editSchedule(scheduleId) {
 function openScheduleModal(day, slotIdx, isEdit = false, suggestedStartTime = null) {
     const classId = parseInt(document.getElementById('scheduleClassFilter').value || '0', 10);
     if (!classId) {
-        alert('Vui lòng chọn lớp trước khi xếp lịch.');
+        window.notifyWarning('Vui lòng chọn lớp trước khi xếp lịch.');
         return;
     }
 
@@ -612,7 +612,7 @@ function closeScheduleModal() {
 }
 
 async function deleteClass(classId) {
-    if (!confirm('Bạn có chắc muốn đóng lớp học này? Tất cả các phân công giáo viên liên quan cũng sẽ tạm ngưng.')) {
+    if (!(await window.appConfirm('Bạn có chắc muốn đóng lớp học này? Tất cả các phân công giáo viên liên quan cũng sẽ tạm ngưng.'))) {
         return;
     }
 
@@ -625,7 +625,7 @@ async function deleteClass(classId) {
 }
 
 async function reactivateClass(classId) {
-    if (!confirm('Bạn có chắc muốn khôi phục lớp học này?')) {
+    if (!(await window.appConfirm('Bạn có chắc muốn khôi phục lớp học này?'))) {
         return;
     }
 
@@ -637,7 +637,7 @@ async function reactivateClass(classId) {
 }
 
 async function deleteSubject(subjectId) {
-    if (!confirm('Bạn có chắc muốn ẩn môn học này?')) {
+    if (!(await window.appConfirm('Bạn có chắc muốn ẩn môn học này?'))) {
         return;
     }
 
@@ -650,7 +650,7 @@ async function deleteSubject(subjectId) {
 }
 
 async function reactivateSubject(subjectId) {
-    if (!confirm('Bạn có chắc muốn khôi phục môn học này?')) {
+    if (!(await window.appConfirm('Bạn có chắc muốn khôi phục môn học này?'))) {
         return;
     }
 
@@ -662,7 +662,7 @@ async function reactivateSubject(subjectId) {
 }
 
 async function deleteSchedule(scheduleId) {
-    if (!confirm('Bạn có chắc muốn xóa phân công tiết học này?')) {
+    if (!(await window.appConfirm('Bạn có chắc muốn xóa phân công tiết học này?'))) {
         return;
     }
 
@@ -672,7 +672,7 @@ async function deleteSchedule(scheduleId) {
         closeScheduleModal();
         await loadSchedules(currentClass);
     } else {
-        alert(result.message || 'Không thể xóa thời khóa biểu.');
+        window.notifyError(result.message || 'Không thể xóa thời khóa biểu.');
     }
 }
 
@@ -806,7 +806,7 @@ async function saveClassTeacherAssignment() {
 }
 
 async function deleteClassTeacherAssignment(employeeId, startDate) {
-    if (!currentClassId || !confirm('Xóa phân công giáo viên này?')) return;
+    if (!currentClassId || !(await window.appConfirm('Xóa phân công giáo viên này?'))) return;
     const result = await fetchJson(`/Manager/Api/Assignment?employeeId=${employeeId}&classId=${currentClassId}&startDate=${encodeURIComponent(startDate)}`, { method: 'DELETE' });
     if (!result.success) {
         showAlert('classAlert', false, result.message || 'Không thể xóa phân công giáo viên.');

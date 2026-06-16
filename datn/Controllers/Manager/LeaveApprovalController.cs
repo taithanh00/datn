@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using System.Security.Claims;
 
 namespace datn.Controllers.Manager
@@ -70,16 +71,19 @@ namespace datn.Controllers.Manager
         }
 
         [HttpPost("Api/Attendance/Approve")]
-        public async Task<IActionResult> ApproveAttendance([FromBody] AttendanceDecisionDto model)
+        public async Task<IActionResult> ApproveAttendance([FromBody] AttendanceDecisionDto? model)
         {
+            if (!TryGetAttendanceDecision(model, out var date, out var validationMessage))
+                return Json(new { success = false, message = validationMessage });
+            var decision = model!;
+
             var managerEmployeeId = await GetCurrentEmployeeIdAsync();
             if (managerEmployeeId == null)
                 return Json(new { success = false, message = "Không tìm thấy hồ sơ nhân viên của Quản lý." });
             
-            var date = DateOnly.Parse(model.Date);
             var record = await _context.WorkAttendances
                 .Include(w => w.Employee)
-                .FirstOrDefaultAsync(w => w.EmployeeId == model.EmployeeId && w.Date == date);
+                .FirstOrDefaultAsync(w => w.EmployeeId == decision.EmployeeId && w.Date == date);
 
             if (record == null)
                 return Json(new { success = false, message = "Không tìm thấy bản ghi chấm công." });
@@ -87,11 +91,11 @@ namespace datn.Controllers.Manager
             record.Status = "Approved";
             record.ReviewedByEmployeeId = managerEmployeeId;
             record.ReviewedAtUtc = DateTime.UtcNow;
-            record.ReviewNote = model.ReviewNote;
+            record.ReviewNote = decision.ReviewNote;
             await _context.SaveChangesAsync();
 
             // Thông báo cho Giáo viên
-            await _notificationService.SendToUserAsync(record.Employee.AccountId, 
+            await _notificationService.SendToUserAsync(record.Employee!.AccountId,
                 "Chấm công đã được duyệt", 
                 $"Ngày công {record.Date:dd/MM/yyyy} của bạn đã được quản lý phê duyệt.",
                 "success", "/TimeAttendance");
@@ -112,16 +116,19 @@ namespace datn.Controllers.Manager
         }
 
         [HttpPost("Api/Attendance/Reject")]
-        public async Task<IActionResult> RejectAttendance([FromBody] AttendanceDecisionDto model)
+        public async Task<IActionResult> RejectAttendance([FromBody] AttendanceDecisionDto? model)
         {
+            if (!TryGetAttendanceDecision(model, out var date, out var validationMessage))
+                return Json(new { success = false, message = validationMessage });
+            var decision = model!;
+
             var managerEmployeeId = await GetCurrentEmployeeIdAsync();
             if (managerEmployeeId == null)
                 return Json(new { success = false, message = "Không tìm thấy hồ sơ nhân viên của Quản lý." });
 
-            var date = DateOnly.Parse(model.Date);
             var record = await _context.WorkAttendances
                 .Include(w => w.Employee)
-                .FirstOrDefaultAsync(w => w.EmployeeId == model.EmployeeId && w.Date == date);
+                .FirstOrDefaultAsync(w => w.EmployeeId == decision.EmployeeId && w.Date == date);
 
             if (record == null)
                 return Json(new { success = false, message = "Không tìm thấy bản ghi chấm công." });
@@ -129,13 +136,13 @@ namespace datn.Controllers.Manager
             record.Status = "Rejected";
             record.ReviewedByEmployeeId = managerEmployeeId;
             record.ReviewedAtUtc = DateTime.UtcNow;
-            record.ReviewNote = model.ReviewNote;
+            record.ReviewNote = decision.ReviewNote;
             await _context.SaveChangesAsync();
 
             // Thông báo cho Giáo viên
-            await _notificationService.SendToUserAsync(record.Employee.AccountId, 
+            await _notificationService.SendToUserAsync(record.Employee!.AccountId,
                 "Chấm công bị từ chối", 
-                $"Ngày công {record.Date:dd/MM/yyyy} của bạn đã bị từ chối. Lý do: {model.ReviewNote}",
+                $"Ngày công {record.Date:dd/MM/yyyy} của bạn đã bị từ chối. Lý do: {decision.ReviewNote}",
                 "error", "/TimeAttendance");
 
             return Json(new { success = true, message = "Đã từ chối chấm công." });
@@ -171,8 +178,11 @@ namespace datn.Controllers.Manager
         }
 
         [HttpPost("Api/Leave/Approve")]
-        public async Task<IActionResult> ApproveLeave([FromBody] LeaveDecisionDto model)
+        public async Task<IActionResult> ApproveLeave([FromBody] LeaveDecisionDto? model)
         {
+            if (model == null || model.RequestId <= 0)
+                return Json(new { success = false, message = "Dữ liệu đơn nghỉ phép không hợp lệ." });
+
             var managerEmployeeId = await GetCurrentEmployeeIdAsync();
             if (managerEmployeeId == null)
                 return Json(new { success = false, message = "Không tìm thấy hồ sơ nhân viên của Quản lý." });
@@ -256,8 +266,11 @@ namespace datn.Controllers.Manager
         }
 
         [HttpPost("Api/Leave/Reject")]
-        public async Task<IActionResult> RejectLeave([FromBody] LeaveDecisionDto model)
+        public async Task<IActionResult> RejectLeave([FromBody] LeaveDecisionDto? model)
         {
+            if (model == null || model.RequestId <= 0)
+                return Json(new { success = false, message = "Dữ liệu đơn nghỉ phép không hợp lệ." });
+
             var managerEmployeeId = await GetCurrentEmployeeIdAsync();
             if (managerEmployeeId == null)
                 return Json(new { success = false, message = "Không tìm thấy hồ sơ nhân viên của Quản lý." });
@@ -316,10 +329,42 @@ namespace datn.Controllers.Manager
                 return null;
 
             var employee = await _context.Employees
+                .IgnoreQueryFilters()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.AccountId == accountId);
 
             return employee?.Id;
+        }
+
+        private static bool TryGetAttendanceDecision(AttendanceDecisionDto? model, out DateOnly date, out string message)
+        {
+            date = default;
+            message = string.Empty;
+
+            if (model == null || model.EmployeeId <= 0)
+            {
+                message = "Dữ liệu chấm công không hợp lệ.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Date))
+            {
+                message = "Ngày chấm công không hợp lệ.";
+                return false;
+            }
+
+            if (!DateOnly.TryParseExact(
+                    model.Date,
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out date))
+            {
+                message = "Ngày chấm công không đúng định dạng yyyy-MM-dd.";
+                return false;
+            }
+
+            return true;
         }
 
         public class AttendanceDecisionDto

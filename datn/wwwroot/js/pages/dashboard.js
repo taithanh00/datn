@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function performSearch(query) {
     if (!query.trim()) {
-        alert('Vui lòng nhập từ khóa tìm kiếm');
+        window.notifyWarning('Vui lòng nhập từ khóa tìm kiếm');
         return;
     }
     // TODO: Implement global search logic
@@ -106,8 +106,8 @@ function closeNotification(element) {
 /**
  * Xử lý logout
  */
-function handleLogout() {
-    if (confirm('Bạn có chắc muốn đăng xuất?')) {
+async function handleLogout() {
+    if (await window.appConfirm('Bạn có chắc muốn đăng xuất?')) {
         document.querySelector('form[action="/Auth/Logout"]').submit();
     }
 }

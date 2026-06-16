@@ -1,0 +1,124 @@
+%% ERD — Hệ thống quản lý mầm non DATN
+%% Ký hiệu: 1-1 | 1-n | n-n — KHÔNG dùng chân chim (crow's foot)
+%% n-n = hai nhánh 1-n qua bảng trung gian (ghi tên bảng trên cạnh)
+
+flowchart TB
+    subgraph G1["I. Tài khoản & người dùng"]
+        Roles["Roles"]
+        Accounts["Accounts"]
+        RefreshTokens["RefreshTokens"]
+        Employees["Employees"]
+        Parents["Parents"]
+        Notifications["Notifications"]
+    end
+
+    subgraph G2["II. Lớp & học sinh"]
+        Classes["Classes"]
+        Students["Students"]
+        ParentStudents["ParentStudents"]
+        Locations["Locations"]
+        Assignments["Assignments"]
+    end
+
+    subgraph G3["III. Giảng dạy"]
+        Subjects["Subjects"]
+        Curriculums["Curriculums"]
+        TeachingPlans["TeachingPlans"]
+        ClassSchedules["ClassSchedules"]
+        Substitutions["Substitutions"]
+        Rankings["Rankings"]
+        StudyReports["StudyReports"]
+        Holidays["Holidays"]
+    end
+
+    subgraph G4["IV. Chăm sóc"]
+        Attendances["Attendances"]
+        DailyReports["DailyReports"]
+        HealthRecords["HealthRecords"]
+    end
+
+    subgraph G5["V. Học phí"]
+        FeeItems["FeeItems"]
+        StudentFeeConfigs["StudentFeeConfigs"]
+        Tuitions["Tuitions"]
+        TuitionDetails["TuitionDetails"]
+    end
+
+    subgraph G6["VI. Lương & chấm công"]
+        PayrollPeriods["PayrollPeriods"]
+        Salaries["Salaries"]
+        WorkAttendances["WorkAttendances"]
+        EmployeeLeaveRequests["EmployeeLeaveRequests"]
+    end
+
+    subgraph G7["VII. Hoạt động"]
+        Activities["Activities"]
+        ClassActivities["ClassActivities"]
+        StudentActivities["StudentActivities"]
+    end
+
+    AuditLogs["AuditLogs"]
+
+    %% ===== 1-1 =====
+    Accounts ---|"1 : 1"| Employees
+    Accounts ---|"1 : 1"| Parents
+
+    %% ===== 1-n =====
+    Roles ---|"1 : n"| Accounts
+    Accounts ---|"1 : n"| RefreshTokens
+    Accounts ---|"1 : n"| Notifications
+
+    Employees ---|"1 : n"| Classes
+    Classes ---|"1 : n"| Students
+
+    Subjects ---|"1 : n"| Curriculums
+    Classes ---|"1 : n"| ClassSchedules
+    Subjects ---|"1 : n"| ClassSchedules
+    Employees ---|"1 : n"| ClassSchedules
+    Locations ---|"1 : n"| ClassSchedules
+
+    ClassSchedules ---|"1 : n"| Substitutions
+    Employees ---|"1 : n (GV gốc)"| Substitutions
+    Employees ---|"1 : n (GV thay)"| Substitutions
+
+    Students ---|"1 : n"| StudyReports
+    Rankings ---|"1 : n"| StudyReports
+    Employees ---|"1 : n"| StudyReports
+
+    Students ---|"1 : n"| Attendances
+    Employees ---|"1 : n"| Attendances
+    Students ---|"1 : n"| DailyReports
+    Students ---|"1 : n"| HealthRecords
+
+    Students ---|"1 : n"| StudentFeeConfigs
+    FeeItems ---|"1 : n"| StudentFeeConfigs
+    Students ---|"1 : n"| Tuitions
+    Tuitions ---|"1 : n"| TuitionDetails
+    FeeItems ---|"1 : n"| TuitionDetails
+    Subjects ---|"1 : n"| TuitionDetails
+
+    Employees ---|"1 : n"| WorkAttendances
+    Employees ---|"1 : n"| EmployeeLeaveRequests
+    PayrollPeriods ---|"1 : n"| Salaries
+    Employees ---|"1 : n"| Salaries
+
+    Locations ---|"1 : n"| Activities
+    Employees ---|"1 : n"| Activities
+
+    %% ===== n-n (qua bảng trung gian: mỗi phía 1-n vào bảng liên kết) =====
+    Parents ---|"1 : n"| ParentStudents
+    Students ---|"1 : n"| ParentStudents
+
+    Employees ---|"1 : n"| Assignments
+    Classes ---|"1 : n"| Assignments
+
+    Classes ---|"1 : n"| TeachingPlans
+    Curriculums ---|"1 : n"| TeachingPlans
+
+    Classes ---|"1 : n"| ClassActivities
+    Activities ---|"1 : n"| ClassActivities
+
+    Students ---|"1 : n"| StudentActivities
+    Activities ---|"1 : n"| StudentActivities
+
+    %% Holidays: không liên kết FK tới bảng khác

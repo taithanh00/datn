@@ -544,7 +544,7 @@ async function toggleCurrentParentStatus() {
     .textContent.replace("Sửa thông tin - ", "");
   
   if (currentParentIsActive) {
-    if (!confirm(`Bạn có chắc chắn muốn vô hiệu hóa phụ huynh "${name}"? Tài khoản này sẽ không thể đăng nhập vào hệ thống nữa.`)) return;
+    if (!(await window.appConfirm(`Bạn có chắc chắn muốn vô hiệu hóa phụ huynh "${name}"? Tài khoản này sẽ không thể đăng nhập vào hệ thống nữa.`))) return;
     
     try {
       const response = await fetch(`/Manager/Api/Parent/${currentParentId}`, { method: "DELETE" });
@@ -559,7 +559,7 @@ async function toggleCurrentParentStatus() {
       showFormAlert("Lỗi kết nối máy chủ", "error");
     }
   } else {
-    if (!confirm(`Bạn có chắc chắn muốn kích hoạt lại tài khoản cho phụ huynh "${name}"?`)) return;
+    if (!(await window.appConfirm(`Bạn có chắc chắn muốn kích hoạt lại tài khoản cho phụ huynh "${name}"?`))) return;
 
     try {
       const response = await fetch(`/Manager/Api/Parent/Reactivate/${currentParentId}`, { method: "POST" });
@@ -694,7 +694,7 @@ async function confirmLinkStudent() {
   } else if (selectEl) {
     relationship = selectEl.value;
   } else {
-      alert("Không tìm thấy dữ liệu mối quan hệ. Vui lòng nhấn Ctrl + F5 để tải lại trang.");
+      window.notifyError("Không tìm thấy dữ liệu mối quan hệ. Vui lòng nhấn Ctrl + F5 để tải lại trang.");
       return;
   }
 
@@ -705,13 +705,13 @@ async function confirmLinkStudent() {
   console.log("studentId parsed:", studentId);
 
   if (!Number.isFinite(studentId) || studentId <= 0) {
-    alert("Vui lòng chọn học sinh hợp lệ trước khi liên kết.");
+    window.notifyWarning("Vui lòng chọn học sinh hợp lệ trước khi liên kết.");
     return;
   }
 
   if (!isEditMode) {
     if (pendingStudentLinks.some((l) => l.id === studentId)) {
-      alert("Học sinh này đã được thêm vào danh sách.");
+      window.notifyInfo("Học sinh này đã được thêm vào danh sách.");
       return;
     }
     const studentName =
@@ -727,7 +727,7 @@ async function confirmLinkStudent() {
   }
 
   if (!Number.isFinite(parentId) || parentId <= 0) {
-    alert("Vui lòng mở phụ huynh cần liên kết trước.");
+    window.notifyWarning("Vui lòng mở phụ huynh cần liên kết trước.");
     return;
   }
 
@@ -758,7 +758,7 @@ async function confirmLinkStudent() {
       refreshData();
       if (typeof showToast === "function") showToast("Liên kết thành công", "success");
     } else {
-      alert(result.message || "Lỗi khi liên kết");
+      window.notifyError(result.message || "Lỗi khi liên kết");
       if (confirmBtn) {
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = '<i class="fa-solid fa-link"></i> Xác nhận liên kết';
@@ -766,7 +766,7 @@ async function confirmLinkStudent() {
     }
   } catch (error) {
     console.error("Error linking student:", error);
-    alert("Lỗi kết nối hoặc lỗi server khi liên kết");
+    window.notifyError("Lỗi kết nối hoặc lỗi server khi liên kết");
     if (confirmBtn) {
       confirmBtn.disabled = false;
       confirmBtn.innerHTML = '<i class="fa-solid fa-link"></i> Xác nhận liên kết';
@@ -775,7 +775,7 @@ async function confirmLinkStudent() {
 }
 
 async function unlinkStudent(studentId) {
-  if (!confirm("Bạn có chắc chắn muốn hủy liên kết với học sinh này?")) return;
+  if (!(await window.appConfirm("Bạn có chắc chắn muốn hủy liên kết với học sinh này?"))) return;
 
   if (!isEditMode) {
     pendingStudentLinks = pendingStudentLinks.filter((l) => l.id !== studentId);

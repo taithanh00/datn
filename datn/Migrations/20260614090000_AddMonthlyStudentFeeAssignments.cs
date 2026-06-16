@@ -13,9 +13,16 @@ namespace datn.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_Salaries_Status",
-                table: "Salaries");
+            migrationBuilder.Sql(@"
+IF EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = N'IX_Salaries_Status'
+      AND object_id = OBJECT_ID(N'[dbo].[Salaries]')
+)
+BEGIN
+    DROP INDEX [IX_Salaries_Status] ON [dbo].[Salaries];
+END");
 
             migrationBuilder.CreateTable(
                 name: "MonthlyStudentFeeAssignments",

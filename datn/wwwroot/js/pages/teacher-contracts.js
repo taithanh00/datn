@@ -314,7 +314,7 @@ async function editTeacherContract(id) {
 }
 
 async function activateTeacherContract(id) {
-    if (!confirm('Kích hoạt hợp đồng này? Hợp đồng đang hiệu lực cũ của giáo viên sẽ được chấm dứt tự động.')) return;
+    if (!(await window.appConfirm('Kích hoạt hợp đồng này? Hợp đồng đang hiệu lực cũ của giáo viên sẽ được chấm dứt tự động.'))) return;
     await postContractAction(`/Manager/Api/TeacherContract/${id}/Activate`);
 }
 
@@ -328,19 +328,19 @@ async function terminateTeacherContract(id) {
 }
 
 async function cancelTeacherContract(id) {
-    if (!confirm('Hủy hợp đồng này?')) return;
+    if (!(await window.appConfirm('Hủy hợp đồng này?'))) return;
     await postContractAction(`/Manager/Api/TeacherContract/${id}/Cancel`);
 }
 
 async function deleteTeacherContract(id) {
-    if (!confirm('Xóa hợp đồng này? Thao tác này không thể hoàn tác.')) return;
+    if (!(await window.appConfirm('Xóa hợp đồng này? Thao tác này không thể hoàn tác.'))) return;
     try {
         const res = await fetch(`/Manager/Api/TeacherContract/${id}`, { method: 'DELETE' });
         const json = await res.json();
         if (!json.success) throw new Error(json.message || 'Không xóa được hợp đồng.');
         refreshContractViews();
     } catch (error) {
-        alert(error.message);
+        window.notifyError(error.message);
     }
 }
 
@@ -355,7 +355,7 @@ async function getTeacherContract(id) {
         if (!json.success) throw new Error(json.message || 'Không lấy được hợp đồng.');
         return json.data;
     } catch (error) {
-        alert(error.message);
+        window.notifyError(error.message);
         return null;
     }
 }
@@ -372,7 +372,7 @@ async function postContractAction(url, body = null) {
         if (!json.success) throw new Error(json.message || 'Không thực hiện được thao tác.');
         refreshContractViews();
     } catch (error) {
-        alert(error.message);
+        window.notifyError(error.message);
     }
 }
 

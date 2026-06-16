@@ -165,12 +165,12 @@ async function submitStudentReport(studentId) {
     const comment = commentEl?.value?.trim() || "";
 
     if (isPastReportPeriod()) {
-        alert('Không thể gửi đánh giá cho tháng đã qua.');
+        window.notifyWarning('Không thể gửi đánh giá cho tháng đã qua.');
         return;
     }
 
     if (!rankingId && !comment) {
-        alert('Vui lòng nhập xếp loại hoặc nhận xét cho học sinh này.');
+        window.notifyWarning('Vui lòng nhập xếp loại hoặc nhận xét cho học sinh này.');
         return;
     }
 
@@ -202,7 +202,7 @@ async function submitStudentReport(studentId) {
             if (window.showToast) window.showToast('Thành công', result.message, 'success');
             await loadStudents();
         } else {
-            alert('Lỗi: ' + result.message);
+            window.notifyError('Lỗi: ' + result.message);
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
@@ -210,7 +210,7 @@ async function submitStudentReport(studentId) {
         }
     } catch (e) {
         console.error(e);
-        alert('Có lỗi xảy ra khi gửi dữ liệu.');
+        window.notifyError('Có lỗi xảy ra khi gửi dữ liệu.');
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = originalHtml;

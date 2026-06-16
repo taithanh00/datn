@@ -70,6 +70,7 @@ CREATE TABLE [Menus] (
 );
 GO
 
+delete from EmployeeLeaveRequests
 
 CREATE TABLE [PayrollPeriods] (
     [Id] int NOT NULL IDENTITY,
@@ -538,6 +539,8 @@ CREATE TABLE [TuitionDetails] (
     CONSTRAINT [FK_TuitionDetails_Tuitions_TuitionId] FOREIGN KEY ([TuitionId]) REFERENCES [Tuitions] ([Id]) ON DELETE CASCADE
 );
 GO
+
+delete from Tuitions
 
 
 IF EXISTS (SELECT * FROM [sys].[identity_columns] WHERE [name] IN (N'Id', N'Name') AND [object_id] = OBJECT_ID(N'[Rankings]'))

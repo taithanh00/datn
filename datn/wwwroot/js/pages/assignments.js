@@ -296,7 +296,7 @@ async function saveAssignment() {
 }
 
 async function deleteAssignment(empId, clsId, start) {
-    if (!confirm('Xóa phân công này?')) return;
+    if (!(await window.appConfirm('Xóa phân công này?'))) return;
     try {
         const r = await fetch(`/Manager/Api/Assignment?employeeId=${empId}&classId=${clsId}&startDate=${encodeURIComponent(start)}`, { method:'DELETE' });
         const result = await r.json();

@@ -168,7 +168,7 @@ function buildMonitoringQuery() {
 }
 
 async function confirmPaid(id) {
-    if (!confirm("Bạn chắc chắn rằng học sinh này đã nộp học phí?")) return;
+    if (!(await window.appConfirm("Bạn chắc chắn rằng học sinh này đã nộp học phí?"))) return;
 
     try {
         const res = await fetch(`/Tuition/Api/ConfirmPaid/${id}`, { method: "POST" });

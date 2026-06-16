@@ -80,10 +80,10 @@ function submitAttendance() {
     document.querySelectorAll('.att-btn[class*="selected-"]').forEach(btn => {
         records.push({ studentId: parseInt(btn.dataset.sid), status: btn.dataset.val });
     });
-    if (!records.length) { alert('Không có dữ liệu'); return; }
+    if (!records.length) { window.notifyWarning('Không có dữ liệu'); return; }
     fetch('/Employee/Api/SubmitAttendance', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({records})})
         .then(r=>r.json()).then(result => {
             if (result.success) showToast('Thành công', result.message, 'success');
-            else alert('Lỗi: ' + result.message);
+            else window.notifyError('Lỗi: ' + result.message);
         });
 }

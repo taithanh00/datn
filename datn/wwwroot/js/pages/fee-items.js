@@ -107,7 +107,7 @@ async function editFeeItem(id) {
             document.getElementById('feeIsActive').checked = item.isActive;
             openFeePanel();
         } else {
-            alert(result.message);
+            window.notifyError(result.message);
         }
     } catch (error) {
         console.error('Error fetching fee item:', error);
@@ -136,7 +136,7 @@ async function saveFeeItem() {
     };
 
     if (!payload.name || isNaN(payload.defaultAmount)) {
-        alert('Vui lòng nhập đầy đủ tên và số tiền.');
+        window.notifyWarning('Vui lòng nhập đầy đủ tên và số tiền.');
         return;
     }
 
@@ -157,16 +157,16 @@ async function saveFeeItem() {
             loadFeeItems();
             showGlobalAlert(result.message, 'success');
         } else {
-            alert(result.message);
+            window.notifyError(result.message);
         }
     } catch (error) {
         console.error('Error saving fee item:', error);
-        alert('Lỗi kết nối máy chủ.');
+        window.notifyError('Lỗi kết nối máy chủ.');
     }
 }
 
 async function deleteFeeItem(id) {
-    if (!confirm('Bạn có chắc chắn muốn xóa khoản thu này?')) return;
+    if (!(await window.appConfirm('Bạn có chắc chắn muốn xóa khoản thu này?'))) return;
 
     try {
         const response = await fetch(`/Tuition/Api/FeeItem/${id}`, { method: 'DELETE' });
@@ -176,7 +176,7 @@ async function deleteFeeItem(id) {
             loadFeeItems();
             showGlobalAlert(result.message, 'success');
         } else {
-            alert(result.message);
+            window.notifyError(result.message);
         }
     } catch (error) {
         console.error('Error deleting fee item:', error);

@@ -1,0 +1,123 @@
+%% DFD mức 1 — Phân rã các tiến trình 1.0 → 9.0
+%% Một sơ đồ tổng; kho D1–D9 giữ nguyên như mức 0
+
+flowchart TB
+    subgraph EXT["Thực thể ngoài"]
+        E1["Quản trị viên"]
+        E2["Giáo viên"]
+        E3["Phụ huynh"]
+        E4["Cổng thanh toán"]
+    end
+
+    subgraph P1G["1.0 Xác thực & phân quyền"]
+        P11(("1.1 Đăng nhập"))
+        P12(("1.2 Quản lý token"))
+        P13(("1.3 Phân quyền"))
+    end
+
+    subgraph P2G["2.0 Quản lý nhân sự"]
+        P21(("2.1 Hồ sơ NV"))
+        P22(("2.2 Phân công lớp"))
+    end
+
+    subgraph P3G["3.0 Quản lý lớp & học sinh"]
+        P31(("3.1 Lớp học"))
+        P32(("3.2 Học sinh"))
+        P33(("3.3 Liên kết PH–HS"))
+        P34(("3.4 Phụ huynh"))
+    end
+
+    subgraph P4G["4.0 Giảng dạy & lịch học"]
+        P41(("4.1 Môn & giáo trình"))
+        P42(("4.2 Kế hoạch dạy"))
+        P43(("4.3 Thời khóa biểu"))
+        P44(("4.4 Dạy thay"))
+        P45(("4.5 Báo cáo học tập"))
+    end
+
+    subgraph P5G["5.0 Chăm sóc & theo dõi"]
+        P51(("5.1 Điểm danh HS"))
+        P52(("5.2 Báo cáo ngày"))
+        P53(("5.3 Sức khỏe"))
+    end
+
+    subgraph P6G["6.0 Học phí"]
+        P61(("6.1 Khoản phí"))
+        P62(("6.2 Cấu hình phí HS"))
+        P63(("6.3 Hóa đơn tháng"))
+        P64(("6.4 Thanh toán"))
+    end
+
+    subgraph P7G["7.0 Lương & chấm công"]
+        P71(("7.1 Chấm công"))
+        P72(("7.2 Đơn nghỉ"))
+        P73(("7.3 Kỳ lương"))
+        P74(("7.4 Tính lương"))
+    end
+
+    subgraph P8G["8.0 Hoạt động"]
+        P81(("8.1 Sự kiện"))
+        P82(("8.2 Gán lớp/HS"))
+    end
+
+    subgraph P9G["9.0 Thông báo & audit"]
+        P91(("9.1 Gửi thông báo"))
+        P92(("9.2 Ghi audit"))
+    end
+
+    D1[("D1 Tài khoản")]
+    D2[("D2 NV & PH")]
+    D3[("D3 Lớp & HS")]
+    D4[("D4 Giảng dạy")]
+    D5[("D5 Chăm sóc")]
+    D6[("D6 Học phí")]
+    D7[("D7 Lương")]
+    D8[("D8 Hoạt động")]
+    D9[("D9 Audit")]
+
+    E1 --> P11 & P21 & P31 & P41 & P61 & P73 & P91
+    E2 --> P11 & P43 & P51 & P71 & P72 & P81
+    E3 --> P33 & P52 & P63 & P64 & P91
+    E4 <--> P64
+
+    P11 --> P12 --> P13
+    P11 & P12 & P13 <--> D1
+    P13 --> D2
+
+    P21 <--> D1 & D2
+    P22 <--> D2 & D3
+    P21 --> P22
+
+    P31 & P32 <--> D3
+    P34 <--> D1 & D2
+    P33 <--> D2 & D3
+    P32 --> P33
+
+    P41 <--> D4
+    P42 <--> D3 & D4
+    P43 & P44 <--> D4 & D3
+    P45 <--> D4 & D3 & D2
+    P41 --> P42 --> P43
+    P43 --> P44
+    P43 --> P45
+
+    P51 & P52 & P53 <--> D5 & D3
+    P51 --> D2
+
+    P61 & P62 <--> D6
+    P63 <--> D6 & D3
+    P64 <--> D6
+    P61 --> P62 --> P63 --> P64
+
+    P71 & P72 <--> D7 & D2
+    P73 & P74 <--> D7
+    P73 --> P74
+    P71 & P72 --> P74
+
+    P81 <--> D8 & D2
+    P82 <--> D8 & D3
+    P81 --> P82
+
+    P91 <--> D2
+    P92 --> D9
+    P11 & P64 --> P92

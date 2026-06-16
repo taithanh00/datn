@@ -323,14 +323,14 @@ async function saveActivity(e) {
 }
 
 async function deleteActivity(id) {
-  if (!confirm("Ẩn hoạt động này?")) return;
+  if (!(await window.appConfirm("Ẩn hoạt động này?"))) return;
   const r = await fetchJson(`/Manager/Api/Activity/${id}`, { method: "DELETE" });
   showPageAlert("activityPageAlert", r.success, r.message);
   if (r.success) loadActivities();
 }
 
 async function reactivateActivity(id) {
-  if (!confirm("Khôi phục hoạt động này?")) return;
+  if (!(await window.appConfirm("Khôi phục hoạt động này?"))) return;
   const r = await fetchJson(`/Manager/Api/Activity/Reactivate/${id}`, {
     method: "POST",
   });
@@ -379,14 +379,14 @@ async function saveLocation(e) {
 }
 
 async function deleteLocation(id) {
-  if (!confirm("Ẩn địa điểm này?")) return;
+  if (!(await window.appConfirm("Ẩn địa điểm này?"))) return;
   const r = await fetchJson(`/Manager/Api/Location/${id}`, { method: "DELETE" });
   showPageAlert("locationPageAlert", r.success, r.message);
   if (r.success) loadLocations();
 }
 
 async function reactivateLocation(id) {
-  if (!confirm("Khôi phục địa điểm này?")) return;
+  if (!(await window.appConfirm("Khôi phục địa điểm này?"))) return;
   const r = await fetchJson(`/Manager/Api/Location/Reactivate/${id}`, {
     method: "POST",
   });

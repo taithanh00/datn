@@ -1,0 +1,23 @@
+%% DFD mức ngữ cảnh — Hệ thống quản lý mầm non DATN
+%% Ký hiệu: [] Thực thể ngoài | (()) Tiến trình | --> Luồng dữ liệu
+%% Xuất ảnh: https://mermaid.live
+
+flowchart TB
+    E1["Quản trị viên"]
+    E2["Giáo viên / Nhân viên"]
+    E3["Phụ huynh"]
+    E4["Cổng thanh toán"]
+
+    P0(("0<br/>Hệ thống quản lý mầm non DATN"))
+
+    E1 -->|"Yêu cầu quản trị, cấu hình, báo cáo tổng hợp"| P0
+    P0 -->|"Kết quả, báo cáo, xác nhận"| E1
+
+    E2 -->|"Điểm danh, báo cáo ngày, TKB, đơn nghỉ, chấm công"| P0
+    P0 -->|"Lịch, phản hồi duyệt, phiếu lương"| E2
+
+    E3 -->|"Tra cứu con, học phí, thanh toán, thông báo"| P0
+    P0 -->|"Báo cáo con, hóa đơn, trạng thái thanh toán"| E3
+
+    E4 -->|"Webhook / kết quả giao dịch"| P0
+    P0 -->|"Yêu cầu thanh toán"| E4

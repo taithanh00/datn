@@ -20,6 +20,34 @@ function getFilterQuery() {
     return `month=${filterMonthEl.value}&year=${filterYearEl.value}`;
 }
 
+async function readJsonResponse(response) {
+    const text = await response.text();
+    let payload = {};
+
+    try {
+        payload = text ? JSON.parse(text) : {};
+    } catch {
+        throw new Error("Phản hồi từ máy chủ không hợp lệ.");
+    }
+
+    if (!response.ok) {
+        throw new Error(payload.message || `Máy chủ trả về lỗi ${response.status}.`);
+    }
+
+    return payload;
+}
+
+function showDecisionToast(payload, fallbackSuccessMessage) {
+    if (!window.showToast) return;
+
+    if (payload.success) {
+        window.showToast("Thành công", payload.message || fallbackSuccessMessage, "success");
+        return;
+    }
+
+    window.showToast("Có lỗi", payload.message || "Không thể xử lý yêu cầu.", "error");
+}
+
 async function loadAttendancePending() {
     const body = document.getElementById("pendingAttendanceBody");
     if (!body) return;
@@ -115,7 +143,7 @@ async function loadLeavePending() {
 }
 
 async function attendanceDecision(employeeId, date, approve) {
-    if (!confirm(`Bạn có chắc muốn ${approve ? "DUYỆT" : "TỪ CHỐI"} bản ghi chấm công này?`)) return;
+    if (!(await window.appConfirm(`Bạn có chắc muốn ${approve ? "DUYỆT" : "TỪ CHỐI"} bản ghi chấm công này?`))) return;
 
     const url = approve ? "/LeaveApproval/Api/Attendance/Approve" : "/LeaveApproval/Api/Attendance/Reject";
     try {
@@ -124,16 +152,16 @@ async function attendanceDecision(employeeId, date, approve) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ employeeId, date, reviewNote: "" })
         });
-        const payload = await res.json();
-        if (payload.success && window.showToast) window.showToast("Thành công", payload.message || "Đã xử lý.", "success");
-        await loadAllPending();
-    } catch {
-        if (window.showToast) window.showToast("Lỗi", "Lỗi khi xử lý yêu cầu.", "error");
+        const payload = await readJsonResponse(res);
+        showDecisionToast(payload, "Đã xử lý.");
+        if (payload.success) await loadAllPending();
+    } catch (error) {
+        if (window.showToast) window.showToast("Có lỗi", error.message || "Lỗi khi xử lý yêu cầu.", "error");
     }
 }
 
 async function leaveDecision(requestId, approve) {
-    if (!confirm(`Bạn có chắc muốn ${approve ? "DUYỆT" : "TỪ CHỐI"} đơn nghỉ phép này?`)) return;
+    if (!(await window.appConfirm(`Bạn có chắc muốn ${approve ? "DUYỆT" : "TỪ CHỐI"} đơn nghỉ phép này?`))) return;
 
     const url = approve ? "/LeaveApproval/Api/Leave/Approve" : "/LeaveApproval/Api/Leave/Reject";
     try {
@@ -142,11 +170,11 @@ async function leaveDecision(requestId, approve) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ requestId, reviewNote: "" })
         });
-        const payload = await res.json();
-        if (payload.success && window.showToast) window.showToast("Thành công", payload.message || "Đã xử lý.", "success");
-        await loadAllPending();
-    } catch {
-        if (window.showToast) window.showToast("Lỗi", "Lỗi khi xử lý yêu cầu.", "error");
+        const payload = await readJsonResponse(res);
+        showDecisionToast(payload, "Đã xử lý.");
+        if (payload.success) await loadAllPending();
+    } catch (error) {
+        if (window.showToast) window.showToast("Có lỗi", error.message || "Lỗi khi xử lý yêu cầu.", "error");
     }
 }
 

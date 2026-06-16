@@ -1,0 +1,55 @@
+%% DFD mức 0 — Hệ thống quản lý mầm non DATN
+%% Ký hiệu: [] Thực thể ngoài | (()) Tiến trình | [()] Kho dữ liệu
+
+flowchart TB
+    E1["Quản trị viên"]
+    E2["Giáo viên / Nhân viên"]
+    E3["Phụ huynh"]
+    E4["Cổng thanh toán"]
+
+    P1(("1.0<br/>Xác thực & phân quyền"))
+    P2(("2.0<br/>Quản lý nhân sự"))
+    P3(("3.0<br/>Quản lý lớp & học sinh"))
+    P4(("4.0<br/>Giảng dạy & lịch học"))
+    P5(("5.0<br/>Chăm sóc & theo dõi"))
+    P6(("6.0<br/>Quản lý học phí"))
+    P7(("7.0<br/>Lương & chấm công"))
+    P8(("8.0<br/>Hoạt động"))
+    P9(("9.0<br/>Thông báo & audit"))
+
+    D1[("D1<br/>Tài khoản & vai trò")]
+    D2[("D2<br/>Nhân viên & phụ huynh")]
+    D3[("D3<br/>Lớp, học sinh, địa điểm")]
+    D4[("D4<br/>Môn, TKB, giáo trình")]
+    D5[("D5<br/>Điểm danh, báo cáo, SK")]
+    D6[("D6<br/>Học phí")]
+    D7[("D7<br/>Lương, chấm công")]
+    D8[("D8<br/>Hoạt động")]
+    D9[("D9<br/>Nhật ký hệ thống")]
+
+    E1 --> P1 & P2 & P3 & P4 & P6 & P7 & P9
+    E2 --> P1 & P2 & P4 & P5 & P7 & P8
+    E3 --> P1 & P3 & P5 & P6 & P8 & P9
+    E4 <-->|"Thanh toán học phí"| P6
+
+    P1 <-->|"Đăng nhập, token"| D1
+    P1 -->|"Thông tin phiên"| D2
+    P2 <-->|"Hồ sơ NV, phân công"| D2
+    P2 <-->|"Lớp được gán"| D3
+    P3 <-->|"Lớp, HS, PH"| D2
+    P3 <-->|"Lớp, HS"| D3
+    P4 <-->|"TKB, GT, báo cáo học tập"| D4
+    P4 <-->|"Lớp"| D3
+    P4 <-->|"Giáo viên"| D2
+    P5 <-->|"Điểm danh, BC ngày, SK"| D5
+    P5 <-->|"Học sinh"| D3
+    P5 <-->|"Người ghi nhận"| D2
+    P6 <-->|"Hóa đơn, khoản phí"| D6
+    P6 <-->|"Học sinh"| D3
+    P7 <-->|"Chấm công, lương, nghỉ"| D7
+    P7 <-->|"Nhân viên"| D2
+    P8 <-->|"Sự kiện, đăng ký"| D8
+    P8 <-->|"Lớp, HS"| D3
+    P9 <-->|"Thông báo"| D2
+    P9 -->|"Ghi log"| D9
+    P1 & P6 -->|"Sự kiện bảo mật / TT"| D9

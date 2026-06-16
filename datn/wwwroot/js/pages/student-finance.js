@@ -147,7 +147,7 @@ async function saveStudentFeeConfig() {
     };
 
     if (!configId && !payload.feeItemId) {
-        alert('Vui lòng chọn khoản thu.');
+        window.notifyWarning('Vui lòng chọn khoản thu.');
         return;
     }
 
@@ -163,7 +163,7 @@ async function saveStudentFeeConfig() {
             closeFinanceModal();
             loadStudentFinance(studentId);
         } else {
-            alert(result.message);
+            window.notifyError(result.message);
         }
     } catch (error) {
         console.error('Error saving config:', error);
@@ -171,7 +171,7 @@ async function saveStudentFeeConfig() {
 }
 
 async function deleteFinanceConfig(id) {
-    if (!confirm('Bạn có chắc chắn muốn hủy đăng ký khoản thu này cho học sinh?')) return;
+    if (!(await window.appConfirm('Bạn có chắc chắn muốn hủy đăng ký khoản thu này cho học sinh?'))) return;
     const studentId = document.getElementById('studentIdHidden').value;
 
     try {
@@ -180,7 +180,7 @@ async function deleteFinanceConfig(id) {
         if (result.success) {
             loadStudentFinance(studentId);
         } else {
-            alert(result.message);
+            window.notifyError(result.message);
         }
     } catch (error) {
         console.error('Error deleting config:', error);

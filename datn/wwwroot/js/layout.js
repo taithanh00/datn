@@ -64,6 +64,146 @@
     // === Notification System ===
     const toastTypes = ['success', 'error', 'warning', 'info'];
     const nativeAlert = window.alert?.bind(window);
+    const nativeConfirm = window.confirm?.bind(window);
+
+    function getCssVar(name, fallback) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+    }
+
+    function ensureDialogStyles() {
+        if (document.getElementById('senhongDialogStyles')) return;
+
+        const style = document.createElement('style');
+        style.id = 'senhongDialogStyles';
+        style.textContent = `
+            .senhong-dialog {
+                border-radius: 18px !important;
+                padding: 10px 10px 16px !important;
+                border: 1px solid var(--border) !important;
+                box-shadow: 0 28px 90px rgba(15, 23, 42, 0.24) !important;
+            }
+            .senhong-dialog-title {
+                color: var(--text-main) !important;
+                font-size: 1.25rem !important;
+                font-weight: 800 !important;
+                letter-spacing: 0 !important;
+                padding-top: 18px !important;
+            }
+            .senhong-dialog-content {
+                color: var(--text-muted) !important;
+                font-size: 0.95rem !important;
+                line-height: 1.55 !important;
+            }
+            .senhong-dialog-confirm,
+            .senhong-dialog-cancel {
+                border-radius: 999px !important;
+                padding: 10px 22px !important;
+                font-weight: 700 !important;
+                min-width: 112px !important;
+                box-shadow: none !important;
+            }
+            .senhong-dialog-cancel {
+                color: var(--text-main) !important;
+                background: var(--primary-soft) !important;
+            }
+            .senhong-dialog-actions {
+                gap: 8px !important;
+                margin-top: 20px !important;
+            }
+            .swal2-show.senhong-dialog {
+                animation: senhongDropIn 0.24s ease-out both !important;
+            }
+            .swal2-hide.senhong-dialog {
+                animation: senhongDropOut 0.18s ease-in both !important;
+            }
+            @keyframes senhongDropIn {
+                from {
+                    opacity: 0;
+                    transform: translate3d(0, -48px, 0) scale(0.98);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate3d(0, 0, 0) scale(1);
+                }
+            }
+            @keyframes senhongDropOut {
+                from {
+                    opacity: 1;
+                    transform: translate3d(0, 0, 0) scale(1);
+                }
+                to {
+                    opacity: 0;
+                    transform: translate3d(0, -32px, 0) scale(0.98);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function getDialogIcon(type) {
+        return toastTypes.includes(String(type || '').toLowerCase()) ? String(type).toLowerCase() : 'warning';
+    }
+
+    function buildDialogClasses() {
+        return {
+            popup: 'senhong-dialog',
+            title: 'senhong-dialog-title',
+            htmlContainer: 'senhong-dialog-content',
+            confirmButton: 'senhong-dialog-confirm',
+            cancelButton: 'senhong-dialog-cancel',
+            actions: 'senhong-dialog-actions'
+        };
+    }
+
+    window.appConfirm = async function(message, options = {}) {
+        if (!window.Swal || typeof window.Swal.fire !== 'function') {
+            return nativeConfirm ? nativeConfirm(message) : false;
+        }
+
+        ensureDialogStyles();
+        const result = await window.Swal.fire({
+            title: options.title || 'Xác nhận thao tác',
+            text: message || '',
+            icon: getDialogIcon(options.type || 'warning'),
+            position: options.position || 'top',
+            showCancelButton: true,
+            reverseButtons: true,
+            focusCancel: true,
+            confirmButtonText: options.confirmText || 'Xác nhận',
+            cancelButtonText: options.cancelText || 'Hủy',
+            confirmButtonColor: options.confirmButtonColor || getCssVar('--primary', '#e91e63'),
+            cancelButtonColor: options.cancelButtonColor || getCssVar('--primary-soft', '#fce4ec'),
+            background: getCssVar('--bg-card', '#ffffff'),
+            color: getCssVar('--text-main', '#111827'),
+            customClass: buildDialogClasses()
+        });
+
+        return result.isConfirmed === true;
+    };
+
+    window.appAlert = async function(message, options = {}) {
+        if (!window.Swal || typeof window.Swal.fire !== 'function') {
+            if (window.showToast) {
+                window.showToast(options.title || defaultToastTitle(options.type), message || '', options.type || 'info');
+            } else if (nativeAlert) {
+                nativeAlert(message);
+            }
+            return;
+        }
+
+        ensureDialogStyles();
+        await window.Swal.fire({
+            title: options.title || defaultToastTitle(options.type || 'info'),
+            text: message || '',
+            icon: getDialogIcon(options.type || 'info'),
+            confirmButtonText: options.confirmText || 'Đã hiểu',
+            position: options.position || 'top',
+            confirmButtonColor: options.confirmButtonColor || getCssVar('--primary', '#e91e63'),
+            background: getCssVar('--bg-card', '#ffffff'),
+            color: getCssVar('--text-main', '#111827'),
+            customClass: buildDialogClasses()
+        });
+    };
 
     function normalizeToastArgs(title, message, type) {
         if (toastTypes.includes(String(message || '').toLowerCase()) && type === undefined) {
@@ -143,7 +283,14 @@
         window.Swal.fire = function(arg1, arg2, arg3) {
             const simpleIcon = typeof arg1 === 'string' ? arg3 : arg1?.icon;
             const isToastable = toastTypes.includes(String(simpleIcon || '').toLowerCase())
-                && !(typeof arg1 === 'object' && (arg1.showConfirmButton || arg1.allowOutsideClick === false || arg1.didOpen));
+                && !(typeof arg1 === 'object' && (
+                    arg1.showConfirmButton
+                    || arg1.showCancelButton
+                    || arg1.confirmButtonText
+                    || arg1.customClass
+                    || arg1.allowOutsideClick === false
+                    || arg1.didOpen
+                ));
 
             if (isToastable) {
                 const title = typeof arg1 === 'string' ? arg1 : arg1.title;

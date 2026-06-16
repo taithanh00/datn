@@ -514,7 +514,7 @@ async function handleDelete(id) {
   const studentId = id || currentStudentId;
   if (!studentId) return;
 
-  if (!confirm('Bạn có chắc chắn muốn chuyển trạng thái học sinh này sang "Đã thôi học"?')) return;
+  if (!(await window.appConfirm('Bạn có chắc chắn muốn chuyển trạng thái học sinh này sang "Đã thôi học"?'))) return;
 
   try {
     const response = await fetch(`/Manager/Api/Student/${studentId}`, {
@@ -542,7 +542,7 @@ async function handleReactivate(id) {
   const studentId = id || currentStudentId;
   if (!studentId) return;
 
-  if (!confirm('Bạn có chắc chắn muốn khôi phục học sinh này?')) return;
+  if (!(await window.appConfirm('Bạn có chắc chắn muốn khôi phục học sinh này?'))) return;
 
   try {
     const response = await fetch(`/Manager/Api/Student/Reactivate/${studentId}`, {

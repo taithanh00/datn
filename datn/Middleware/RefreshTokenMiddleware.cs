@@ -64,6 +64,8 @@ namespace datn.Middleware
 
                 var storedToken = await dbContext.RefreshTokens
                     .Include(r => r.Account).ThenInclude(a => a.Role)
+                    .Include(r => r.Account).ThenInclude(a => a.Employee)
+                    .Include(r => r.Account).ThenInclude(a => a.Parent)
                     .FirstOrDefaultAsync(r => r.Token == refreshToken);
 
                 if (storedToken == null || !storedToken.Account.IsActive || storedToken.IsRevoked || storedToken.ExpiresAt <= DateTime.UtcNow)
