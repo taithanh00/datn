@@ -70,6 +70,91 @@ namespace datn.Controllers.Manager
             return Json(new { success = true, data });
         }
 
+        [HttpGet("Api/Attendance/History")]
+        public async Task<IActionResult> AttendanceHistory(int? month, int? year, string? status, string? keyword)
+        {
+            var nowVnt = GetVntNow();
+            var targetMonth = month ?? nowVnt.Month;
+            var targetYear = year ?? nowVnt.Year;
+            var normalizedStatus = NormalizeHistoryStatus(status);
+            var searchTerm = keyword?.Trim();
+
+            var query = _context.WorkAttendances
+                .AsNoTracking()
+                .Include(w => w.Employee)
+                .Where(w => (w.Status == "Approved" || w.Status == "Rejected")
+                            && w.Date.Month == targetMonth
+                            && w.Date.Year == targetYear);
+
+            if (normalizedStatus != null)
+                query = query.Where(w => w.Status == normalizedStatus);
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+                query = query.Where(w => (w.Employee.LastName + " " + w.Employee.FirstName).Contains(searchTerm));
+
+            var records = await query
+                .OrderByDescending(w => w.ReviewedAtUtc ?? DateTime.MinValue)
+                .ThenByDescending(w => w.Date)
+                .Select(w => new
+                {
+                    w.EmployeeId,
+                    employeeName = w.Employee.LastName + " " + w.Employee.FirstName,
+                    w.Date,
+                    w.CheckInAtUtc,
+                    w.CheckOutAtUtc,
+                    w.Status,
+                    w.IsLate,
+                    w.PenaltyAmount,
+                    w.WorkedMinutes,
+                    w.WorkUnit,
+                    w.Note,
+                    w.ReviewNote,
+                    w.ReviewedByEmployeeId,
+                    w.ReviewedAtUtc
+                })
+                .ToListAsync();
+
+            var reviewerIds = records
+                .Where(r => r.ReviewedByEmployeeId.HasValue)
+                .Select(r => r.ReviewedByEmployeeId!.Value)
+                .Distinct()
+                .ToList();
+
+            var reviewers = await _context.Employees
+                .IgnoreQueryFilters()
+                .AsNoTracking()
+                .Where(e => reviewerIds.Contains(e.Id))
+                .Select(e => new
+                {
+                    e.Id,
+                    name = e.Account.Role.Name == "Manager" ? "Quản lý" : e.LastName + " " + e.FirstName
+                })
+                .ToDictionaryAsync(e => e.Id, e => e.name);
+
+            var data = records.Select(r => new
+            {
+                employeeId = r.EmployeeId,
+                employeeName = r.employeeName,
+                date = r.Date.ToString("dd/MM/yyyy"),
+                rawDate = r.Date.ToString("yyyy-MM-dd"),
+                checkInAt = r.CheckInAtUtc,
+                checkOutAt = r.CheckOutAtUtc,
+                status = r.Status,
+                isLate = r.IsLate,
+                penaltyAmount = r.PenaltyAmount,
+                workedMinutes = r.WorkedMinutes,
+                workUnit = r.WorkUnit,
+                note = r.Note,
+                reviewNote = r.ReviewNote,
+                reviewerName = r.ReviewedByEmployeeId.HasValue && reviewers.TryGetValue(r.ReviewedByEmployeeId.Value, out var reviewerName)
+                    ? reviewerName
+                    : "Hệ thống",
+                reviewedAt = r.ReviewedAtUtc
+            });
+
+            return Json(new { success = true, data });
+        }
+
         [HttpPost("Api/Attendance/Approve")]
         public async Task<IActionResult> ApproveAttendance([FromBody] AttendanceDecisionDto? model)
         {
@@ -88,6 +173,7 @@ namespace datn.Controllers.Manager
             if (record == null)
                 return Json(new { success = false, message = "Không tìm thấy bản ghi chấm công." });
 
+            WorkAttendanceCalculator.EnsurePayrollValues(record);
             record.Status = "Approved";
             record.ReviewedByEmployeeId = managerEmployeeId;
             record.ReviewedAtUtc = DateTime.UtcNow;
@@ -177,6 +263,87 @@ namespace datn.Controllers.Manager
             return Json(new { success = true, data });
         }
 
+        [HttpGet("Api/Leave/History")]
+        public async Task<IActionResult> LeaveHistory(int? month, int? year, string? status, string? keyword)
+        {
+            var nowVnt = GetVntNow();
+            var targetMonth = month ?? nowVnt.Month;
+            var targetYear = year ?? nowVnt.Year;
+            var normalizedStatus = NormalizeHistoryStatus(status);
+            var searchTerm = keyword?.Trim();
+
+            var query = _context.EmployeeLeaveRequests
+                .AsNoTracking()
+                .Include(r => r.Employee)
+                .Where(r => (r.Status == "Approved" || r.Status == "Rejected")
+                            && r.StartDate.Month == targetMonth
+                            && r.StartDate.Year == targetYear);
+
+            if (normalizedStatus != null)
+                query = query.Where(r => r.Status == normalizedStatus);
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+                query = query.Where(r => (r.Employee.LastName + " " + r.Employee.FirstName).Contains(searchTerm));
+
+            var records = await query
+                .OrderByDescending(r => r.ReviewedAtUtc ?? DateTime.MinValue)
+                .ThenByDescending(r => r.StartDate)
+                .ThenByDescending(r => r.CreatedAtUtc)
+                .Select(r => new
+                {
+                    r.Id,
+                    r.EmployeeId,
+                    employeeName = r.Employee.LastName + " " + r.Employee.FirstName,
+                    r.StartDate,
+                    r.EndDate,
+                    r.IsPaid,
+                    r.Reason,
+                    r.Status,
+                    r.ReviewNote,
+                    r.ReviewedByEmployeeId,
+                    r.ReviewedAtUtc,
+                    r.CreatedAtUtc
+                })
+                .ToListAsync();
+
+            var reviewerIds = records
+                .Where(r => r.ReviewedByEmployeeId.HasValue)
+                .Select(r => r.ReviewedByEmployeeId!.Value)
+                .Distinct()
+                .ToList();
+
+            var reviewers = await _context.Employees
+                .IgnoreQueryFilters()
+                .AsNoTracking()
+                .Where(e => reviewerIds.Contains(e.Id))
+                .Select(e => new
+                {
+                    e.Id,
+                    name = e.Account.Role.Name == "Manager" ? "Quản lý" : e.LastName + " " + e.FirstName
+                })
+                .ToDictionaryAsync(e => e.Id, e => e.name);
+
+            var data = records.Select(r => new
+            {
+                id = r.Id,
+                employeeId = r.EmployeeId,
+                employeeName = r.employeeName,
+                startDate = r.StartDate.ToString("dd/MM/yyyy"),
+                endDate = r.EndDate.ToString("dd/MM/yyyy"),
+                isPaid = r.IsPaid,
+                reason = r.Reason,
+                status = r.Status,
+                reviewNote = r.ReviewNote,
+                reviewerName = r.ReviewedByEmployeeId.HasValue && reviewers.TryGetValue(r.ReviewedByEmployeeId.Value, out var reviewerName)
+                    ? reviewerName
+                    : "Hệ thống",
+                reviewedAt = r.ReviewedAtUtc,
+                createdAt = r.CreatedAtUtc
+            });
+
+            return Json(new { success = true, data });
+        }
+
         [HttpPost("Api/Leave/Approve")]
         public async Task<IActionResult> ApproveLeave([FromBody] LeaveDecisionDto? model)
         {
@@ -188,14 +355,27 @@ namespace datn.Controllers.Manager
                 return Json(new { success = false, message = "Không tìm thấy hồ sơ nhân viên của Quản lý." });
 
             var record = await _context.EmployeeLeaveRequests
+                .AsNoTracking()
                 .Include(r => r.Employee)
                 .FirstOrDefaultAsync(r => r.Id == model.RequestId);
             if (record == null)
                 return Json(new { success = false, message = "Không tìm thấy đơn nghỉ phép." });
 
+            var reviewedAtUtc = DateTime.UtcNow;
+            var updatedRows = await _context.EmployeeLeaveRequests
+                .Where(r => r.Id == model.RequestId && r.Status == "Pending")
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(r => r.Status, "Approved")
+                    .SetProperty(r => r.ReviewedByEmployeeId, managerEmployeeId)
+                    .SetProperty(r => r.ReviewedAtUtc, reviewedAtUtc)
+                    .SetProperty(r => r.ReviewNote, model.ReviewNote));
+
+            if (updatedRows == 0)
+                return Json(new { success = false, message = "Đơn nghỉ phép này đã được xử lý trước đó." });
+
             record.Status = "Approved";
             record.ReviewedByEmployeeId = managerEmployeeId;
-            record.ReviewedAtUtc = DateTime.UtcNow;
+            record.ReviewedAtUtc = reviewedAtUtc;
             record.ReviewNote = model.ReviewNote;
 
             // Nếu là nghỉ có lương, tự động tạo ngày công
@@ -222,7 +402,7 @@ namespace datn.Controllers.Manager
                                 WorkUnit = 1.0m,
                                 PenaltyAmount = 0m,
                                 ReviewedByEmployeeId = managerEmployeeId,
-                                ReviewedAtUtc = DateTime.UtcNow,
+                                ReviewedAtUtc = reviewedAtUtc,
                                 Note = $"Nghỉ phép có lương: {record.Reason}",
                                 ReviewNote = "Hệ thống tự động tạo từ đơn nghỉ phép"
                             });
@@ -234,7 +414,7 @@ namespace datn.Controllers.Manager
                             existing.WorkUnit = 1.0m;
                             existing.PenaltyAmount = 0m;
                             existing.ReviewedByEmployeeId = managerEmployeeId;
-                            existing.ReviewedAtUtc = DateTime.UtcNow;
+                            existing.ReviewedAtUtc = reviewedAtUtc;
                             existing.ReviewNote = "Hệ thống tự động duyệt công từ đơn nghỉ phép có lương";
                             existing.Note = (existing.Note ?? "") + $" | Nghỉ phép có lương: {record.Reason}";
                         }
@@ -276,16 +456,28 @@ namespace datn.Controllers.Manager
                 return Json(new { success = false, message = "Không tìm thấy hồ sơ nhân viên của Quản lý." });
 
             var record = await _context.EmployeeLeaveRequests
+                .AsNoTracking()
                 .Include(r => r.Employee)
                 .FirstOrDefaultAsync(r => r.Id == model.RequestId);
             if (record == null)
                 return Json(new { success = false, message = "Không tìm thấy đơn nghỉ phép." });
 
+            var reviewedAtUtc = DateTime.UtcNow;
+            var updatedRows = await _context.EmployeeLeaveRequests
+                .Where(r => r.Id == model.RequestId && r.Status == "Pending")
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(r => r.Status, "Rejected")
+                    .SetProperty(r => r.ReviewedByEmployeeId, managerEmployeeId)
+                    .SetProperty(r => r.ReviewedAtUtc, reviewedAtUtc)
+                    .SetProperty(r => r.ReviewNote, model.ReviewNote));
+
+            if (updatedRows == 0)
+                return Json(new { success = false, message = "Đơn nghỉ phép này đã được xử lý trước đó." });
+
             record.Status = "Rejected";
             record.ReviewedByEmployeeId = managerEmployeeId;
-            record.ReviewedAtUtc = DateTime.UtcNow;
+            record.ReviewedAtUtc = reviewedAtUtc;
             record.ReviewNote = model.ReviewNote;
-            await _context.SaveChangesAsync();
 
             // Thông báo cho Giáo viên
             await _notificationService.SendToUserAsync(record.Employee.AccountId, 
@@ -365,6 +557,17 @@ namespace datn.Controllers.Manager
             }
 
             return true;
+        }
+
+        private static string? NormalizeHistoryStatus(string? status)
+        {
+            if (string.Equals(status, "Approved", StringComparison.OrdinalIgnoreCase))
+                return "Approved";
+
+            if (string.Equals(status, "Rejected", StringComparison.OrdinalIgnoreCase))
+                return "Rejected";
+
+            return null;
         }
 
         public class AttendanceDecisionDto

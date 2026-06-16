@@ -6,6 +6,7 @@ let showInactiveSubjects = false;
 let allClassTeachers = [];
 let allClassAssignments = [];
 let allScheduleSubjects = [];
+let scheduleEffectiveToAutoValue = '';
 
 const PLAY_SUBJECT_NAME = 'Hoạt động vui chơi';
 const PLAY_SUBJECT_CREATE_MESSAGE = 'Vui lòng tạo môn học "Hoạt động vui chơi" trong tab Danh mục môn học trước khi xếp lịch khung 10:00 - 11:00.';
@@ -148,6 +149,11 @@ function bindClassManagementEvents() {
         });
     }
 
+    const scheduleEffectiveFrom = document.getElementById('scheduleEffectiveFrom');
+    if (scheduleEffectiveFrom) {
+        scheduleEffectiveFrom.addEventListener('change', () => applyScheduleEffectiveToLimit());
+    }
+
     ['scheduleStartTime', 'scheduleEndTime'].forEach((id) => {
         const input = document.getElementById(id);
         if (input) {
@@ -279,11 +285,13 @@ async function loadSubjects() {
 }
 
 async function refreshDropdowns() {
-    const [classesResult, subjectsResult] = await Promise.all([
+    const [classesResult, subjectsResult, assignmentsResult] = await Promise.all([
         fetchJson('/Manager/Api/Classes'),
-        fetchJson('/Manager/Api/Subjects')
+        fetchJson('/Manager/Api/Subjects'),
+        fetchJson('/Manager/Api/Assignments')
     ]);
     allScheduleSubjects = (subjectsResult.data || []).filter(item => item.isActive);
+    allClassAssignments = assignmentsResult.success ? assignmentsResult.data : [];
 
     fillSelect(document.getElementById('scheduleClassFilter'), classesResult.data || [], 'Chọn lớp');
     fillSelect(
@@ -450,6 +458,14 @@ async function saveSchedule(event) {
         showAlert('scheduleFormAlert', false, subjectError);
         return;
     }
+    const coverageError = validateScheduleTeacherCoverage(
+        document.getElementById('scheduleEffectiveFrom').value,
+        document.getElementById('scheduleEffectiveTo').value
+    );
+    if (coverageError) {
+        showAlert('scheduleFormAlert', false, coverageError);
+        return;
+    }
 
     const payload = {
         classId: parseInt(document.getElementById('scheduleClassId').value, 10),
@@ -593,6 +609,7 @@ function openScheduleModal(day, slotIdx, isEdit = false, suggestedStartTime = nu
         // Nếu giờ kết thúc vượt quá giới hạn slot, thì dùng giờ kết thúc của slot
         const slotEnd = slotIdx >= 0 ? ACTIVITY_SLOTS[slotIdx].end : '17:00';
         document.getElementById('scheduleEndTime').value = endStr > slotEnd ? slotEnd : endStr;
+        applyScheduleEffectiveToLimit(true);
         applyPlaySubjectLock(start, document.getElementById('scheduleEndTime').value);
 
         document.getElementById('saveScheduleBtn').textContent = 'Lưu phân công';
@@ -857,6 +874,8 @@ function resetScheduleForm(classId = null) {
     
     document.getElementById('scheduleId').value = '';
     document.getElementById('scheduleEffectiveFrom').value = new Date().toISOString().split('T')[0];
+    document.getElementById('scheduleEffectiveTo').value = '';
+    scheduleEffectiveToAutoValue = '';
     document.getElementById('scheduleStartTime').value = '07:30';
     document.getElementById('scheduleEndTime').value = '08:15';
     const subjectSelect = document.getElementById('scheduleSubjectId');
@@ -869,6 +888,7 @@ function resetScheduleForm(classId = null) {
     if (selectedClassId) {
         document.getElementById('scheduleClassId').value = selectedClassId;
     }
+    applyScheduleEffectiveToLimit(true);
 
     const formAlert = document.getElementById('scheduleFormAlert');
     if (formAlert) formAlert.style.display = 'none';
@@ -883,6 +903,83 @@ function timeToMinutes(value) {
 
 function normalizeSubjectName(value) {
     return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('vi-VN');
+}
+
+function getScheduleClassId() {
+    return parseInt(
+        document.getElementById('scheduleClassId')?.value
+        || document.getElementById('scheduleClassFilter')?.value
+        || '0',
+        10
+    );
+}
+
+function getAssignmentsCoveringClassDate(classId, effectiveFrom) {
+    if (!classId || !effectiveFrom) return [];
+
+    return allClassAssignments.filter((assignment) =>
+        assignment.classId === classId
+        && assignment.startDate <= effectiveFrom
+        && (!assignment.endDate || assignment.endDate >= effectiveFrom)
+    );
+}
+
+function getScheduleCoverageEndDate(classId, effectiveFrom) {
+    const assignments = getAssignmentsCoveringClassDate(classId, effectiveFrom);
+    if (!assignments.length) {
+        return { hasTeacher: false, hasOpenEndedTeacher: false, endDate: '' };
+    }
+
+    if (assignments.some((assignment) => !assignment.endDate)) {
+        return { hasTeacher: true, hasOpenEndedTeacher: true, endDate: '' };
+    }
+
+    const sortedEndDates = assignments.map((assignment) => assignment.endDate).sort();
+    return {
+        hasTeacher: true,
+        hasOpenEndedTeacher: false,
+        endDate: sortedEndDates[sortedEndDates.length - 1] || ''
+    };
+}
+
+function applyScheduleEffectiveToLimit(force = false) {
+    const effectiveFromInput = document.getElementById('scheduleEffectiveFrom');
+    const effectiveToInput = document.getElementById('scheduleEffectiveTo');
+    if (!effectiveFromInput || !effectiveToInput) return;
+
+    const classId = getScheduleClassId();
+    const coverage = getScheduleCoverageEndDate(classId, effectiveFromInput.value);
+    const shouldUpdate = force
+        || !effectiveToInput.value
+        || effectiveToInput.value === scheduleEffectiveToAutoValue;
+
+    if (!shouldUpdate) return;
+
+    if (coverage.hasTeacher && !coverage.hasOpenEndedTeacher && coverage.endDate) {
+        effectiveToInput.value = coverage.endDate;
+        scheduleEffectiveToAutoValue = coverage.endDate;
+        return;
+    }
+
+    if (effectiveToInput.value === scheduleEffectiveToAutoValue) {
+        effectiveToInput.value = '';
+    }
+    scheduleEffectiveToAutoValue = '';
+}
+
+function validateScheduleTeacherCoverage(effectiveFrom, effectiveTo) {
+    const classId = getScheduleClassId();
+    const coverage = getScheduleCoverageEndDate(classId, effectiveFrom);
+
+    if (!coverage.hasTeacher) {
+        return 'Lớp chưa có giáo viên phụ trách tại ngày bắt đầu hiệu lực của lịch.';
+    }
+
+    if (effectiveTo && !coverage.hasOpenEndedTeacher && coverage.endDate && effectiveTo > coverage.endDate) {
+        return `Giáo viên phụ trách lớp chỉ bao phủ đến ${formatDate(coverage.endDate)}. Vui lòng chọn ngày kết thúc không vượt quá ngày này.`;
+    }
+
+    return null;
 }
 
 function findPlaySubject() {
@@ -904,6 +1001,7 @@ function applyPlaySubjectLock(startTime, endTime) {
     if (!isPlayTimeRange(startTime, endTime)) {
         subjectSelect.disabled = false;
         if (saveButton) saveButton.disabled = false;
+        showInlineAlert('scheduleFormAlert', false, '');
         return;
     }
 
@@ -911,13 +1009,14 @@ function applyPlaySubjectLock(startTime, endTime) {
     if (!playSubject) {
         subjectSelect.disabled = true;
         if (saveButton) saveButton.disabled = true;
-        showAlert('scheduleFormAlert', false, PLAY_SUBJECT_CREATE_MESSAGE);
+        showInlineAlert('scheduleFormAlert', false, PLAY_SUBJECT_CREATE_MESSAGE);
         return;
     }
 
     subjectSelect.value = String(playSubject.id);
     subjectSelect.disabled = true;
     if (saveButton) saveButton.disabled = false;
+    showInlineAlert('scheduleFormAlert', false, '');
 }
 
 function validateScheduleSubjectForTime(startTime, endTime) {
@@ -978,6 +1077,22 @@ function showAlert(elementId, success, message) {
     if (window.showToast) {
         window.showToast(success ? 'Thành công' : 'Có lỗi', message, success ? 'success' : 'error');
     }
+}
+
+function showInlineAlert(elementId, success, message) {
+    const alert = document.getElementById(elementId);
+    if (!alert) return;
+
+    if (!message) {
+        alert.style.display = 'none';
+        alert.textContent = '';
+        return;
+    }
+
+    alert.textContent = message;
+    alert.style.display = 'block';
+    alert.classList.toggle('alert-success', !!success);
+    alert.classList.toggle('alert-error', !success);
 }
 
 function renderTeacherTags(teachers) {

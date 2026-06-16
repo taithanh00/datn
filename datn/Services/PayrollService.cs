@@ -192,6 +192,11 @@ namespace datn.Services
                             && w.Date.Year == year)
                 .ToListAsync(cancellationToken);
 
+            foreach (var attendance in approvedRecords)
+            {
+                WorkAttendanceCalculator.EnsurePayrollValues(attendance);
+            }
+
             var workingDays = approvedRecords.Sum(w => (decimal?)w.WorkUnit) ?? 0m;
             var totalPenalty = approvedRecords.Sum(w => w.PenaltyAmount);
             var totalBonus = await _context.ClassCoverageBonuses

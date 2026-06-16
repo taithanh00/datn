@@ -90,6 +90,32 @@ namespace datn.Data
                 Console.WriteLine("--> Seeded Subjects");
             }
 
+            var playSubjectName = "Hoạt động vui chơi";
+            var normalizedPlaySubjectName = NormalizeSubjectName(playSubjectName);
+            var existingSubjects = await context.Subjects
+                .IgnoreQueryFilters()
+                .ToListAsync();
+            var playSubject = existingSubjects
+                .FirstOrDefault(s => NormalizeSubjectName(s.Name) == normalizedPlaySubjectName);
+
+            if (playSubject == null)
+            {
+                context.Subjects.Add(new Subject
+                {
+                    Name = playSubjectName,
+                    Description = "Khung hoạt động vui chơi cố định trong thời khóa biểu.",
+                    IsActive = true
+                });
+                await context.SaveChangesAsync();
+                Console.WriteLine("--> Backfilled Play Subject");
+            }
+            else if (!playSubject.IsActive)
+            {
+                playSubject.IsActive = true;
+                await context.SaveChangesAsync();
+                Console.WriteLine("--> Reactivated Play Subject");
+            }
+
             // 2. Employees (Teachers)
             if (await context.Employees.CountAsync() <= 1) // Only system admin exists
             {
@@ -155,6 +181,12 @@ namespace datn.Data
                 await context.SaveChangesAsync();
                 Console.WriteLine("--> Seeded ClassSchedules");
             }
+        }
+
+        private static string NormalizeSubjectName(string? value)
+        {
+            return string.Join(' ', (value ?? string.Empty).Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                .ToLowerInvariant();
         }
     }
 }

@@ -155,11 +155,7 @@ namespace datn.Controllers.Teacher
                 return Json(new { success = false, message = "Bạn đã check-out hôm nay rồi." });
 
             record.CheckOutAtUtc = nowVnt.UtcDateTime;
-            var checkInVnt = _attendanceWindowService.ToVnt(record.CheckInAtUtc.Value);
-            var workedMinutes = (int)Math.Max(0, (nowVnt - checkInVnt).TotalMinutes);
-            record.WorkedMinutes = workedMinutes;
-            var calculatedWorkUnit = Math.Round((decimal)workedMinutes / 480m, 2, MidpointRounding.AwayFromZero);
-            record.WorkUnit = Math.Min(1.0m, calculatedWorkUnit);
+            WorkAttendanceCalculator.ApplyWorkedTime(record);
             record.Status = WorkAttendanceStatuses.Pending;
 
             _context.WorkAttendances.Update(record);
@@ -173,7 +169,7 @@ namespace datn.Controllers.Teacher
                 data = new
                 {
                     checkOutAt = nowVnt.ToString("HH:mm:ss"),
-                    workedMinutes,
+                    workedMinutes = record.WorkedMinutes,
                     workUnit = record.WorkUnit,
                     status = record.Status
                 }

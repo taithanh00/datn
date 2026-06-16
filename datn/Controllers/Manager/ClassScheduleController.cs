@@ -119,9 +119,9 @@ namespace datn.Controllers.Manager
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateClassSchedule([FromBody] SaveClassScheduleViewModel model)
         {
-            var validationMessage = await ValidateScheduleRequestAsync(model, null);
-            if (validationMessage != null)
-                return Json(new { success = false, message = validationMessage });
+            var validation = await ValidateScheduleRequestAsync(model, null);
+            if (!validation.Success)
+                return Json(new { success = false, message = validation.Message });
 
             var schedule = new ClassSchedule
             {
@@ -132,8 +132,8 @@ namespace datn.Controllers.Manager
                 StartTime = TimeOnly.Parse(model.StartTime),
                 EndTime = TimeOnly.Parse(model.EndTime),
                 LocationId = model.LocationId,
-                EffectiveFrom = DateOnly.Parse(model.EffectiveFrom),
-                EffectiveTo = string.IsNullOrWhiteSpace(model.EffectiveTo) ? null : DateOnly.Parse(model.EffectiveTo),
+                EffectiveFrom = validation.EffectiveFrom!.Value,
+                EffectiveTo = validation.EffectiveTo,
                 Note = model.Note?.Trim(),
                 IsActive = model.IsActive
             };
@@ -151,9 +151,9 @@ namespace datn.Controllers.Manager
             if (schedule == null)
                 return Json(new { success = false, message = "Không tìm thấy thời khóa biểu." });
 
-            var validationMessage = await ValidateScheduleRequestAsync(model, id);
-            if (validationMessage != null)
-                return Json(new { success = false, message = validationMessage });
+            var validation = await ValidateScheduleRequestAsync(model, id);
+            if (!validation.Success)
+                return Json(new { success = false, message = validation.Message });
 
             schedule.ClassId = model.ClassId;
             schedule.SubjectId = model.SubjectId;
@@ -162,8 +162,8 @@ namespace datn.Controllers.Manager
             schedule.StartTime = TimeOnly.Parse(model.StartTime);
             schedule.EndTime = TimeOnly.Parse(model.EndTime);
             schedule.LocationId = model.LocationId;
-            schedule.EffectiveFrom = DateOnly.Parse(model.EffectiveFrom);
-            schedule.EffectiveTo = string.IsNullOrWhiteSpace(model.EffectiveTo) ? null : DateOnly.Parse(model.EffectiveTo);
+            schedule.EffectiveFrom = validation.EffectiveFrom!.Value;
+            schedule.EffectiveTo = validation.EffectiveTo;
             schedule.Note = model.Note?.Trim();
             schedule.IsActive = model.IsActive;
 
@@ -195,72 +195,95 @@ namespace datn.Controllers.Manager
             return Json(new { success = true, message = "Đã khôi phục lịch học thành công." });
         }
 
-        private async Task<string?> ValidateScheduleRequestAsync(SaveClassScheduleViewModel model, int? scheduleId)
+        private async Task<ScheduleValidationResult> ValidateScheduleRequestAsync(SaveClassScheduleViewModel model, int? scheduleId)
         {
             if (!await _context.Classes.AnyAsync(c => c.Id == model.ClassId))
-                return "Lớp học không tồn tại.";
+                return ScheduleValidationResult.Fail("L\u1edbp h\u1ecdc kh\u00f4ng t\u1ed3n t\u1ea1i.");
 
             if (!await _context.Subjects.AnyAsync(s => s.Id == model.SubjectId && s.IsActive))
-                return "Môn học không tồn tại hoặc đã ngừng sử dụng.";
+                return ScheduleValidationResult.Fail("M\u00f4n h\u1ecdc kh\u00f4ng t\u1ed3n t\u1ea1i ho\u1eb7c \u0111\u00e3 ng\u1eebng s\u1eed d\u1ee5ng.");
 
             var selectedSubject = await _context.Subjects.FindAsync(model.SubjectId);
 
             if (model.LocationId.HasValue && model.LocationId > 0)
             {
                 if (!await _context.Locations.AnyAsync(l => l.Id == model.LocationId))
-                    return "Địa điểm học không tồn tại.";
+                    return ScheduleValidationResult.Fail("\u0110\u1ecba \u0111i\u1ec3m h\u1ecdc kh\u00f4ng t\u1ed3n t\u1ea1i.");
             }
 
             if (model.DayOfWeek < 1 || model.DayOfWeek > 6)
-                return "Chỉ được tạo lịch từ Thứ 2 đến Thứ 7.";
+                return ScheduleValidationResult.Fail("Ch\u1ec9 \u0111\u01b0\u1ee3c t\u1ea1o l\u1ecbch t\u1eeb Th\u1ee9 2 \u0111\u1ebfn Th\u1ee9 7.");
 
             if (!TimeOnly.TryParse(model.StartTime, out var startTime) || !TimeOnly.TryParse(model.EndTime, out var endTime))
-                return "Khung giờ không hợp lệ.";
+                return ScheduleValidationResult.Fail("Khung gi\u1edd kh\u00f4ng h\u1ee3p l\u1ec7.");
 
             if (!DateOnly.TryParse(model.EffectiveFrom, out var effectiveFrom))
-                return "Ngày hiệu lực bắt đầu không hợp lệ.";
+                return ScheduleValidationResult.Fail("Ng\u00e0y hi\u1ec7u l\u1ef1c b\u1eaft \u0111\u1ea7u kh\u00f4ng h\u1ee3p l\u1ec7.");
 
             DateOnly? effectiveTo = null;
             if (!string.IsNullOrWhiteSpace(model.EffectiveTo))
             {
                 if (!DateOnly.TryParse(model.EffectiveTo, out var parsedEffectiveTo))
-                    return "Ngày hiệu lực kết thúc không hợp lệ.";
+                    return ScheduleValidationResult.Fail("Ng\u00e0y hi\u1ec7u l\u1ef1c k\u1ebft th\u00fac kh\u00f4ng h\u1ee3p l\u1ec7.");
                 effectiveTo = parsedEffectiveTo;
             }
 
             if (endTime <= startTime)
-                return "Giờ kết thúc phải lớn hơn giờ bắt đầu.";
+                return ScheduleValidationResult.Fail("Gi\u1edd k\u1ebft th\u00fac ph\u1ea3i l\u1edbn h\u01a1n gi\u1edd b\u1eaft \u0111\u1ea7u.");
 
             if (effectiveTo.HasValue && effectiveTo.Value < effectiveFrom)
-                return "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.";
+                return ScheduleValidationResult.Fail("Ng\u00e0y k\u1ebft th\u00fac ph\u1ea3i l\u1edbn h\u01a1n ho\u1eb7c b\u1eb1ng ng\u00e0y b\u1eaft \u0111\u1ea7u.");
 
             if (startTime < SchoolStart || endTime > SchoolEnd)
-                return "Chỉ được xếp lịch trong khung 06:45 - 17:00.";
+                return ScheduleValidationResult.Fail("Ch\u1ec9 \u0111\u01b0\u1ee3c x\u1ebfp l\u1ecbch trong khung 06:45 - 17:00.");
 
             var lockedSlot = LockedScheduleSlots.FirstOrDefault(slot => TimeRangesOverlap(slot.Start, slot.End, startTime, endTime));
             if (lockedSlot != null)
-                return $"Không được xếp lịch trong khung {lockedSlot.Name} ({lockedSlot.Start:HH:mm} - {lockedSlot.End:HH:mm}).";
+                return ScheduleValidationResult.Fail($"Kh\u00f4ng \u0111\u01b0\u1ee3c x\u1ebfp l\u1ecbch trong khung {lockedSlot.Name} ({lockedSlot.Start:HH:mm} - {lockedSlot.End:HH:mm}).");
 
             if (startTime < LunchEnd && endTime > LunchStart)
-                return "Thời khóa biểu không được chồng lên khung nghỉ trưa 11:00 - 14:00.";
+                return ScheduleValidationResult.Fail("Th\u1eddi kh\u00f3a bi\u1ec3u kh\u00f4ng \u0111\u01b0\u1ee3c ch\u1ed3ng l\u00ean khung ngh\u1ec9 tr\u01b0a 11:00 - 14:00.");
 
             var matchingSlot = AllowedScheduleSlots.FirstOrDefault(slot => startTime >= slot.Start && endTime <= slot.End);
             if (matchingSlot == null)
-                return "Chỉ được xếp lịch trong các khung 07:30-10:00, 10:00-11:00 hoặc 14:00-16:30.";
+                return ScheduleValidationResult.Fail("Ch\u1ec9 \u0111\u01b0\u1ee3c x\u1ebfp l\u1ecbch trong c\u00e1c khung 07:30-10:00, 10:00-11:00 ho\u1eb7c 14:00-16:30.");
 
             if (IsPlayTimeRange(startTime, endTime) && !IsPlaySubject(selectedSubject?.Name))
-                return $"Khung 10:00 - 11:00 chỉ được chọn môn học \"{PlaySubjectName}\". {PlaySubjectCreateMessage}";
+                return ScheduleValidationResult.Fail($"Khung 10:00 - 11:00 ch\u1ec9 \u0111\u01b0\u1ee3c ch\u1ecdn m\u00f4n h\u1ecdc \"{PlaySubjectName}\". {PlaySubjectCreateMessage}");
 
-            var hasCoveredTeacher = await _context.Assignments.AnyAsync(a =>
-                a.ClassId == model.ClassId &&
-                a.IsActive &&
-                a.StartDate <= effectiveFrom &&
-                (effectiveTo == null
-                    ? a.EndDate == null
-                    : a.EndDate == null || a.EndDate >= effectiveTo));
+            var assignmentsCoveringStart = await _context.Assignments
+                .Where(a => a.ClassId == model.ClassId
+                            && a.IsActive
+                            && a.StartDate <= effectiveFrom
+                            && (a.EndDate == null || a.EndDate >= effectiveFrom))
+                .ToListAsync();
 
-            if (!hasCoveredTeacher)
-                return "Lớp chưa có giáo viên phụ trách bao phủ toàn bộ thời gian hiệu lực của lịch.";
+            if (assignmentsCoveringStart.Count == 0)
+                return ScheduleValidationResult.Fail("L\u1edbp ch\u01b0a c\u00f3 gi\u00e1o vi\u00ean ph\u1ee5 tr\u00e1ch t\u1ea1i ng\u00e0y b\u1eaft \u0111\u1ea7u hi\u1ec7u l\u1ef1c c\u1ee7a l\u1ecbch.");
+
+            if (effectiveTo == null)
+            {
+                if (!assignmentsCoveringStart.Any(a => a.EndDate == null))
+                {
+                    effectiveTo = assignmentsCoveringStart
+                        .Where(a => a.EndDate.HasValue)
+                        .Max(a => a.EndDate);
+                }
+            }
+            else
+            {
+                var hasCoveredTeacher = assignmentsCoveringStart.Any(a => a.EndDate == null || a.EndDate >= effectiveTo);
+                if (!hasCoveredTeacher)
+                {
+                    var maxCoveredDate = assignmentsCoveringStart
+                        .Where(a => a.EndDate.HasValue)
+                        .Select(a => a.EndDate!.Value)
+                        .DefaultIfEmpty(effectiveFrom)
+                        .Max();
+
+                    return ScheduleValidationResult.Fail($"Gi\u00e1o vi\u00ean ph\u1ee5 tr\u00e1ch l\u1edbp ch\u1ec9 bao ph\u1ee7 \u0111\u1ebfn {maxCoveredDate:dd/MM/yyyy}. Vui l\u00f2ng ch\u1ecdn ng\u00e0y k\u1ebft th\u00fac kh\u00f4ng v\u01b0\u1ee3t qu\u00e1 ng\u00e0y n\u00e0y.");
+                }
+            }
 
             var sameDayQuery = _context.ClassSchedules
                 .Where(cs => cs.DayOfWeek == model.DayOfWeek && cs.IsActive);
@@ -281,7 +304,7 @@ namespace datn.Controllers.Manager
             if (classOverlapSchedule != null)
             {
                 var subject = await _context.Subjects.FindAsync(classOverlapSchedule.SubjectId);
-                return $"Lớp học đã có tiết '{subject?.Name}' trùng khung giờ này ({classOverlapSchedule.StartTime:HH:mm} - {classOverlapSchedule.EndTime:HH:mm}).";
+                return ScheduleValidationResult.Fail($"L\u1edbp h\u1ecdc \u0111\u00e3 c\u00f3 ti\u1ebft '{subject?.Name}' tr\u00f9ng khung gi\u1edd n\u00e0y ({classOverlapSchedule.StartTime:HH:mm} - {classOverlapSchedule.EndTime:HH:mm}).");
             }
 
             if (model.LocationId.HasValue)
@@ -292,10 +315,10 @@ namespace datn.Controllers.Manager
                     && TimeRangesOverlap(cs.StartTime, cs.EndTime, startTime, endTime));
 
                 if (locationOverlap)
-                    return "Phòng học/Địa điểm này đã được sử dụng cho lớp khác trong khung giờ này.";
+                    return ScheduleValidationResult.Fail("Ph\u00f2ng h\u1ecdc/\u0110\u1ecba \u0111i\u1ec3m n\u00e0y \u0111\u00e3 \u0111\u01b0\u1ee3c s\u1eed d\u1ee5ng cho l\u1edbp kh\u00e1c trong khung gi\u1edd n\u00e0y.");
             }
 
-            return null;
+            return ScheduleValidationResult.Ok(effectiveFrom, effectiveTo);
         }
 
         private static bool DateRangesOverlap(DateOnly leftStart, DateOnly? leftEnd, DateOnly rightStart, DateOnly? rightEnd)
@@ -361,6 +384,15 @@ namespace datn.Controllers.Manager
                 6 => "Thứ 7",
                 _ => "Không xác định"
             };
+        }
+
+        private sealed record ScheduleValidationResult(bool Success, string? Message, DateOnly? EffectiveFrom, DateOnly? EffectiveTo)
+        {
+            public static ScheduleValidationResult Ok(DateOnly effectiveFrom, DateOnly? effectiveTo)
+                => new(true, null, effectiveFrom, effectiveTo);
+
+            public static ScheduleValidationResult Fail(string message)
+                => new(false, message, null, null);
         }
 
         private sealed record ScheduleSlot(string Name, TimeOnly Start, TimeOnly End);
