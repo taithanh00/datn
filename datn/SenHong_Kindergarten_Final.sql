@@ -1,8 +1,9 @@
-﻿CREATE DATABASE [datn];
+CREATE DATABASE [datn];
 GO
 USE [datn];
 GO
 
+select * from Attendances where DAY(Date) = '18'
 
 CREATE TABLE [AuditLogs] (
     [Id] int NOT NULL IDENTITY,

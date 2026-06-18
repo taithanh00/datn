@@ -5,6 +5,7 @@ const statusBar = document.getElementById("salaryStatusBar");
 const tableBody = document.getElementById("salaryTableBody");
 const btnRecalculate = document.getElementById("btnRecalculateSalary");
 const btnLock = document.getElementById("btnLockSalary");
+const btnMarkPaidAll = document.getElementById("btnMarkPaidAllSalary");
 const tableContainer = document.getElementById("salaryTableContainer");
 const detailPanel = document.getElementById("salaryDetailPanel");
 const detailOverlay = document.getElementById("salaryPanelOverlay");
@@ -37,6 +38,19 @@ function setStatus(message, type = "info") {
   statusBar.style.color = color;
   statusBar.style.borderLeftColor = color;
   statusBar.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${escapeHtml(message)}</span>`;
+}
+
+function showPayrollWarning(title, message) {
+  if (window.showToast) window.showToast(title, message, "warning");
+  setStatus(message, "error");
+}
+
+function getSalaryRow(employeeId) {
+  return salaryRows.find((item) => Number(item.employeeId) === Number(employeeId));
+}
+
+function disabledActionAttr(disabled) {
+  return disabled ? 'disabled aria-disabled="true" style="opacity:.45; pointer-events:none;"' : "";
 }
 
 function initFilters() {
@@ -74,8 +88,8 @@ async function loadSalarySummary() {
 
     if (!payload.success) {
       if (window.appLoading) {
-        setStatus(payload.message || "Kh\u00f4ng th\u1ec3 t\u1ea3i d\u1eef li\u1ec7u.", "error");
-        tableBody.innerHTML = window.appLoading.tableError(9, "Kh\u00f4ng th\u1ec3 t\u1ea3i d\u1eef li\u1ec7u l\u01b0\u01a1ng.");
+        setStatus(payload.message || "Không thể tải dữ liệu.", "error");
+        tableBody.innerHTML = window.appLoading.tableError(9, "Không thể tải dữ liệu lương.");
         return;
       }
       setStatus(payload.message || "Lỗi tải dữ liệu.", "error");
@@ -91,6 +105,7 @@ async function loadSalarySummary() {
 
     if (btnRecalculate) btnRecalculate.disabled = isLocked;
     if (btnLock) btnLock.disabled = isLocked || salaryRows.length === 0;
+    if (btnMarkPaidAll) btnMarkPaidAll.disabled = salaryRows.length === 0;
 
     if (salaryRows.length === 0) {
       setStatus(`Kỳ lương ${month}/${year} chưa có dữ liệu. Bấm "Tính lại kỳ lương" để khởi tạo.`, "neutral");
@@ -102,8 +117,8 @@ async function loadSalarySummary() {
   } catch (error) {
     console.error(error);
     if (window.appLoading) {
-      setStatus("L\u1ed7i k\u1ebft n\u1ed1i m\u00e1y ch\u1ee7.", "error");
-      tableBody.innerHTML = window.appLoading.tableError(9, "L\u1ed7i k\u1ebft n\u1ed1i m\u00e1y ch\u1ee7.");
+      setStatus("Lỗi kết nối máy chủ.", "error");
+      tableBody.innerHTML = window.appLoading.tableError(9, "Lỗi kết nối máy chủ.");
       return;
     }
     setStatus("Lỗi kết nối máy chủ.", "error");
@@ -122,7 +137,7 @@ function updateSummaryCards(summary) {
 function renderSalaryRows(rows, periodId) {
   if (!rows.length) {
     if (window.appLoading) {
-      tableBody.innerHTML = window.appLoading.tableEmpty(9, "Ch\u01b0a c\u00f3 d\u1eef li\u1ec7u l\u01b0\u01a1ng cho k\u1ef3 n\u00e0y.");
+      tableBody.innerHTML = window.appLoading.tableEmpty(9, "Chưa có dữ liệu lương cho kỳ này.");
       return;
     }
     tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted"><div class="empty-state"><i class="fa-solid fa-folder-open"></i><p>Chưa có dữ liệu lương cho kỳ này.</p></div></td></tr>`;
@@ -132,6 +147,8 @@ function renderSalaryRows(rows, periodId) {
   tableBody.innerHTML = rows.map((row) => {
     const lockedRow = row.status === "Locked" || row.status === "Paid" || isLocked;
     const paidRow = row.status === "Paid";
+    const immutableAttr = disabledActionAttr(lockedRow);
+    const paidAttr = disabledActionAttr(paidRow);
     return `
       <tr>
         <td>
@@ -148,10 +165,10 @@ function renderSalaryRows(rows, periodId) {
         <td class="payroll-actions-cell" style="text-align:right;">
           <div class="payroll-actions-row">
             <button class="btn-table" onclick="openSalaryDetail(${row.employeeId})">Chi tiết</button>
-            <a href="/TeacherSalary/SalarySlip/${row.employeeId}/${periodId}" class="btn-table">Phiếu</a>
-            <button class="btn-table" ${lockedRow ? "disabled" : ""} onclick="recalculateEmployee(${row.employeeId})">Tính lại</button>
-            <button class="btn-table" ${lockedRow ? "disabled" : ""} onclick="lockEmployee(${row.employeeId})">Chốt</button>
-            <button class="btn-table" ${paidRow ? "disabled" : ""} onclick="markPaid(${row.employeeId})">Đã trả</button>
+            <a href="/TeacherSalary/SalarySlip/${row.employeeId}/${periodId}" class="btn-table text-decoration-none">Phiếu</a>
+            <button class="btn-table" ${immutableAttr} onclick="recalculateEmployee(${row.employeeId})">Tính lại</button>
+            <button class="btn-table" ${immutableAttr} onclick="lockEmployee(${row.employeeId})">Chốt</button>
+            <button class="btn-table" ${paidAttr} onclick="markPaid(${row.employeeId})">Thanh toán</button>
           </div>
         </td>
       </tr>
@@ -183,12 +200,28 @@ async function recalculateSalary() {
 }
 
 async function recalculateEmployee(employeeId) {
+  const row = getSalaryRow(employeeId);
+  if (isLocked || row?.status === "Locked" || row?.status === "Paid") {
+    showPayrollWarning("Không thể tính lại", "Dòng lương đã chốt hoặc đã thanh toán, không thể tính lại.");
+    return;
+  }
+
   const month = Number.parseInt(monthEl.value, 10);
   const year = Number.parseInt(yearEl.value, 10);
   await postPayroll("/TeacherSalary/Api/RecalculateEmployee", { employeeId, month, year });
 }
 
 async function lockEmployee(employeeId) {
+  const row = getSalaryRow(employeeId);
+  if (row?.status === "Paid") {
+    showPayrollWarning("Không thể chốt", "Dòng lương đã thanh toán, không thể chốt lại.");
+    return;
+  }
+  if (isLocked || row?.status === "Locked") {
+    showPayrollWarning("Không thể chốt", "Dòng lương này đã được chốt.");
+    return;
+  }
+
   if (!(await window.appConfirm("Chốt lương giáo viên này? Sau khi chốt sẽ không thể tính lại dòng lương này."))) return;
   const month = Number.parseInt(monthEl.value, 10);
   const year = Number.parseInt(yearEl.value, 10);
@@ -204,12 +237,41 @@ async function lockSalary() {
 }
 
 async function markPaid(employeeId) {
+  const row = getSalaryRow(employeeId);
+  if (row?.status === "Paid") {
+    showPayrollWarning("Đã thanh toán", "Dòng lương này đã được ghi nhận thanh toán.");
+    return;
+  }
+
+  if (!row || row.status !== "Locked") {
+    const message = "Vui lòng chốt lương giáo viên trước khi ghi nhận đã trả.";
+    showPayrollWarning("Chưa thể ghi nhận", message);
+    return;
+  }
+
   const method = prompt("Phương thức thanh toán", "Chuyển khoản");
   if (method === null) return;
   const note = prompt("Ghi chú thanh toán", "") || "";
   const month = Number.parseInt(monthEl.value, 10);
   const year = Number.parseInt(yearEl.value, 10);
   await postPayroll("/TeacherSalary/Api/MarkPaid", { employeeId, month, year, paymentMethod: method, note });
+}
+
+async function markPaidAll() {
+  const lockedCount = salaryRows.filter((row) => row.status === "Locked").length;
+  if (lockedCount === 0) {
+    showPayrollWarning("Chưa thể ghi nhận", "Không có dòng lương đã chốt nào để ghi nhận thanh toán.");
+    return;
+  }
+
+  const confirmed = await window.appConfirm(
+    "Ghi nhận đã trả cho toàn bộ lương đã chốt trong tháng này? Phương thức thanh toán mặc định là Chuyển khoản."
+  );
+  if (!confirmed) return;
+
+  const month = Number.parseInt(monthEl.value, 10);
+  const year = Number.parseInt(yearEl.value, 10);
+  await postPayroll("/TeacherSalary/Api/MarkPaidAll", { month, year });
 }
 
 async function postPayroll(url, body) {
@@ -271,6 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnLoadSalary")?.addEventListener("click", loadSalarySummary);
   btnRecalculate?.addEventListener("click", recalculateSalary);
   btnLock?.addEventListener("click", lockSalary);
+  btnMarkPaidAll?.addEventListener("click", markPaidAll);
   statusEl?.addEventListener("change", loadSalarySummary);
   document.getElementById("closeSalaryPanelBtn")?.addEventListener("click", closeSalaryDetail);
   detailOverlay?.addEventListener("click", closeSalaryDetail);

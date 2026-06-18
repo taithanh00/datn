@@ -12,6 +12,7 @@ namespace datn.Services
         Task<bool> LockEmployeeSalaryAsync(int employeeId, int month, int year, CancellationToken cancellationToken = default);
         Task<int> LockPeriodAsync(int month, int year, CancellationToken cancellationToken = default);
         Task<bool> MarkPaidAsync(int employeeId, int month, int year, string? paymentMethod, string? note, CancellationToken cancellationToken = default);
+        Task<int> MarkPeriodPaidAsync(int month, int year, CancellationToken cancellationToken = default);
         int CountWorkingDays(int month, int year);
     }
 
@@ -141,7 +142,7 @@ namespace datn.Services
                 .Include(s => s.Employee)
                 .FirstOrDefaultAsync(s => s.EmployeeId == employeeId && s.PayrollPeriodId == period.Id, cancellationToken);
 
-            if (salary == null || salary.Status == SalaryStatus.Cancelled)
+            if (salary == null || salary.Status != SalaryStatus.Locked)
             {
                 return false;
             }
@@ -150,7 +151,6 @@ namespace datn.Services
             salary.PaidAtUtc = DateTime.UtcNow;
             salary.PaymentMethod = string.IsNullOrWhiteSpace(paymentMethod) ? "Khác" : paymentMethod.Trim();
             salary.PaymentNote = note?.Trim();
-            salary.LockedAtUtc ??= DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
             await _notificationService.SendToUserAsync(
@@ -161,6 +161,43 @@ namespace datn.Services
                 "/TeacherSalary/MySalary");
 
             return true;
+        }
+
+        public async Task<int> MarkPeriodPaidAsync(int month, int year, CancellationToken cancellationToken = default)
+        {
+            var period = await EnsurePeriodAsync(month, year);
+            var salaries = await _context.Salaries
+                .Include(s => s.Employee)
+                .Where(s => s.PayrollPeriodId == period.Id && s.Status == SalaryStatus.Locked)
+                .ToListAsync(cancellationToken);
+
+            if (salaries.Count == 0)
+            {
+                return 0;
+            }
+
+            var now = DateTime.UtcNow;
+            foreach (var salary in salaries)
+            {
+                salary.Status = SalaryStatus.Paid;
+                salary.PaidAtUtc = now;
+                salary.PaymentMethod = "Chuyển khoản";
+                salary.PaymentNote = null;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            foreach (var salary in salaries)
+            {
+                await _notificationService.SendToUserAsync(
+                    salary.Employee.AccountId,
+                    $"Lương tháng {month:D2}/{year} đã được thanh toán",
+                    $"Lương tháng {month:D2}/{year} của bạn đã được ghi nhận thanh toán qua {salary.PaymentMethod}.",
+                    "success",
+                    "/TeacherSalary/MySalary");
+            }
+
+            return salaries.Count;
         }
 
         public int CountWorkingDays(int month, int year)

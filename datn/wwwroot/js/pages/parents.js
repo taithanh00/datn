@@ -430,8 +430,8 @@ async function openEditPanel(id) {
     document.getElementById("passwordFieldGroup").style.display = "none"; // Hide on edit to prevent accidental changes
     document.getElementById("password").value = "******";
 
-    document.getElementById("panelTitle").textContent =
-      `Sửa thông tin - ${p.firstName} ${p.lastName}`;
+      document.getElementById("panelTitle").textContent =
+          `Sửa thông tin - ${p.lastName} ${p.firstName}`;
     
     currentParentIsActive = p.isActive;
     const actionBtn = document.getElementById("deleteParentBtn");

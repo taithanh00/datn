@@ -22,7 +22,7 @@ namespace datn.Data
                 {
                     Username = "admin",
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("Thanhbinh24!"),
-                    Email = "admin@senhong.edu.vn",
+                    Email = "thanhbinhngh@gmail.com",
                     RoleId = 1,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
@@ -36,8 +36,8 @@ namespace datn.Data
                 var adminEmployee = new Employee
                 {
                     AccountId = adminAccount.Id,
-                    FirstName = "Hệ thống",
-                    LastName = "Quản trị",
+                    FirstName = "Nguyễn Hồ",
+                    LastName = "Thanh Bình",
                     IsActive = true
                 };
 

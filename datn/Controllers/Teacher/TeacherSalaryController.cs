@@ -236,10 +236,37 @@ namespace datn.Controllers.Teacher
                 model.PaymentMethod,
                 model.Note);
 
+            if (!success)
+                return Json(new { success = false, message = "Vui lòng chốt lương giáo viên trước khi ghi nhận đã trả." });
+
             return Json(new
             {
                 success,
                 message = success ? "Đã ghi nhận thanh toán và gửi thông báo cho giáo viên." : "Không thể ghi nhận thanh toán."
+            });
+        }
+
+        [Authorize(Roles = "Manager")]
+        [HttpPost("Api/MarkPaidAll")]
+        public async Task<IActionResult> MarkPaidAll([FromBody] PayrollRequestDto model)
+        {
+            var error = ValidatePeriod(model.Month, model.Year);
+            if (error != null) return Json(new { success = false, message = error });
+
+            var count = await _payrollService.MarkPeriodPaidAsync(model.Month, model.Year);
+            if (count == 0)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Không có dòng lương đã chốt nào để ghi nhận thanh toán."
+                });
+            }
+
+            return Json(new
+            {
+                success = true,
+                message = $"Đã ghi nhận thanh toán cho {count} dòng lương đã chốt."
             });
         }
 

@@ -46,7 +46,7 @@ namespace datn.Controllers.Manager
             var targetMonth = month ?? nowVnt.Month;
             var targetYear = year ?? nowVnt.Year;
 
-            var data = await _context.WorkAttendances
+            var records = await _context.WorkAttendances
                 .Where(w => w.Status == "Pending"
                             && w.Date.Month == targetMonth
                             && w.Date.Year == targetYear)
@@ -58,14 +58,28 @@ namespace datn.Controllers.Manager
                     employeeName = w.Employee.LastName + " " + w.Employee.FirstName,
                     date = w.Date.ToString("dd/MM/yyyy"),
                     rawDate = w.Date.ToString("yyyy-MM-dd"),
-                    checkInAt = w.CheckInAtUtc,
-                    checkOutAt = w.CheckOutAtUtc,
+                    w.CheckInAtUtc,
+                    w.CheckOutAtUtc,
                     isLate = w.IsLate,
                     penaltyAmount = w.PenaltyAmount,
                     workedMinutes = w.WorkedMinutes,
                     workUnit = w.WorkUnit
                 })
                 .ToListAsync();
+
+            var data = records.Select(w => new
+            {
+                w.employeeId,
+                w.employeeName,
+                w.date,
+                w.rawDate,
+                checkInAt = FormatVntTime(w.CheckInAtUtc),
+                checkOutAt = FormatVntTime(w.CheckOutAtUtc),
+                w.isLate,
+                w.penaltyAmount,
+                w.workedMinutes,
+                w.workUnit
+            });
 
             return Json(new { success = true, data });
         }
@@ -137,8 +151,8 @@ namespace datn.Controllers.Manager
                 employeeName = r.employeeName,
                 date = r.Date.ToString("dd/MM/yyyy"),
                 rawDate = r.Date.ToString("yyyy-MM-dd"),
-                checkInAt = r.CheckInAtUtc,
-                checkOutAt = r.CheckOutAtUtc,
+                checkInAt = FormatVntTime(r.CheckInAtUtc),
+                checkOutAt = FormatVntTime(r.CheckOutAtUtc),
                 status = r.Status,
                 isLate = r.IsLate,
                 penaltyAmount = r.PenaltyAmount,
@@ -149,7 +163,7 @@ namespace datn.Controllers.Manager
                 reviewerName = r.ReviewedByEmployeeId.HasValue && reviewers.TryGetValue(r.ReviewedByEmployeeId.Value, out var reviewerName)
                     ? reviewerName
                     : "Hệ thống",
-                reviewedAt = r.ReviewedAtUtc
+                reviewedAt = FormatVntDateTime(r.ReviewedAtUtc)
             });
 
             return Json(new { success = true, data });
@@ -337,7 +351,7 @@ namespace datn.Controllers.Manager
                 reviewerName = r.ReviewedByEmployeeId.HasValue && reviewers.TryGetValue(r.ReviewedByEmployeeId.Value, out var reviewerName)
                     ? reviewerName
                     : "Hệ thống",
-                reviewedAt = r.ReviewedAtUtc,
+                reviewedAt = FormatVntDateTime(r.ReviewedAtUtc),
                 createdAt = r.CreatedAtUtc
             });
 
@@ -568,6 +582,20 @@ namespace datn.Controllers.Manager
                 return "Rejected";
 
             return null;
+        }
+
+        private static string? FormatVntTime(DateTime? utc)
+        {
+            return utc.HasValue
+                ? WorkAttendanceCalculator.ToVnt(utc.Value).ToString("HH:mm")
+                : null;
+        }
+
+        private static string? FormatVntDateTime(DateTime? utc)
+        {
+            return utc.HasValue
+                ? WorkAttendanceCalculator.ToVnt(utc.Value).ToString("dd/MM/yyyy HH:mm")
+                : null;
         }
 
         public class AttendanceDecisionDto

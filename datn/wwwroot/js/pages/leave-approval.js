@@ -7,18 +7,24 @@ let activeHistoryType = "attendance";
 let historySearchTimer = null;
 
 const fmtMoney = (value) => `${new Intl.NumberFormat("vi-VN").format(value || 0)} đ`;
-const fmtTime = (value) => value
-    ? new Date(value).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
-    : "--:--";
-const fmtDateTime = (value) => value
-    ? new Date(value).toLocaleString("vi-VN", {
+const fmtTime = (value) => {
+    if (!value) return "--:--";
+    if (typeof value === "string" && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
+
+    return new Date(value).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+};
+const fmtDateTime = (value) => {
+    if (!value) return "--";
+    if (typeof value === "string" && /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}/.test(value)) return value;
+
+    return new Date(value).toLocaleString("vi-VN", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit"
-    })
-    : "--";
+    });
+};
 
 function escapeHtml(value) {
     return String(value ?? "")

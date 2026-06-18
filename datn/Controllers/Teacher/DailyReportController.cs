@@ -30,6 +30,7 @@ namespace datn.Controllers.Teacher
 
         [Authorize(Policy = "EmployeeOnly")]
         [HttpGet("/Employee/ClassReports")]
+        [HttpGet("/DailyReport/ClassReports")]
         public IActionResult ClassReports()
         {
             ViewData["Title"] = "Nhật ký lớp học";

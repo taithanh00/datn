@@ -28,6 +28,12 @@
             <div class="grid grid-3">
                 @foreach (var teacher in Model)
                 {
+                    var hasSpecialty = !string.IsNullOrWhiteSpace(teacher.Specialty);
+                    var hasQualifications = !string.IsNullOrWhiteSpace(teacher.Qualifications);
+                    var hasExperience = !string.IsNullOrWhiteSpace(teacher.Experience);
+                    var hasBio = !string.IsNullOrWhiteSpace(teacher.Bio);
+                    var hasPhilosophy = !string.IsNullOrWhiteSpace(teacher.Philosophy);
+
                     <div class="program-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
                         <div style="position: relative; height: 300px; overflow: hidden;">
                             <img src="@(string.IsNullOrEmpty(teacher.AvatarPath) ? "/images/lion_blue.png" : teacher.AvatarPath)" 
@@ -37,26 +43,44 @@
                                  onmouseout="this.style.transform='scale(1)'" />
                             <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(233,30,99,0.9), transparent); padding: 20px; color: white;">
                                 <h3 style="margin: 0; font-size: 1.25rem;">@teacher.FullName</h3>
-                                <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">@teacher.Specialty</p>
+                                @if (hasSpecialty)
+                                {
+                                    <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">@teacher.Specialty</p>
+                                }
                             </div>
                         </div>
                         <div style="padding: 24px; flex-grow: 1; text-align: left;">
-                            <div style="margin-bottom: 16px;">
-                                <span style="background: var(--primary-light); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">
-                                    <i class="fa-solid fa-graduation-cap"></i> @teacher.Qualifications
-                                </span>
-                                <span style="background: #f1f5f9; color: #475569; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; margin-left: 8px;">
-                                    <i class="fa-solid fa-briefcase"></i> @teacher.Experience
-                                </span>
-                            </div>
-                            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
-                                "@teacher.Bio"
-                            </p>
-                            <div style="border-top: 1px dashed #e2e8f0; padding-top: 15px;">
-                                <p style="font-size: 0.85rem; font-style: italic; color: var(--primary);">
-                                    <strong>Triết lý:</strong> @teacher.Philosophy
+                            @if (hasQualifications || hasExperience)
+                            {
+                                <div style="margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px;">
+                                    @if (hasQualifications)
+                                    {
+                                        <span style="background: var(--primary-light); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">
+                                            <i class="fa-solid fa-graduation-cap"></i> @teacher.Qualifications
+                                        </span>
+                                    }
+                                    @if (hasExperience)
+                                    {
+                                        <span style="background: #f1f5f9; color: #475569; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">
+                                            <i class="fa-solid fa-briefcase"></i> @teacher.Experience
+                                        </span>
+                                    }
+                                </div>
+                            }
+                            @if (hasBio)
+                            {
+                                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin-bottom: @(hasPhilosophy ? "20px" : "0");">
+                                    "@teacher.Bio"
                                 </p>
-                            </div>
+                            }
+                            @if (hasPhilosophy)
+                            {
+                                <div style="border-top: 1px dashed #e2e8f0; padding-top: 15px;">
+                                    <p style="font-size: 0.85rem; font-style: italic; color: var(--primary); margin: 0;">
+                                        <strong>Triết lý:</strong> @teacher.Philosophy
+                                    </p>
+                                </div>
+                            }
                         </div>
                     </div>
                 }
